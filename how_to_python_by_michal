@@ -1,0 +1,55 @@
+Python jest interpretowanym językiem programowania wysokiego poziomu, generalnie funkcjonuje jako język skryptowy. Czyli 1. nie kompiluje się kodu nijak, tylko 2. trzeba mieć "pythona" (czyli interpreter) zainstalowanego na kompie. Przez to jest multiplatformowy (o tyle o ile cokolwiek jest). 
+
+Używane są dwie wersje, 2.* i 3.*, tzn jest np i 3.4 i 3.6, ale zasadnicze różnice na naszym poziomie są tylko między wersjami 2 a 3. My używamy 3.5, bo jesteśmy kurde nowocześni, a co.
+
+Środowisko do pracy jest dowolne, tzn. każdy notatnik, ale rekomenduje PyCharma, jak wszystko od intellij. Z linii komend program pythonowy odpalamy za pomocą:
+
+python3 nazwaprogramu.py
+
+tak, nazwy plików pythonowych kończą się na .py . I to jest jeden z dwóch podstawowych sposobów pracy z pythonem, czyli piszemy skrypt, zapisujemy jako dupa.py i odpalamy. Inaczej można, jeśli chcemy pracować z real-time interpreterem to po prostu odpalamy python3 w linii komend, wyskakuje nam 
+>>>
+i możemy pisać, i patrzeć co sie dzieje xd
+wiadomo, to bardziej dla nauki czy debuga.
+
+
+No i teraz o składni
+
+1. silnie dynamicznie typowany, czyli NIE określamy typu zmiennej (nie piszemy int, float itd), ale jak już RAZ OKREŚLIMY TYP to nie da się go zmienić. To implikuje, że nie można sobie zrobić pustej zmiennej, zawsze musi mieć jakąś wartość. Nawet jeśli będzie to None, czyli takie pythonowe NULL.
+
+2. Wszystko jest obiektem, więc też prawie wszytko ma wbudowane metody, ktore sobie gdzieś tam po jakiejś klasie object odziedziczyło. Podobnie jak w javie. ALE UWAGA: to nie znaczy, że to jest język stricte obiektowy - można w nim też pisać np funkcyjnie, ma dużo ułatwień w tym kierunku.
+
+3. Ma garbage collectora, więc nie trzeba się jakoś mocno martwić pamięcią
+
+4. jest CZYTELNY:
+są wcięcia zamiast nawiasów, co sprawia , że prawie każdego kod wygląda tak samo. I łatwo się czyta. Kilka konstrukcji:
+
+x = 5
+if x < 3:
+    print('dupa')
+	
+co warto zauważyć: 
+1.musiałem przypisać jakąś wartość dla x'a
+2.jeżeli nie trzeba to nie ma nawiasów okrągłych(ale jeśli bym je zrobił, to nie będzie błąd, tylko niepotrzebna redundancja)
+3.blok instrukcji jest wcięty 4 spacjami (skonfigurujcie sobie tak, żeby naciśnięcie TAB robiło 4 spacje)
+4.wyświetlamy na ekran przez print(), w python 2 zamiast tego jest słowo kluczowe print
+5.nie ma znaczenia , czy ' ' czy " " , bo w pythonie nie ma charów, są tylko stringi.
+
+inne funkcje wbudowane które warto znać:
+abs(), enumerate(), float(), int(), input(), open(), range(), set()
+
+ważne typy danych: (tak, są typy danych, ale one siedzą pod spodem 😜 )
+liczbowe float i int, string, list, tuple, dict i set
+tak naprawdę nic więcej nie jest istotne na tym poziomie float i int wiadomo, string też, można go indeksować , np:
+
+>>> a = 'dupadupa'
+>>> a[0]
+d
+
+lista to jest dynamiczna tablica wskaznikow na obiekty 😜 brzmi smiesznie, ale to superprosta sprawa. najwazniejsze, ze mozna w niej trzymać obiekty dowolnego typu
+
+>>> lista = [1, 2, 3, 'a', 'dupa']
+>>> lista [3]
+'a'
+
+o reszcie napiszę wam wieczorem, w międzyczasie proponuję usiąść, napisać helloworld, potem jakąś pętlę liczącą powtórzenia, potem zamieścic to w funkcji, potem tę funkcję przerobić na metodę i jesteście programistami pythona 😛
+na koniec możecie wysłąć to tu a @Filip wam pokaże, jak to zrobić w jednej linii XD
