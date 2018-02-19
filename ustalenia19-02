@@ -1,0 +1,27 @@
+19.02.18 r.
+
+Wstepne ustalenia i materialy:
+
+Trello do wspolpracy - https://trello.com
+Zalozcie sobie konto
+Jedna osoba niech zarzadza rozlokowaniem zadan i ich przestrzeganiem, nie musi byc project leader (rzeklbym ze nawet nie powinien), zadaniem tej osoby byloby pilnowanie zadan i ich terminow
+Zadania sobie sami wspolnie przydzielacie na najblizszy czas
+Tez sami powinniscie dojsc do tego jakie zadania sobie wpisywac, sugeruje krotkie 1-2 dniowe z mierzalnym skutkiem zeby nikt sie nie pogubil
+Narzedzie jest mysle, bardziej dla Panstwa, ale tez chcialbym widziec jak wyglada postep prac
+
+Wybor narzedzia koncowego - Tensorflow, Pytorch, Caffe, Caffe2 (tutaj jest tez cala otoczka wrapperow takich jak Chainer, Keras, Tensorlayer)
+Reszta narzedzi to juz wasza sprawa
+Sugeruje zrobic requirements.txt pozniej i tam wszystkie zaleznosci wrzucac
+Do poczytania i przejrzenia
+www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html
+https://www.youtube.com/watch?v=13E-kQ0DpWw
+http://rll.berkeley.edu/deeprlcourse/
+https://arxiv.org/pdf/1708.05866.pdf
+https://deepmind.com/blog/deep-reinforcement-learning/
+https://medium.freecodecamp.org/deep-reinforcement-learning-where-to-start-291fb0058c01
+Programistyczne
+Sugeruje sobie sprawdzic w domu, ewentualnie zanotowac braki i niezrozumienie
+http://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
+https://gym.openai.com/docs/
+https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-0-q-learning-with-tables-and-neural-networks-d195264329d0
+Pozdrawiam
