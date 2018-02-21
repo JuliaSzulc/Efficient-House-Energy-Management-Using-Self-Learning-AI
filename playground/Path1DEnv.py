@@ -2,7 +2,7 @@ import random
 
 ##################
 
-# 1D Path Walk Enviroment 1D
+# 1D Path Walk Enviroment
 
 # Parameters:
 # - size = lenght of the state space
@@ -15,7 +15,7 @@ import random
 ##################
 
 
-class 1DPathEnv:
+class Path1DEnv:
     def __init__(self, is_cyclic, size, terminals):
         self.is_cyclic = is_cyclic
         self.size = size
@@ -27,13 +27,19 @@ class 1DPathEnv:
         """Returns single episode generated with given policy. episode = list of tuples (s_i, a_i, r_(i-1))"""
 
         episode = list()
-        state = random.choice(list(set(range(0, self.size)).difference(set(self.terminals))))
         reward, terminal = 0, False
+
+        # first random state, action for this state and 0 reward for previous timeframe
+        state = random.choice(list(set(range(0, self.size)).difference(set(self.terminals))))
+        action = policy(state)
+        episode.append((state, action, reward))
+        # append next states - including the timeframe with terminal state
         while not terminal:
-            action = policy(state)
-            episode.append((state, action, reward))
             reward, new_state, terminal = self.make_action(state, action)
             state = new_state
+            action = policy(state)
+            episode.append((state, action, reward))
+
         return episode
 
     def make_action(self, state, action):
