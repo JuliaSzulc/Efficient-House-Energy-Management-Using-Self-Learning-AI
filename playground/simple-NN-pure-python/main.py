@@ -7,27 +7,27 @@ random.seed(1)
 
 
 # inicjalizacja wszystkiego
-l_rate = 0.01
-set_size = 10000
+l_rate = 0.02
+set_size = 100000
 X, Y = datasets.make_moons(set_size, noise=0)
 split_ratio = 0.90
 train_set_size = int(split_ratio * set_size)
 trainX, trainY = X[:train_set_size], Y[:train_set_size]
 testX, testY = X[train_set_size:], Y[train_set_size:]
 
-l_sizes = (2, 4, 2)
-network = Network(l_sizes)
+layer_sizes = (2, 4, 2)
+network = Network(layer_sizes)
 
 # uczenie sieci
 print("Learning the net...")
 for index, x in enumerate(trainX):
-    if index % 1000 == 0:
-        print("{0:.2f} %".format(round(index/train_set_size * 100, 2)))
+    if index % set_size // 10 == 0:
+        print("{:2}%".format(index * 10))
     zs, activations = network.forward(x)
-    y_true = [0] * l_sizes[-1]
+    y_true = [0] * layer_sizes[-1]
     # zamiast y które wskazuje klasę, tworzę wektor mówiący o oczekiwanej wartości dla danego output neorun
     y_true[trainY[index]] = 1
-    network.backprop(zs, activations, y_true, network.tanh_derivative, l_rate)
+    network.backprop(zs, activations, y_true, l_rate)
 
 print("Learning done.")
 # ewaluacja na zbiorze testowym
@@ -41,3 +41,4 @@ for index, x in enumerate(testX):
 
 print("Testing done. Score:")
 print(accuracy_sum / len(testX))
+
