@@ -1,7 +1,8 @@
 from random import randrange
 from math import tanh
+from collections import defaultdict
 import random
-random.seed(1)
+
 
 
 class Network:
@@ -18,7 +19,7 @@ class Network:
         """
         self.neurons_on_layer = layer_sizes
         self.num_layers = len(layer_sizes)
-        self.num_hidden = self.num_layers - 2
+        self.output_layer = self.num_layers - 1
         self.weights = [[]] # empty list for input layer's neurons!
         self.biases = [[]] # empty list for input layer's neurons!
         self.init_weights_biases()
@@ -63,11 +64,13 @@ class Network:
         """Obliczenie wyjść (aktywacji) z neuronow
 
         dla zadanego wejscia, przy ustalonych wagach i biasach
-        x : wektor danych wejsciowych
+        :param x: wektor danych wejsciowych
+        :return all_z: # wektor Zetów; z to wazona suma + bias w kazdym neuronie
+        :return all_activations: # "wyjścia" z neuronow.
         """
 
-        all_activations = [x]   # "wyjścia" z neuronow. x jest "wyjsciem" z warstwy 0
-        all_z = [[]]             # wektor Zetów; z to wazona suma + bias w kazdym neuronie
+        all_activations = [x]   # x jest "wyjsciem" z warstwy 0
+        all_z = [[]]
 
         for layer in range(1, self.num_layers):
             a_layer = []
@@ -97,63 +100,42 @@ class Network:
         :param l_rate: "predkosc uczenia"
         """
 
-        # TODO: backprop for any num of layers. now for 3 layers
+        gradient = {'weights': defaultdict(list),
+                    'biases': defaultdict(list)}
 
-        # output layer gradients
-        # NOTE: this part works for any number of hidden layers because of 'minus indexing'
-        # TODO: maybe we can do 1 loop for output and hidden layers? or maybe not
-        ob_gradients = []
-        ow_gradients = []
-        # for every neuron in output layer
-        for neuron in range(self.neurons_on_layer[-1]):
-            # calculate delta - equation in the blog post
-            # first term is derivative of our cost function
-            # Note: all_z[-1] == all_z[1] for 3 layers, because {len(all_z) = len(all_activations)-1},
-            # because we don't have all_z for input layer
-            delta = (all_activations[-1][neuron] - y_true[neuron]) * self.activ_fn_derivative(all_z[-1][neuron])
-            # grad for output layer biases is just the delta
-            ob_gradients.append(delta)
+        for layer in range(self.num_layers - 1, 0, -1):
+            for neuron in range(self.neurons_on_layer[layer]):
+                if layer == self.output_layer:
+                    # first term is derivative of our cost function
+                    delta = (all_activations[layer][neuron] - y_true[neuron]) *\
+                            self.activ_fn_derivative(all_z[layer][neuron])
 
-            # grad for a certain weight is the delta times activation that 'this weight weights'
-            # Note: this fragment works for any num of hidden layers because of '-2' indexing
-            neuron_w_gradients = []
-            for prev_node in range(self.neurons_on_layer[-2]):
-                neuron_w_gradients.append(delta * all_activations[-2][prev_node])
-            ow_gradients.append(neuron_w_gradients)
+                else:   # hidden layers
+                    # delta = tanh_derivative * sum[for each neuron in layer+1](delta_j * weight_jk)
+                    # where weight_jk is the one between current neuron k and neuron j from layer+1
+                    # delta_j is delta for the neuron j from layer+1
+                    # gradient['biases'] is the same as delta_j so we use it instead of remembering deltas
+                    sum_of_weighted_output_error = 0
+                    for next_neuron in range(self.neurons_on_layer[layer + 1]):
+                        sum_of_weighted_output_error += gradient['biases'][layer + 1][0] *\
+                                                        self.weights[layer + 1][next_neuron][neuron]
 
-        # hidden layer
-        # TODO: try to make a loop to make it work for any number of hidden layers
-        # TODO: save gradients to one list so you can iterate by it in the last loop of the function
-        hb_gradients = []
-        hw_gradients = []
+                    delta = sum_of_weighted_output_error * self.activ_fn_derivative(all_z[layer][neuron])
 
-        layer = 1
-        for neuron_k in range(self.neurons_on_layer[layer]):
-            # calculate delta.
-            # delta = tanh_derivative * sum[for each neuron in layer+1](delta_j * weight_jk)
-            # where weight_jk is the one between current neuron k and neuron j from layer+1
-            # delta_j is delta for the neuron j from layer+1
-            sum_of_weighted_output_error = 0
-            for neuron_j in range(self.neurons_on_layer[layer + 1]):
-                # ob_gradients[0] is the same as delta_j so we use it instead of remembering deltas
-                sum_of_weighted_output_error += ob_gradients[0] * self.weights[layer + 1][neuron_j][neuron_k]
-            delta = sum_of_weighted_output_error * self.activ_fn_derivative(all_z[layer][neuron_k])
-            hb_gradients.append(delta)
+                # grad for output layer biases is just the delta
+                gradient['biases'][layer].append(delta)
 
-            # gradients of hidden weights - see blog post. We use the current delta and activations from last layer
-            neuron_hw_gradients = []
-            for prev_node in range(self.neurons_on_layer[layer - 1]):
-                neuron_hw_gradients.append(delta * all_activations[layer - 1][prev_node])
-            hw_gradients.append(neuron_hw_gradients)
-
-        w_gradients = [[None], hw_gradients, ow_gradients]
-        b_gradients = [[None], hb_gradients, ob_gradients]
+                weights_partial_derivatives = []
+                # grad for a certain weight is the delta times activation that 'this weight weights'
+                for prev_neuron in range(self.neurons_on_layer[layer - 1]):
+                    weights_partial_derivatives.append(delta * all_activations[layer - 1][prev_neuron])
+                gradient['weights'][layer].append(weights_partial_derivatives)
 
         # update parameters
         for layer in range(1, self.num_layers):
             for neuron in range(self.neurons_on_layer[layer]):
                 # update bias
-                self.biases[layer][neuron] -= l_rate * b_gradients[layer][neuron]
+                self.biases[layer][neuron] -= l_rate * gradient['biases'][layer][neuron]
                 # update weights
                 for w in range(self.neurons_on_layer[layer - 1]):
-                    self.weights[layer][neuron][w] -= l_rate * w_gradients[layer][neuron][w]
+                    self.weights[layer][neuron][w] -= l_rate * gradient['weights'][layer][neuron][w]
