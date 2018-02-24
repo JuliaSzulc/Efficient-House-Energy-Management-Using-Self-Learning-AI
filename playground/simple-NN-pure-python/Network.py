@@ -1,8 +1,6 @@
-from random import randrange
 from math import tanh
 from collections import defaultdict
 import random
-
 
 
 class Network:
@@ -10,9 +8,10 @@ class Network:
 
     Ta siec jest napisana w sposob sekwencyjny (petle), wiec jest na maxa wolna
     w obliczeniach. Nie bez powodu normalnie wykorzystuje sie macierze. Ale tak
-     jest poniekad latwiej zrozumiec
+     jest poniekad latwiej zrozumiec feed-forward i backpropagation.
     """
 
+    # TODO: split file into clear code file and jupyter notebook with comments
     def __init__(self, layer_sizes=(2, 4, 2)):
         """Inicjalizacja parametrow
         :param layer_sizes: ilosc neuronow w kazdej warstwie
@@ -20,8 +19,8 @@ class Network:
         self.neurons_on_layer = layer_sizes
         self.num_layers = len(layer_sizes)
         self.output_layer = self.num_layers - 1
-        self.weights = [[]] # empty list for input layer's neurons!
-        self.biases = [[]] # empty list for input layer's neurons!
+        self.weights = [[]]  # empty list for input layer's neurons!
+        self.biases = [[]]  # empty list for input layer's neurons!
         self.init_weights_biases()
 
     def init_weights_biases(self):
@@ -134,8 +133,6 @@ class Network:
         # update parameters
         for layer in range(1, self.num_layers):
             for neuron in range(self.neurons_on_layer[layer]):
-                # update bias
                 self.biases[layer][neuron] -= l_rate * gradient['biases'][layer][neuron]
-                # update weights
                 for w in range(self.neurons_on_layer[layer - 1]):
                     self.weights[layer][neuron][w] -= l_rate * gradient['weights'][layer][neuron][w]
