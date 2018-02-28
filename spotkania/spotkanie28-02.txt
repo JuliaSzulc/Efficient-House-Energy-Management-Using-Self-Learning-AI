@@ -1,0 +1,38 @@
+Budynek:
+- parterowy, żeby nie bawić się w niepotrzebne zależności np. temp. od wysokości
+- przestrzeń 2D
+- na początek jeden punkt pomiaru w centrum budynku
+- czujniki zew. i wew.
+
+Zadania agenta:
+- zmiana jasności światła w ciągu dnia
+- zmiana ustawień termoregulatora w zależności od temperatury zewnętrznej
+
+Ewentualne future features:
+- więcej punktów pomiarowych
+- pomieszczenia (sensory przy oknach)
+- tryby pracy (np. oszczędzanie energii)
+- tryb pracy w zależności od pór roku
+- deszcz i hałas wpływają na mniejszą nagrodę lub karę za otwarcie okien
+- manualne ustawienia?
+
+Czynniki:
+- temperatura zewnętrzna
+- nasłonecznienie (światło)
+
+Na zużycie energii wpływają:
+- ogrzewanie
+- światło
+
+Funkcja nagrody:
+- -zużycie energii
+- komfort użytkownika (różnica między obecnym stanem a "poziomem komfortu")
+- różnica między temperaturą wymaganą a obecną
+- światło (nie może być za ciemno)
+
+Problemy i rzeczy do zrobienia/ustalenia:
+- interwały pomiędzy pomiarami
+- optymalne wartości jasności, temperatury itd.
+
+Kluczowe jest, żeby agent nauczył się wybierać pomiędzy np. odpaleniem klimy a odsłonięciem rolet w zależności od zużywania energii.
+Agent będzie wykorzystywał dane zarówno z sensorów wewnętrznych, jak i zewnętrznych (temp. zewnętrzna)
