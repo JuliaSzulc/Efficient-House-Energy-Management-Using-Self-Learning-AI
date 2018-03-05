@@ -3,8 +3,6 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn import datasets
 import torch.nn.functional as F
 import torch
-import numpy as np
-
 
 class MoonsDataset(Dataset):
     """Random Moons dataset."""
@@ -21,7 +19,7 @@ class MoonsDataset(Dataset):
         return len(self.X)
 
     def __getitem__(self, idx):
-        return torch.FloatTensor(self.X), torch.FloatTensor(self.Y)
+        return torch.FloatTensor(self.X[idx]), torch.FloatTensor(self.Y[idx])
 
 
 class Net(nn.Module):

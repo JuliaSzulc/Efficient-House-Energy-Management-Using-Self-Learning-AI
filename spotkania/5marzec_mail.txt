@@ -1,0 +1,19 @@
+26.02
+- 15-20 minutowe rozmowy dla podsumowania - raz na tydzien. 
+- Regularne spotkania zespolu (wewnetrznie) - zespoł sam ustala forme oraz sposób spotkań. Cel: wyznaczenie strategii i celów w zespole, podział obowiązków
+- Trello do wyznaczania zadan (1 osoba odpowiedzialna za egzekwowanie zadan)
+- Github zespołowy
+- ustalenie środowiska testowego (wzorowane na Ai.gym)
+
+5.03 
+- Ustalony wstępnie plan środowiska testowego oraz jego kształt
+- Konieczność ugenerycznienia środowiska w celu możliwości dodawania nowych elementów wpływających na środowisko zewnętrzne, wewnętrzne oraz podejmowane decyzje przez agenta
+- Mój github: https://github.com/stihl1210
+- dekorelacja danych testowych/treningowych - przemyślenie przed generowaniem pogody, odczytów żeby były jakoś wiarygodne. Warto spojrzec na istniejace implementacje, podejścia
+
+Chciałbym żeby diagram klas/encji był też elementem dokumentacji. Dlatego sugeruję dobrze przemyśleć przed implementacją. 
+
+Pozdrawiam,
+
+Rafał
+
