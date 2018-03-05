@@ -1,6 +1,12 @@
 # RL-for-decission-process
 ## Sources and links
 
+### Environment modelling
+
+- [Misja dla kogoś](www.nic.pl)
+
+Przydałyby się jakiekowleik podstawowe materiały o tym, jak modelować środowiska, głównie z uwzględnieniem temperatury, czy to ogólnie, czy w kontekście RL.
+
 ### Python
 
 - [Codewars] (https://www.codewars.com/)
@@ -23,6 +29,8 @@ Tak jak mówiłem te notatki to fajny skrypt zagadnien z wykładu, wszystko zebr
 
 Wiele algorytmów RL na licencji pozwalającej na commercial use, te z wykładu i też bardziej zaawansowane, z użyciem deep learning między innymi. Dobrze jest sobie co jakiś czas analizować kod algorytmów, które poznało się na wykładzie.
 
+- [Awesome RL - zbiór wielu wielu jakościowych źródeł o RL](https://github.com/aikorea/awesome-rl)
+
 - [RL Intro Holy Grail Book](http://incompleteideas.net/book/bookdraft2018jan1.pdf)
 
 Do poczytania po wykładzie lub jako uzupełnienie, wykład opiera się silnie na tej książce. Co warto sprawdzić - na końcach tematów/rozdziałów są często zadania i teoretyczne i praktyczne.
@@ -34,6 +42,15 @@ Blog post, trochę innych intuicji do różnego rodzaju metod, jego historia (od
 - [OpenAI Gym repo](https://github.com/openai/gym)
 
 Środowiska do nauki agentów, od prostych na których można ćwiczyć algorytmy RL, po gry atari
+
+#### Q-Learning Double Q-Learning, Deep Double Q-Learning
+
+- [Q-Learning - jak i dlaczego działa? (Jeżeli rozumiesz, to powinieneś umieć wytłumaczyć czym to się różni od SARSA)](https://www.quora.com/How-does-Q-learning-work-1)
+
+- [Deep Double Q Learning - Oryginalny paper](https://arxiv.org/pdf/1509.06461.pdf)
+
+- [Reddit thread, w którym twórca tłumaczy działanie i wyjaśnia motywację](https://www.reddit.com/r/MachineLearning/comments/57ec9z/discussion_is_my_understanding_of_double/)
+
 
 ### Neural Networks
 
