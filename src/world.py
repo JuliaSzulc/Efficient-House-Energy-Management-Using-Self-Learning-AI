@@ -12,7 +12,7 @@ class World:
         self.time_step = timedelta(minutes=60)
         self.stop_date = self.start_date + timedelta(days = 1)
         
-        self.compute_daytime()
+        self._compute_daytime()
 
         # TODO: weather settings
         self.weather = dict()
@@ -22,7 +22,7 @@ class World:
     def register(self, listener):
         self.listeners.append(listener)
 
-    def update_listeners(self):
+    def _update_listeners(self):
         for listener in self.listeners:
             try:
                 listener.update(self.daytime, self.weather)
@@ -36,16 +36,16 @@ class World:
             raise ValueError('end of simulation')
         
         self.current_date += self.time_step
-        self.compute_daytime()
-        self.update_weather()
-        self.update_listeners()
+        self._compute_daytime()
+        self._update_weather()
+        self._update_listeners()
         
-    def compute_daytime(self):
+    def _compute_daytime(self):
         now = self.current_date
         midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
         self.daytime = (now - midnight).seconds // 60
 
-    def update_weather(self):
+    def _update_weather(self):
         # TODO: run all weather methods in proper order
         # and update self.weather
         pass

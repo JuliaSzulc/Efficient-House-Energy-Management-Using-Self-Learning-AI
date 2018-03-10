@@ -4,9 +4,14 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from world import World
 from listener import Listener
 from sensor_out import OutsideSensor
+from environment import HouseEnergyEnvironment 
 
+# TODO: testujac inne rzeczy niż strukturę klas (np. metody w danej klasie)
+# utwórzcie nowy plik na wzór tego. Testując strukturę, ale w wyraźnie inny 
+# sposób, utwórzcie nową klasę dziedziczącą po unittest.TestCase, a w niej 
+# metodę setUp która przygotowuje obiekty i kolejno metody testujące. 
 
-class BasicClassStructureTestCase(unittest.TestCase):
+class BasicSubjectListenerTestCase(unittest.TestCase):
     """Testing observer/listener model and basic classes structure"""
     
     def setUp(self):
@@ -37,6 +42,15 @@ class BasicClassStructureTestCase(unittest.TestCase):
                                      sensor_out.weather[key])
 
 
+class EnvironmentStructureTestCase(unittest.TestCase):
+    """Testing all environment relations"""
+
+    def setUp(self):
+        self.env = HouseEnergyEnvironment()
+
+    def test_listeners(self):
+        # TODO: make test
+        pass
     
 if __name__ == "__main__":
     unittest.main()
