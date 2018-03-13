@@ -1,15 +1,18 @@
 class Listener:
-    """Base class receiving updates from subject"""
+    """Base class receiving updates from subject
 
-    def __init__(self, subject):
-        self.subject = subject
-        subject.register(self)
+    After inheritance remember to override update() method!
 
-        self.daytime = None
-        self.weather = []
+    """
 
-    def update(self, new_daytime, new_weather):
-        # this method is called by subject
-        self.daytime = new_daytime
-        self.weather = new_weather
+    def __init__(self, subject, reference=None):
+        if not reference:
+            reference = self
+        reference.subject = subject
+        subject.register(reference)
+
+    def update(self, **kwargs):
+        print("Calling update on basic Listener, maybe you forgot to override?")
+
+
 
