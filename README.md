@@ -51,6 +51,7 @@ Blog post, trochę innych intuicji do różnego rodzaju metod, jego historia (od
 
 - [Reddit thread, w którym twórca tłumaczy działanie i wyjaśnia motywację](https://www.reddit.com/r/MachineLearning/comments/57ec9z/discussion_is_my_understanding_of_double/)
 
+- [Idealne wytłumaczenie QL / DQL wraz z pseudokodem](http://neuro.cs.ut.ee/demystifying-deep-reinforcement-learning/)
 
 ### Neural Networks
 
@@ -79,3 +80,9 @@ Repo z kodem wielu podstawowych rzeczy, które można zrobić z PyTorchem, prawd
 - [PyTorch ZeroToAll](https://drive.google.com/drive/folders/0B41Zbb4c8HVyUndGdGdJSXd5d3M)
 
 Slajdy do DL w PyTorch z minimalnym wprowadzeniem teoretycznym. Średnia jakość, ale wiedzy (i kodu) całkiem sporo.
+
+### Papers
+
+- [Continuous control with deep reinforcement learning](https://arxiv.org/abs/1509.02971)
+
+- [Prioritized Experience Replay](https://arxiv.org/abs/1511.05952)
