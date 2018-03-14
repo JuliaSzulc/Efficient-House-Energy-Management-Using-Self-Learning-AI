@@ -1,10 +1,7 @@
-from listener import Listener
-
-class OutsideSensor(Listener):
+class OutsideSensor():
     """Weather sensor on the outside of the house"""
 
-    def __init__(self, subject):
-        super().__init__(subject, self)
+    def __init__(self):
         self.daytime = None
         self.weather = None
 

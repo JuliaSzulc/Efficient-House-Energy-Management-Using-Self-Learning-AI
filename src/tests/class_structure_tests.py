@@ -2,7 +2,6 @@ import unittest
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from world import World
-from listener import Listener
 from sensor_out import OutsideSensor
 from environment import HouseEnergyEnvironment 
 from house import House
@@ -17,8 +16,11 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
     
     def setUp(self):
         self.world = World()
-        self.sensors_out = [OutsideSensor(self.world) for _ in range(3)] 
-        self.house = House(self.world)
+        self.sensors_out = [OutsideSensor() for _ in range(3)] 
+        self.house = House()
+        self.world.register(self.house)
+        for s in self.sensors_out:
+            self.world.register(s)
 
     def test_all_listeners_daytime(self):
         for step in range(3):

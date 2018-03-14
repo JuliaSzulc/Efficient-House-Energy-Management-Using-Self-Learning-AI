@@ -1,11 +1,8 @@
-from listener import Listener
+class House():
 
-
-class House(Listener):
     """Main environment part"""
 
-    def __init__(self, subject):
-        super().__init__(subject)
+    def __init__(self):
 
         self.pv_absorption = 2000 # Watt on max sun intensity. pv->photovoltaic
         self.grid_cost = 0.5 # PLN for 1kWh
