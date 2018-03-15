@@ -38,18 +38,6 @@ class House():
             'curtains_lvl' : 0 
         }
 
-        self.actions = [
-                self.switch_energy_src,
-                self.more_cooling,
-                self.less_cooling,
-                self.more_heating,
-                self.less_heating,
-                self.more_light,
-                self.less_light,
-                self.curtains_up,
-                self.curtains_down,
-                self.nop
-        ]
 
         self.daytime = None
         self.weather = None
@@ -69,50 +57,51 @@ class House():
         pass
 
     def reward(self):
-        #TODO: Given values from inside sensors, energy costs and user requests,
+        #TODO: Given values from inside sensors,energy costs and user requests,
         # calculate reward
         reward = 0
         return reward
         
 
-    # from this point, define house actions. add new actions to self.actions too
+    # from this point, define house actions. 
+    # IMPORTANT! All action names (and only them ) have to start with "action"!
 
-    def switch_energy_src(self):
+    def action_switch_energy_src(self):
         # TODO: implement me!
         pass
 
-    def more_cooling(self):
+    def action_more_cooling(self):
         #TODO: implement me!
         pass
 
-    def less_cooling(self):
+    def action_less_cooling(self):
         #TODO implement me!
         pass
     
-    def more_heating(self):
+    def action_more_heating(self):
         #TODO implement me!
         pass
     
-    def less_heating(self):
+    def action_less_heating(self):
         #TODO implement me!
         pass
     
-    def more_light(self):
+    def action_more_light(self):
         #TODO implement me!
         pass
     
-    def less_light(self):
+    def action_less_light(self):
         #TODO implement me!
         pass
     
-    def curtains_up(self):
+    def action_curtains_up(self):
         #TODO implement me!
         pass
     
-    def curtains_down(self):
+    def action_curtains_down(self):
         #TODO implement me!
         pass
     
-    def nop(self):
+    def action_nop(self):
         pass
                     

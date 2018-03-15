@@ -2,6 +2,8 @@ import unittest
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from environment import HouseEnergyEnvironment
+import types
+
 
 class BasicEnvironmentTestCase(unittest.TestCase):
     """Testing basic mocked environment usage"""
@@ -9,20 +11,27 @@ class BasicEnvironmentTestCase(unittest.TestCase):
     def setUp(self):
         self.env = HouseEnergyEnvironment()
         
-        def action(self, param):
-            self.mocked_param += param
+        def action(self):
+            self.mocked_param += 1
 
         self.env.house.mocked_param = 0
-        self.env.house.mocked_action = action 
-        self.env.house.actions.append(action)
+        self.env.house.action_mocked = types.MethodType(action, self.env.house) 
 
-    def test_action(self):
-        actions, ref = self.env.get_actions()
-        actions[-1](ref, 5) # make an action
+    def test_get_action(self):
+        actions = self.env.get_actions()
+        self.assertTrue(
+            "action_mocked" in actions,
+            "failed at getting actions!"
+        )
+
+
+    def test_make_action_in_step(self):
+        self.env.house.mocked_param = 0
+        self.env.step("action_mocked")
 
         self.assertEqual(
             self.env.house.mocked_param,
-            5,
+            1,
             "mocked action on environment failed!"
         )
 

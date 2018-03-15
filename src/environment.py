@@ -1,7 +1,7 @@
 from world import World
 from house import House
 from sensor_out import OutsideSensor
-
+import re
 
 class HouseEnergyEnvironment:
     """Endpoints / facade for RL environment.
@@ -17,9 +17,12 @@ class HouseEnergyEnvironment:
         # whole environment
         self.reset()
 
-    def step(self):
+    def step(self, action_name):
         """Step the environment by one timestep.
         
+        Args:
+            action_name(string): a name of action. For possible action names
+                                 check get_actions() method
         Returns:
             observation(type?): information about the environment.
             reward(type?): a reward for RL agent's actions.
@@ -27,8 +30,11 @@ class HouseEnergyEnvironment:
 
         """
         # TODO: type of observation, reward
-        # NOTE: action will not be passed, but simply executed 
-        # in another way (ask Filip)
+
+        # make an action in the house
+        getattr(self.house, action_name)()
+
+        # move world forward
         self.world.step()
 
         # TODO: collect observations, calculate reward 
@@ -55,20 +61,21 @@ class HouseEnergyEnvironment:
         # gui in the future?
 
     def get_actions(self):
-        """Ready to use functions for RL-agent
+        """Names of actions for RL-agent
         
         Returns:
-            actions (list of functions): A list of methods
-            house: A "self" reference, to be passed as first argument
+            actions (list of strings): A list of method names
         
-        Example of use:
+        Example:
             H = HouseEnergyEnvironment()
-            actions, param = H.get_actions()
+            actions = H.get_actions()
 
-            # to make an action:
-            actions[i](param) # ...and that's it :)
+            # to make an action use pass its name to the step method, f.e.:
+            H.step(actions[-1])
 
         """
 
-        return self.house.actions, self.house
+        return [action for action in dir(self.house) 
+                if callable(getattr(self.house, action))
+                and re.match("action*", action)] 
 
