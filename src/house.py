@@ -1,4 +1,4 @@
-class House():
+class House:
 
     """Main environment part"""
 
@@ -10,7 +10,7 @@ class House():
         self.grid_cost = 0.5  # PLN for 1kWh
         self.battery = {
             'current': 0,
-            'max': 14000  # Watt, thats as good as single Tesla PowerWall unit.
+            'max': 14000  # Watt, that's as good as single Tesla PowerWall unit.
         }
 
         self.user_requests = {
@@ -29,7 +29,7 @@ class House():
         }
 
         self.inside_sensors = {
-            'first' : {
+            'first': {
                 'temperature': 0,
                 'light': 0
             }
@@ -42,7 +42,6 @@ class House():
             'light_lvl': 0,
             'curtains_lvl': 0
         }
-
 
         self.daytime = None
         self.weather = None
@@ -57,6 +56,13 @@ class House():
         # 2. store accumulated energy (if any) in battery
         # 3. most importantly, calculate final values for inside sensor(s) 
 
+    def get_inside_params(self):
+        # This method should be called AFTER updating the house.
+        # TODO: implement me! Should return all inside sensors params with some random noise error.
+        # Note: this *has to* include: inside sensors values, current desired levels of params, current grid_cost,
+        # current battery level. Should return it as one dictionary with parameters named nicely.
+        pass
+
     def _calculate_energy_cost(self):
         # TODO: implement me!
         return 0
@@ -70,7 +76,7 @@ class House():
         To see how exponents are used, check _calculate_penalty() method
 
         Returns:
-             weighted sum of penalties
+             reward(float): weighted sum of penalties
         """
 
         w_temp, w_light, w_cost = 1.0, 1.0, 1.0
@@ -83,12 +89,14 @@ class House():
         temp_penalty = self._calculate_penalty(temp, req['temp_desired'], req['temp_epsilon'], temp_exponent)
         light_penalty = self._calculate_penalty(light, req['light_desired'], req['light_epsilon'], light_exponent)
 
-        return -1 * ((cost * w_cost) + (temp_penalty * w_temp) + (light_penalty * w_light))
+        reward = -1 * ((cost * w_cost) + (temp_penalty * w_temp) + (light_penalty * w_light))
+
+        return reward
 
     def _get_current_user_requests(self):
         """
         Returns:
-             user requests corresponding to current time (day or night)
+             requests(dict): user requests corresponding to current time (day or night)
         """
 
         if self.day_start <= self.daytime < self.day_end:
@@ -100,7 +108,8 @@ class House():
     def _calculate_penalty(current, desired, epsilon, power):
         """
         Returns:
-             penalty for difference between current and desired param (with epsilon-acceptable consideration)
+             penalty(float): penalty for difference between current and desired param
+                                                            (with epsilon-acceptable consideration)
         """
 
         difference = current - desired
@@ -117,39 +126,41 @@ class House():
         pass
 
     def action_more_cooling(self):
-        #TODO: implement me!
+        # TODO: implement me!
         pass
 
     def action_less_cooling(self):
-        #TODO implement me!
+        # TODO implement me!
         pass
     
     def action_more_heating(self):
-        #TODO implement me!
+        # TODO implement me!
         pass
     
     def action_less_heating(self):
-        #TODO implement me!
+        # TODO implement me!
         pass
     
     def action_more_light(self):
-        #TODO implement me!
+        # TODO implement me!
         pass
     
     def action_less_light(self):
-        #TODO implement me!
+        # TODO implement me!
         pass
     
     def action_curtains_up(self):
-        #TODO implement me!
+        # TODO implement me!
         pass
     
     def action_curtains_down(self):
-        #TODO implement me!
+        # TODO implement me!
         pass
     
     def action_nop(self):
         pass
+
+
 
 
                     

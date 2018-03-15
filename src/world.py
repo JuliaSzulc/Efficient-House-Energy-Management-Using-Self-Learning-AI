@@ -16,11 +16,11 @@ class World:
 
         # weather part
         self.weather = { 
-            'temp' : 0,
-            'sun' : 0,
-            'clouds' : 0,
-            'rain' : 0,
-            'wind' : 0
+            'temp': 0,
+            'sun': 0,
+            'clouds': 0,
+            'rain': 0,
+            'wind': 0
         }
 
         # other settings
@@ -37,15 +37,20 @@ class World:
                 print('listener has unimplemented method update')
                     
     def step(self):
-        """Proceed one step in time, collect info and update listeners"""
+        """Proceed one step in time, collect info and update listeners
+        Returns:
+            done(boolean): information if the state after the step is terminal (episode end).
+
+        """
 
         if self.current_date >= self.stop_date:
-            raise ValueError('end of simulation')
+            return True
         
         self.current_date += self.time_step
         self.compute_daytime()
         self._update_weather()
         self._update_listeners()
+        return False
         
     def compute_daytime(self):
         now = self.current_date

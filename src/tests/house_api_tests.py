@@ -61,7 +61,6 @@ class BasicHouseTestCase(unittest.TestCase):
         # minus because rewards are negative
         self.assertGreater(-reward_2, -reward, "Reward should be bigger, parameters are worse.")
 
-
     def test_get_current_user_requests(self):
         """
         Tests if the method returns correct user requests based on the time of the day (night/day requests)

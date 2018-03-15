@@ -24,7 +24,6 @@ class BasicEnvironmentTestCase(unittest.TestCase):
             "failed at getting actions!"
         )
 
-
     def test_make_action_in_step(self):
         self.env.house.mocked_param = 0
         self.env.step("action_mocked")
@@ -34,6 +33,7 @@ class BasicEnvironmentTestCase(unittest.TestCase):
             1,
             "mocked action on environment failed!"
         )
+
 
 if __name__ == '__main__':
     unittest.main()

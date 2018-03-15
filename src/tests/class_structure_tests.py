@@ -11,6 +11,7 @@ from house import House
 # sposób, utwórzcie nową klasę dziedziczącą po unittest.TestCase, a w niej 
 # metodę setUp która przygotowuje obiekty i kolejno metody testujące. 
 
+
 class BasicSubjectListenerTestCase(unittest.TestCase):
     """Testing observer/listener model and basic classes structure"""
     
@@ -68,7 +69,7 @@ class EnvironmentStructureTestCase(unittest.TestCase):
     def test_me(self):
         # TODO: make a test
         pass
-    
+
+
 if __name__ == "__main__":
     unittest.main()
-

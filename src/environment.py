@@ -3,6 +3,7 @@ from house import House
 from sensor_out import OutsideSensor
 import re
 
+
 class HouseEnergyEnvironment:
     """Endpoints / facade for RL environment.
 
@@ -13,6 +14,11 @@ class HouseEnergyEnvironment:
     """
 
     def __init__(self):
+
+        self.world = None
+        self.outside_sensors = None
+        self.house = None
+
         # functionality moved to reset() method, to be able to reinitialize the
         # whole environment
         self.reset()
@@ -24,22 +30,23 @@ class HouseEnergyEnvironment:
             action_name(string): a name of action. For possible action names
                                  check get_actions() method
         Returns:
-            observation(type?): information about the environment.
-            reward(type?): a reward for RL agent's actions.
-            done(boolean): information if the simulation has finished.
+            observation(dict): information about the environment. Consists of 'outside' and 'inside' dictionaries.
+            reward(float): a reward for RL agent's action in the timeframe.
+            done(boolean): information if the state after the step is terminal (episode end).
 
         """
-        # TODO: type of observation, reward
-
         # make an action in the house
         getattr(self.house, action_name)()
 
-        # move world forward
-        self.world.step()
+        # make the step in the world.
+        done = self.world.step()
 
-        # TODO: collect observations, calculate reward 
-        observation, reward = None, None
-        return observation, reward
+        # get new environment state, calculate reward
+        outside_params = [sensor.get_info() for sensor in self.outside_sensors]
+        inside_params = self.house.get_inside_params()
+        reward = self.house.reward()
+        observation = {'outside': outside_params, 'inside': inside_params}
+        return observation, reward, done
 
     def reset(self):
         """(Re)initializes the environment"""
@@ -75,7 +82,6 @@ class HouseEnergyEnvironment:
 
         """
 
-        return [action for action in dir(self.house) 
+        return [action for action in dir(self.house)
                 if callable(getattr(self.house, action))
-                and re.match("action*", action)] 
-
+                and re.match("action*", action)]
