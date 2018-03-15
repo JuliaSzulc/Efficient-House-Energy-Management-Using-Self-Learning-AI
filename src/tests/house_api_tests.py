@@ -65,7 +65,6 @@ class BasicHouseTestCase(unittest.TestCase):
     def test_get_current_user_requests(self):
         """
         Tests if the method returns correct user requests based on the time of the day (night/day requests)
-
         """
         # given
 
@@ -90,7 +89,6 @@ class BasicHouseTestCase(unittest.TestCase):
     def test_calculate_penalty(self):
         """
         Tests if the method correctly calculates the penalty, given all the parameters
-
         """
 
         # given
@@ -103,7 +101,7 @@ class BasicHouseTestCase(unittest.TestCase):
         penalty = House._calculate_penalty(temp_current, temp_desired, temp_epsilon, power)
 
         # then
-        self.assertEqual(penalty, 0, "Penalty calculated incorrectly, difference is not greater than epsilon!")
+        self.assertEqual(penalty, 0, "Penalty should be zero, because difference is not greater than epsilon!")
 
         # given
         temp_current = 100

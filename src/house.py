@@ -4,8 +4,8 @@ class House():
 
     def __init__(self):
 
-        self.day_start = None
-        self.day_end = None
+        self.day_start = 7 * 60
+        self.day_end = 18 * 60
         self.pv_absorption = 2000  # Watt on max sun intensity. pv->photovoltaic
         self.grid_cost = 0.5  # PLN for 1kWh
         self.battery = {
@@ -63,19 +63,14 @@ class House():
 
     def reward(self):
         """
-        Calculate reward for last timeframe. Note that the reward in the whole simulator is always non-positive,
-        so it is easier to interpret as penalty.
-        Return value depends on:
-        - penalty for temperature level
-        - penalty for light level
-        - penalty for cost of used energy
+        Calculate reward for the last timeframe. Note that the reward in the whole simulator is always non-positive,
+        so it is easier to interpret as penalty in this case.
 
-        Function is parametrized by weights for every penalty and by exponents (for temp and light penalties)
-        Increase weight to make the corresponding penalty more important.
-        Increase exponent to make the corresponding penalty bigger with increasing difference
-            (see _calculate_penalty() method)
+        Function is parametrized by weights for every factor's penalty and by exponents (for temp and light penalties)
+        To see how exponents are used, check _calculate_penalty() method
 
-        :return: weighted sum of penalties
+        Returns:
+             weighted sum of penalties
         """
 
         w_temp, w_light, w_cost = 1.0, 1.0, 1.0
@@ -92,7 +87,8 @@ class House():
 
     def _get_current_user_requests(self):
         """
-        :return: user requests corresponding to current time (day or night)
+        Returns:
+             user requests corresponding to current time (day or night)
         """
 
         if self.day_start <= self.daytime < self.day_end:
@@ -103,12 +99,8 @@ class House():
     @staticmethod
     def _calculate_penalty(current, desired, epsilon, power):
         """
-        Calculates the penalty for given param with small region of acceptance (epsilon)
-        :param current: current param value
-        :param desired: desired param value
-        :param epsilon: acceptable value of difference
-        :param power: exponent of the pow() method
-        :return: penalty for difference between current and desired param
+        Returns:
+             penalty for difference between current and desired param (with epsilon-acceptable consideration)
         """
 
         difference = current - desired
