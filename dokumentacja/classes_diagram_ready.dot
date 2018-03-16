@@ -1,0 +1,19 @@
+digraph "classes" {
+charset="utf-8"
+rankdir=BT
+splines=ortho
+ranksep=0.8
+
+node [shape=box, style=filled ,fillcolor=bisque]
+"house" [label="{House|battery : dict\lcurrent_settings : dict\lday_end : int\lday_start : int\ldaytime : int\lgrid_cost : float\linside_sensors : dict\lpv_absorption : int\luser_requests : dict\lweather : dict\l|__init__()\l_calculate_energy_cost()\l_calculate_penalty()\l_get_current_user_requests()\laction_curtains_down()\laction_curtains_up()\laction_less_cooling()\laction_less_heating()\laction_less_light()\laction_more_cooling()\laction_more_heating()\laction_more_light()\laction_nop()\laction_switch_energy_src()\lreward()\lupdate()\l}", shape="record"];
+"env" [label="{HouseEnergyEnvironment|house : House\loutside_sensors : list\lworld : World\l|__init__()\lget_actions()\lrender()\lreset()\lstep()\l}", shape="record"];
+"sensor" [label="{OutsideSensor|daytime : int\lweather : dict\l|__init__()\lget_info()\lupdate()\l}", shape="record"];
+"world" [label="{World|current_date : datetime\ldaytime : int\llisteners : list\lstart_date : datetime\lstop_date : datetime\ltime_step : timedelta\lweather : dict\l|__init__()\l_calculate_clouds()\l_calculate_rain()\l_calculate_sun()\l_calculate_temperature()\l_calculate_wind()\l_update_listeners()\l_update_weather()\lcompute_daytime()\lregister()\lstep()\l}", shape="record"];
+
+"house" -> "env" [arrowhead = diamond, headlabel = "1   ", taillabel = "1   "]
+"sensor" -> "env" [arrowhead = diamond, headlabel = "1   ", taillabel = "*   "]
+"world" -> "env" [arrowhead = diamond, headlabel = "1   ", taillabel = "1   "]
+    
+"house" -> "world" [arrowhead = vee, headlabel = "speaks to    " , taillabel = "listens to    ", style = "dashed"]
+"sensor" -> "world" [arrowhead = vee, headlabel = "speaks to    " , taillabel = "listens to    ", style = "dashed"]
+}
