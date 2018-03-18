@@ -1,0 +1,67 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{fullpage}
+\usepackage{longtable}
+\selectlanguage{polish}
+
+
+
+\begin{document}
+\begin{center}
+\textbf{Projekt Zespołowy - Wymagania funkcjonalne}
+\end{center}
+
+\paragraph{Spis wymagań funkcjonalnych wraz z dotyczącymi ich przesłankami i kryteriami spełnienia:}
+\begin{center}
+{\def\arraystretch{3}\tabcolsep=5pt
+	\begin{longtable}{p{5cm}p{10cm}}
+	
+	Pobieranie informacji zebranych przez sensory zewnętrzne&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest dostosowywanie przez system ustawień urządzeń w domu w zależności od warunków zewnętrznych.
+	\item \textbf{Kryteria spełnienia:} Zmieniające się warunki pogodowe powinny wpływać na decyzje podejmowane przez system.
+	\end{itemize}\\
+	
+	Pobieranie informacji zebranych przez sensory wewnętrzne&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest dostosowywanie przez system ustawień urządzeń w domu w zależności od warunków wewnętrznych.
+	\item \textbf{Kryteria spełnienia:} Zmieniające się warunki w mieszkaniu (temperatura, poziom oświetlenia) powinny wpływać na decyzje podejmowane przez system.
+	\end{itemize}\\
+	
+	Dynamiczny wybór źródła energii, z którego korzysta dom&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest możliwość jak najbardziej ekologicznego zarządzania energią poprzez wykorzystanie ogniw fotowoltaicznych zamiast prądu pobranego z sieci.
+	\item \textbf{Kryteria spełnienia:} System powinien wybierać energię z ogniw fotowoltaicznych wtedy, kiedy to tylko możliwe (kiedy ogniwa nie są rozładowane) zamiast prądu pobranego z sieci.
+	\end{itemize}\\
+	
+	Regulowanie pracy klimatyzacji&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest automatyczne sterowanie klimatyzacją w zależności od temperatury w domu.
+	\item \textbf{Kryteria spełnienia:} System powinien mieć możliwość regulowania klimatyzacji w zależności od temperatury zarejestrowanej przez sensory wewnętrzne oraz umieć podjąć jak najlepszą decyzję co do jej ustawień, mając na uwadze koszty energii.
+	\end{itemize}\\
+	
+	Regulowanie ogrzewania&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest automatyczne sterowanie ogrzewaniem elektrycznym w zależności od temperatury w domu.
+	\item \textbf{Kryteria spełnienia:} System powinien mieć możliwość regulacji ogrzewania w zależności od zarejestrowanej temperatury w pomieszczeniu oraz podejmować najbardziej optymalną decyzję co do jej ustawień, mając na uwadze koszty energii.
+	\end{itemize}\\
+	
+	Podnoszenie i opuszczanie rolet okiennych&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest automatyczne sterowanie roletami okiennymi w zależności od warunków oświetlenia.
+	\item \textbf{Kryteria spełnienia:} System powinien wybrać najdogodniejsze ustawienie rolet w zależności od zarejestrowanych danych na temat oświetlenia zewnętrznego i wewnętrznego.
+	\end{itemize}\\
+
+	Sterowanie poziomem oświetlenia&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest automatyczna regulacja natężenia światła w domu w zależności od obecnego poziomu jasności w domu.
+	\item \textbf{Kryteria spełnienia:} System powinien mieć możliwość zmiany natężenia światła żarówek w domu w zależności od zarejestrowanego poziomu oświetlenia zarejestrowanego przez sensory wewnętrzne i zewnętrzne.
+	\end{itemize}\\
+
+\end{longtable}}
+\end{center}
+
+\end{document}
