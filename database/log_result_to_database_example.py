@@ -1,4 +1,5 @@
 # Requirements to run: pymongo (python -m pip install pymongo), mongodb installed and run
+import subprocess
 from pymongo import MongoClient
 
 client = MongoClient()
@@ -6,17 +7,19 @@ client = MongoClient('localhost', 27017)  # host and port of running mongodb ins
 
 db = client['RL_results_database']
 
-post = {"current_date": "1",  # from world
-        "daytime": "",  # from world
-        "weather": "",  # from world, elements: 'temp','sun','clouds','rain','wind'
-        "grid_cost": "",  # from house
-        "current_settings": "",  # from house, elements: 'energy_src', 'cooling_lvl', 'heating_lvl', 'light_lvl', 'curtains_lvl'
-        "battery": "",  # from house, elements: current, max(?)
-        "inside_sensors": "",  # from house, dict of sensors with 'name', 'temperature', 'light'
-        "pv_absorption": "",  # from house
-        "user_requests": "",  # from house, dict of settings, which contains 'name', 'temp_desired', 'temp_epsilon', 'light_desired', 'light_epsilon'
-        "action_taken": "",
-        "reward": ""
+
+def get_git_revision_short_hash():
+    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'])
+
+
+post = {"git_revision_hash": get_git_revision_short_hash(),  # get current commit hash
+        "start_date": "",  # experiment start date
+        "end_date": "",  # experiment end date
+        "weather_settings": "",
+        "inside_sensors": "",  # from house, dict of sensors with 'name'
+        "actions_available": "",
+        "agent_learned_params": "",
+        "reward_from_episodes": ""  # array of rewards from all episodes
         }
 
 posts = db.results
