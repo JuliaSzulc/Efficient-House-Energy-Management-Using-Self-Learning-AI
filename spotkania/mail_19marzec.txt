@@ -1,0 +1,22 @@
+Repost podsumowania z 2 tygodni:
+
+12.03
+- baza danych do dokumentowana
+- oddanie specyfikacji przez zespół
+- wyznaczenie potencjalnego terminu na 1 deliverable (wczesna alfa) na po świętach
+
+19.03
+- przygotowanie agenta, baza danych
+- do zastanowienia: Jak dobrze testować w dziedzinie agentów? - czy wystarczy srodowisko treningowe?
+- koniec czerwca - konferencja zespołów
+- potencjalna wizyta planowana jakos po swietach
+- za tydzien wymiana mailowa zamiast spotkania typu call
+
+literatura dla was
+https://joshgreaves.com/reinforcement-learning/introduction-to-reinforcement-learning/
+
+Github dostalem, na trello zaglądam czasami.
+
+Pozdrawiam,
+
+RP
