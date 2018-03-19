@@ -35,6 +35,9 @@ class House:
             }
         }
 
+        # o tę ilość będziemy zmieniać parametry za pomocą akcji
+        self.influence = 0.1
+
         self.current_settings = {
             'energy_src': 'grid',
             'cooling_lvl': 0,
@@ -121,41 +124,51 @@ class House:
     # from this point, define house actions. 
     # IMPORTANT! All action names (and only them ) have to start with "action"!
 
-    def action_switch_energy_src(self):
-        # TODO: implement me!
-        pass
+    def action_source_grid(self):
+        self.current_settings['energy_src'] = 'grid'
+
+    def action_source_battery(self):
+        self.current_settings['energy_src'] = 'battery'
 
     def action_more_cooling(self):
-        # TODO: implement me!
-        pass
+        self.current_settings['cooling_lvl'] += self.influence
+        if self.current_settings['cooling_lvl'] > 1:
+            self.current_settings['cooling_lvl'] = 1
 
     def action_less_cooling(self):
-        # TODO implement me!
-        pass
+        self.current_settings['cooling_lvl'] -= self.influence
+        if self.current_settings['cooling_lvl'] < 0:
+            self.current_settings['cooling_lvl'] = 0
     
     def action_more_heating(self):
-        # TODO implement me!
-        pass
-    
+        self.current_settings['heating_lvl'] += self.influence
+        if self.current_settings['heating_lvl'] > 1:
+            self.current_settings['heating_lvl'] = 1
+
     def action_less_heating(self):
-        # TODO implement me!
-        pass
+        self.current_settings['heating_lvl'] -= self.influence
+        if self.current_settings['heating_lvl'] < 0:
+            self.current_settings['heating_lvl'] = 0
     
     def action_more_light(self):
-        # TODO implement me!
-        pass
-    
+        self.current_settings['light_lvl'] += self.influence
+        if self.current_settings['light_lvl'] > 1:
+            self.current_settings['light_lvl'] = 1
+
     def action_less_light(self):
-        # TODO implement me!
-        pass
-    
-    def action_curtains_up(self):
-        # TODO implement me!
-        pass
+        self.current_settings['light_lvl'] -= self.influence
+        if self.current_settings['light_lvl'] < 0:
+            self.current_settings['light_lvl'] = 0
     
     def action_curtains_down(self):
-        # TODO implement me!
-        pass
+        self.current_settings['curtains_lvl'] += self.influence
+        if self.current_settings['curtains_lvl'] > 1:
+            self.current_settings['curtains_lvl'] = 1
+
+    def action_curtains_up(self):
+        self.current_settings['curtains_lvl'] -= self.influence
+        if self.current_settings['curtains_lvl'] < 0:
+            self.current_settings['curtains_lvl'] = 0
     
     def action_nop(self):
         pass

@@ -18,6 +18,8 @@ class BasicEnvironmentTestCase(unittest.TestCase):
         self.env.house.action_mocked = types.MethodType(action, self.env.house) 
 
     def test_get_action(self):
+        """test getting mocked action"""
+
         actions = self.env.get_actions()
         self.assertTrue(
             "action_mocked" in actions,
@@ -25,7 +27,7 @@ class BasicEnvironmentTestCase(unittest.TestCase):
         )
 
     def test_make_action_in_step(self):
-        self.env.house.mocked_param = 0
+        """test making mocked action"""
         self.env.step("action_mocked")
 
         self.assertEqual(

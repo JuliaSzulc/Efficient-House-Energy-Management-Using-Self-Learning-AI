@@ -6,6 +6,110 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from house import House
 
 
+class HouseActionsTestCase(unittest.TestCase):
+    """Testing house actions"""
+
+    def setUp(self):
+        self.house = House()
+        self.house.current_settings = {
+            'energy_src': 'grid',
+            'cooling_lvl': 0.5,
+            'heating_lvl': 0.5,
+            'light_lvl': 0.5,
+            'curtains_lvl': 0.5
+        }
+        self.house.influence = 0.1
+
+    def test_action_sources(self):
+        """Test changing between power sources"""
+
+        self.house.action_source_battery()
+        self.assertTrue(self.house.current_settings['energy_src'], 'battery')
+
+        self.house.action_source_grid()
+        self.assertTrue(self.house.current_settings['energy_src'], 'grid')
+
+    def test_action_more_cooling(self):
+        """Test more cooling"""
+        
+        self.house.action_more_cooling()
+        self.assertEqual(self.house.current_settings['cooling_lvl'], 0.6)
+
+        for _ in range(5):
+            self.house.action_more_cooling()
+        self.assertEqual(self.house.current_settings['cooling_lvl'], 1)
+            
+    def test_action_more_heating(self):
+        """Test more heating"""
+        
+        self.house.action_more_heating()
+        self.assertEqual(self.house.current_settings['heating_lvl'], 0.6)
+
+        for _ in range(5):
+            self.house.action_more_heating()
+        self.assertEqual(self.house.current_settings['heating_lvl'], 1)
+
+    def test_action_more_light(self):
+        """Test more light"""
+        
+        self.house.action_more_light()
+        self.assertEqual(self.house.current_settings['light_lvl'], 0.6)
+
+        for _ in range(5):
+            self.house.action_more_light()
+        self.assertEqual(self.house.current_settings['light_lvl'], 1)
+
+    def test_action_less_cooling(self):
+        """Test less cooling"""
+        
+        self.house.action_less_cooling()
+        self.assertEqual(self.house.current_settings['cooling_lvl'], 0.4)
+
+        for _ in range(5):
+            self.house.action_less_cooling()
+        self.assertEqual(self.house.current_settings['cooling_lvl'], 0)
+            
+    def test_action_less_heating(self):
+        """Test less heating"""
+        
+        self.house.action_less_heating()
+        self.assertEqual(self.house.current_settings['heating_lvl'], 0.4)
+
+        for _ in range(5):
+            self.house.action_less_heating()
+        self.assertEqual(self.house.current_settings['heating_lvl'], 0)
+
+    def test_action_less_light(self):
+        """Test less light"""
+        
+        self.house.action_less_light()
+        self.assertEqual(self.house.current_settings['light_lvl'], 0.4)
+
+        for _ in range(5):
+            self.house.action_less_light()
+        self.assertEqual(self.house.current_settings['light_lvl'], 0)
+
+    def test_action_curtains_up(self):
+        """Test curtains up"""
+        
+        self.house.action_curtains_up()
+        self.assertEqual(self.house.current_settings['curtains_lvl'], 0.4)
+
+        for _ in range(5):
+            self.house.action_curtains_up()
+        self.assertEqual(self.house.current_settings['curtains_lvl'], 0)
+
+    def test_action_curtains_down(self):
+        """Test curtains down"""
+        
+        self.house.action_curtains_down()
+        self.assertEqual(self.house.current_settings['curtains_lvl'], 0.6)
+
+        for _ in range(5):
+            self.house.action_curtains_down()
+        self.assertEqual(self.house.current_settings['curtains_lvl'], 1)
+
+
 class BasicHouseTestCase(unittest.TestCase):
     """Testing house usage and methods"""
 

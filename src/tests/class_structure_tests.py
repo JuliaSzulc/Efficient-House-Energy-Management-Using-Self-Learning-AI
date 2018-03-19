@@ -23,7 +23,8 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
         for s in self.sensors_out:
             self.world.register(s)
 
-    def test_all_listeners_daytime(self):
+    def test_sensors_daytime(self):
+        """Test sensors daytime vs world daytime"""
         for step in range(3):
             self.world.step()
             
@@ -34,13 +35,19 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
                     "sensor out failed - wrong daytime"
                 )
 
+    def test_house_daytime(self):
+        """Test house daytime vs world daytime"""
+        for step in range(3):
+            self.world.step()
+ 
             self.assertEqual(
                 self.world.daytime,
                 self.house.daytime,
                 "house failed - wrond daytime"
             )
- 
-    def test_all_listeners_weather(self):
+
+    def test_sensors_weather(self):
+        """Test house weather vs world weather"""
         for step in range(3):
             self.world.step()
                     
@@ -52,6 +59,11 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
                         "sensor out failed - wrong weather"
                     )
 
+    def test_house_weather(self):
+        """Test house weather vs world weather"""
+        for step in range(3):
+            self.world.step()
+                    
             for key in self.world.weather.keys():
                 self.assertEqual(
                     self.world.weather[key],
@@ -66,9 +78,19 @@ class EnvironmentStructureTestCase(unittest.TestCase):
     def setUp(self):
         self.env = HouseEnergyEnvironment()
 
-    def test_me(self):
-        # TODO: make a test
-        pass
+    def test_ownership_in_environment(self):
+        """Testing if environment has all necessary things"""
+
+        self.assertIn("house", dir(self.env))
+        self.assertIn("world", dir(self.env))
+        self.assertIn("outside_sensors", dir(self.env))
+
+    def test_attributes_initialized(self):
+        """Testing if env attributes are initialized and not None"""
+
+        self.assertIsNotNone(self.env.house)
+        self.assertIsNotNone(self.env.world)
+        self.assertIsNotNone(self.env.outside_sensors)
 
 
 if __name__ == "__main__":
