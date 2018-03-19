@@ -104,3 +104,6 @@ ENV/
 .idea/
 *~
 *.swp
+# texowe smieci
+*.aux
+*.synctex.gz
