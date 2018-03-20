@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import MagicMock
 import os, sys
 
+import math
+
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from house import House
 
@@ -31,17 +33,17 @@ class HouseActionsTestCase(unittest.TestCase):
 
     def test_action_more_cooling(self):
         """Test more cooling"""
-        
+
         self.house.action_more_cooling()
         self.assertEqual(self.house.current_settings['cooling_lvl'], 0.6)
 
         for _ in range(5):
             self.house.action_more_cooling()
         self.assertEqual(self.house.current_settings['cooling_lvl'], 1)
-            
+
     def test_action_more_heating(self):
         """Test more heating"""
-        
+
         self.house.action_more_heating()
         self.assertEqual(self.house.current_settings['heating_lvl'], 0.6)
 
@@ -51,7 +53,7 @@ class HouseActionsTestCase(unittest.TestCase):
 
     def test_action_more_light(self):
         """Test more light"""
-        
+
         self.house.action_more_light()
         self.assertEqual(self.house.current_settings['light_lvl'], 0.6)
 
@@ -61,17 +63,17 @@ class HouseActionsTestCase(unittest.TestCase):
 
     def test_action_less_cooling(self):
         """Test less cooling"""
-        
+
         self.house.action_less_cooling()
         self.assertEqual(self.house.current_settings['cooling_lvl'], 0.4)
 
         for _ in range(5):
             self.house.action_less_cooling()
         self.assertEqual(self.house.current_settings['cooling_lvl'], 0)
-            
+
     def test_action_less_heating(self):
         """Test less heating"""
-        
+
         self.house.action_less_heating()
         self.assertEqual(self.house.current_settings['heating_lvl'], 0.4)
 
@@ -81,7 +83,7 @@ class HouseActionsTestCase(unittest.TestCase):
 
     def test_action_less_light(self):
         """Test less light"""
-        
+
         self.house.action_less_light()
         self.assertEqual(self.house.current_settings['light_lvl'], 0.4)
 
@@ -91,7 +93,7 @@ class HouseActionsTestCase(unittest.TestCase):
 
     def test_action_curtains_up(self):
         """Test curtains up"""
-        
+
         self.house.action_curtains_up()
         self.assertEqual(self.house.current_settings['curtains_lvl'], 0.4)
 
@@ -101,13 +103,77 @@ class HouseActionsTestCase(unittest.TestCase):
 
     def test_action_curtains_down(self):
         """Test curtains down"""
-        
+
         self.house.action_curtains_down()
         self.assertEqual(self.house.current_settings['curtains_lvl'], 0.6)
 
         for _ in range(5):
             self.house.action_curtains_down()
         self.assertEqual(self.house.current_settings['curtains_lvl'], 1)
+
+
+class HouseRewardTestCase(unittest.TestCase):
+    """
+    Testing the reward function (house is the source of it)
+    Note: 'reward' is used as the standard reinforcement learning name,
+    but the function works as a penalty.
+    """
+
+    def setUp(self):
+        self.house = House()
+        self.house.day_start = 7 * 60
+        self.house.day_end = 24 * 60 - 5 * 60
+
+        # define perfect conditions (so reward should be zero)
+        self.house._calculate_energy_cost = MagicMock(return_value=0)
+        self.house.user_requests = {
+            'temp_desired': 21,
+            'temp_epsilon': 0.5,
+            'light_desired': 0.7,
+            'light_epsilon': 0.05
+        }
+        self.house.inside_sensors = {
+            'first': {
+                'temperature': 21,
+                'light': 0.7
+            }
+        }
+
+    def reward_for_perfect_conditions(self):
+        """
+        Reward should be zero as the factors are perfect
+        """
+        reward = self.house.reward()
+        self.assertEqual(reward, 0,
+                         "Reward should be zero, factors are perfect!")
+
+    def reward_returns_nonpositive_values(self):
+        """
+        The reward in the simulator is modeled as a penalty.
+        It shouldn't return positive values
+        """
+        testing_pairs = ((-40, 0), (0, 0), (10, 0), (15, 0.02), (15, 0.5),
+                         (21, 0.4), (264, 0.99), (math.pi, 1))
+        for temp, light in testing_pairs:
+            self.house.inside_sensors = {
+                'first': {
+                    'temperature': temp,
+                    'light': light
+                }
+            }
+            reward = self.house.reward()
+            self.assertLessEqual(reward, 0, "Reward shouldn't be positive!")
+
+    def reward_increase_with_energy_cost(self):
+        """
+        Energy cost is the base parameter and with cost increase,
+        penalty should be bigger
+        """
+        reward = self.house.reward()
+        self.house._calculate_energy_cost = MagicMock(return_value=100)
+        reward_2 = self.house.reward()
+        self.assertLess(reward_2, reward,
+                        "Reward should be bigger, parameters are worse.")
 
 
 class BasicHouseTestCase(unittest.TestCase):
@@ -118,104 +184,31 @@ class BasicHouseTestCase(unittest.TestCase):
         self.house.day_start = 7 * 60
         self.house.day_end = 24 * 60 - 5 * 60
 
-    def test_reward(self):
-        """
-        Tests whether the reward function:
-        1. Returns 0 if the parameters are perfect (no difference between expected and desired, no energy cost)
-        2. Returns bigger penalty when the difference increases
-        """
-        # case 1
-        # given
-        self.house._calculate_energy_cost = MagicMock(return_value=0)
-        user_req_mock = {
-                'temp_desired': 21,
-                'temp_epsilon': 0.5,
-                'light_desired': 0.7,
-                'light_epsilon': 0.05
-            }
-        self.house._get_current_user_requests = MagicMock(return_value=user_req_mock)
-
-        self.house.inside_sensors = {
-            'first': {
-                'temperature': 21,
-                'light': 0.7
-            }
-        }
-
-        # when
-        reward = self.house.reward()
-
-        # then
-        self.assertEqual(reward, 0, "Reward should be zero, params are perfect!")
-
-        # case 2
-        # given
-        self.house._calculate_energy_cost = MagicMock(return_value=100)
-        self.house.inside_sensors = {
-            'first': {
-                'temperature': 19,
-                'light': 0.5
-            }
-        }
-
-        # when
-        reward_2 = self.house.reward()
-
-        # then
-        # minus because rewards are negative
-        self.assertGreater(-reward_2, -reward, "Reward should be bigger, parameters are worse.")
-
     def test_get_current_user_requests(self):
         """
-        Tests if the method returns correct user requests based on the time of the day (night/day requests)
+        Tests get current user requests
         """
-        # given
-
         self.house.daytime = 2 * 60  # night
-
-        # when
         requests = self.house._get_current_user_requests()
+        self.assertDictEqual(requests, self.house.user_requests['night'],
+                             "Method returns user requests for the day, "
+                             "not for the night")
 
-        # then
-        self.assertDictEqual(requests, self.house.user_requests['night'], "Method returns user requests for the day, "
-                                                                          "not for the night")
-        # given
         self.house.daytime = 12 * 60  # day
-
-        # when
         requests = self.house._get_current_user_requests()
-
-        # then
-        self.assertDictEqual(requests, self.house.user_requests['day'], "Method returns user requests for the night, "
-                                                                        "not for the day")
+        self.assertDictEqual(requests, self.house.user_requests['day'],
+                             "Method returns user requests for the night, "
+                             "not for the day")
 
     def test_calculate_penalty(self):
         """
-        Tests if the method correctly calculates the penalty, given all the parameters
+        Tests if the method correctly calculates the penalty
         """
+        penalty = House._calculate_penalty(20.0, 21.0, 1.0, 2)
+        self.assertEqual(penalty, 0, "Penalty should be zero, "
+                                     "difference is not greater than epsilon")
 
-        # given
-        temp_current = 20.0
-        temp_desired = 21.0
-        temp_epsilon = 1.0
-        power = 2
-
-        # when
-        penalty = House._calculate_penalty(temp_current, temp_desired, temp_epsilon, power)
-
-        # then
-        self.assertEqual(penalty, 0, "Penalty should be zero, because difference is not greater than epsilon!")
-
-        # given
-        temp_current = 100
-        temp_desired = 50
-        temp_epsilon = 1.0
-        power = 2
-
-        # when
-        penalty = House._calculate_penalty(temp_current, temp_desired, temp_epsilon, power)
-
-        # then
+        penalty = House._calculate_penalty(100, 50, 1.0, 2)
         self.assertEqual(penalty, 2500, "Penalty calculated incorrectly!")
 
 
