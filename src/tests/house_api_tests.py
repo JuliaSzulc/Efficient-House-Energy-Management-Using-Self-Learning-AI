@@ -167,14 +167,17 @@ class HouseRewardTestCase(unittest.TestCase):
         self.house = House(timeframe=5)
         self.house.day_start = 7 * 60
         self.house.day_end = 24 * 60 - 5 * 60
+        self.house.daytime = 12 * 60 # default
 
         # define perfect conditions (so reward should be zero)
         self.house._calculate_energy_cost = MagicMock(return_value=0)
         self.house.user_requests = {
-            'temp_desired': 21,
-            'temp_epsilon': 0.5,
-            'light_desired': 0.7,
-            'light_epsilon': 0.05
+            'day' : {
+                'temp_desired': 21,
+                'temp_epsilon': 0.5,
+                'light_desired': 0.7,
+                'light_epsilon': 0.05
+            }
         }
         self.house.inside_sensors = {
             'first': {
@@ -224,7 +227,7 @@ class BasicHouseTestCase(unittest.TestCase):
     """Testing house usage and methods"""
 
     def setUp(self):
-        self.house = House()
+        self.house = House(5)
         self.house.day_start = 7 * 60
         self.house.day_end = 24 * 60 - 5 * 60
 
