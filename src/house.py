@@ -7,11 +7,11 @@ class House:
 
         self.day_start = 7 * 60
         self.day_end = 18 * 60
-        self.pv_absorption = 2000  # Watt on max sun intensity. pv->photovoltaic
+        self.pv_absorption = 2000  # Watt on max sun intensity
         self.grid_cost = 0.5  # PLN for 1kWh
         self.battery = {
             'current': 0,
-            'max': 14000  # Watt, that's as good as single Tesla PowerWall unit.
+            'max': 14000  # Watt, as good as single Tesla PowerWall unit.
         }
 
         self.user_requests = {
@@ -62,10 +62,17 @@ class House:
         # 3. most importantly, calculate final values for inside sensor(s)
 
     def get_inside_params(self):
-        # This method should be called AFTER updating the house.
-        # TODO: implement me! Should return all inside sensors params with some random noise error.
-        # Note: this *has to* include: inside sensors values, current desired levels of params, current grid_cost,
-        # current battery level. Should return it as one dictionary with parameters named nicely.
+        """
+        This method should be called AFTER updating the house.
+
+        """
+
+        # TODO: implement me!
+        # Should return all inside sensors params with some random noise error
+        # Note: this *has to* include: inside sensors values,
+        # current desired levels of params, current grid_cost,
+        # current battery level.
+        # Should return it as one dictionary with parameters named nicely.
         pass
 
     def _calculate_energy_cost(self):
@@ -74,10 +81,12 @@ class House:
 
     def reward(self):
         """
-        Calculate reward for the last timeframe. Note that the reward in the whole simulator is always non-positive,
+        Calculate reward for the last timeframe.
+        Note that the reward in the whole simulator is always non-positive,
         so it is easier to interpret as penalty in this case.
 
-        Function is parametrized by weights for every factor's penalty and by exponents (for temp and light penalties)
+        Function is parametrized by weights for every factor's penalty
+        and by exponents (for temp and light penalties)
         To see how exponents are used, check _calculate_penalty() method
 
         Returns:
@@ -88,20 +97,29 @@ class House:
         temp_exponent, light_exponent = 2, 2
 
         cost = self._calculate_energy_cost()
-        temp, light = self.inside_sensors['first']['temperature'], self.inside_sensors['first']['light']
+        temp, light = (self.inside_sensors['first']['temperature'],
+                       self.inside_sensors['first']['light'])
         req = self._get_current_user_requests()
 
-        temp_penalty = self._calculate_penalty(temp, req['temp_desired'], req['temp_epsilon'], temp_exponent)
-        light_penalty = self._calculate_penalty(light, req['light_desired'], req['light_epsilon'], light_exponent)
+        temp_penalty = self._calculate_penalty(temp,
+                                               req['temp_desired'],
+                                               req['temp_epsilon'],
+                                               temp_exponent)
+        light_penalty = self._calculate_penalty(light,
+                                                req['light_desired'],
+                                                req['light_epsilon'],
+                                                light_exponent)
 
-        reward = -1 * ((cost * w_cost) + (temp_penalty * w_temp) + (light_penalty * w_light))
+        reward = -1 * ((cost * w_cost)
+                       + (temp_penalty * w_temp)
+                       + (light_penalty * w_light))
 
         return reward
 
     def _get_current_user_requests(self):
         """
         Returns:
-             requests(dict): user requests corresponding to current time (day or night)
+             requests(dict): user requests corresponding to current time
         """
 
         if self.day_start <= self.daytime < self.day_end:
@@ -113,8 +131,8 @@ class House:
     def _calculate_penalty(current, desired, epsilon, power):
         """
         Returns:
-             penalty(float): penalty for difference between current and desired param
-                                                            (with epsilon-acceptable consideration)
+             penalty(float): penalty for difference between current
+             and desired param (with epsilon-acceptable consideration)
         """
 
         difference = current - desired
@@ -174,8 +192,4 @@ class House:
 
     def action_nop(self):
         pass
-
-
-
-
 
