@@ -139,7 +139,7 @@ class HouseRewardTestCase(unittest.TestCase):
             }
         }
 
-    def reward_for_perfect_conditions(self):
+    def test_reward_for_perfect_conditions(self):
         """
         Reward should be zero as the factors are perfect
         """
@@ -147,7 +147,7 @@ class HouseRewardTestCase(unittest.TestCase):
         self.assertEqual(reward, 0,
                          "Reward should be zero, factors are perfect!")
 
-    def reward_returns_nonpositive_values(self):
+    def test_reward_returns_nonpositive_values(self):
         """
         The reward in the simulator is modeled as a penalty.
         It shouldn't return positive values
@@ -164,7 +164,7 @@ class HouseRewardTestCase(unittest.TestCase):
             reward = self.house.reward()
             self.assertLessEqual(reward, 0, "Reward shouldn't be positive!")
 
-    def reward_increase_with_energy_cost(self):
+    def test_reward_increase_with_energy_cost(self):
         """
         Energy cost is the base parameter and with cost increase,
         penalty should be bigger
