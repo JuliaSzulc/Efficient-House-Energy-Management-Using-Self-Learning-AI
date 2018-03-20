@@ -10,12 +10,12 @@ class BasicEnvironmentTestCase(unittest.TestCase):
 
     def setUp(self):
         self.env = HouseEnergyEnvironment()
-        
+
         def action(self):
             self.mocked_param += 1
 
         self.env.house.mocked_param = 0
-        self.env.house.action_mocked = types.MethodType(action, self.env.house) 
+        self.env.house.action_mocked = types.MethodType(action, self.env.house)
 
     def test_get_action(self):
         """test getting mocked action"""

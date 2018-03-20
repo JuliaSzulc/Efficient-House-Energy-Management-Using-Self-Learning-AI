@@ -2,7 +2,8 @@ class House:
 
     """Main environment part"""
 
-    def __init__(self):
+    def __init__(self, timeframe):
+        self.timeframe = timeframe # in minutes!
 
         self.day_start = 7 * 60
         self.day_end = 18 * 60
@@ -36,7 +37,8 @@ class House:
         }
 
         # o tę ilość będziemy zmieniać parametry za pomocą akcji
-        self.influence = 0.1
+        # poczatkowo zakładamy 0.2 na minutę
+        self.influence = 0.2 * timeframe
 
         self.current_settings = {
             'energy_src': 'grid',
@@ -52,12 +54,12 @@ class House:
     def update(self, weather, daytime, **kwargs):
         self.daytime = daytime
         self.weather = weather
-        # TODO: this is the most important environment method. 
+        # TODO: this is the most important environment method.
         # I assume that actions are already DONE at this point.
         # we must carefully execute everything together now:
         # 1. calculate energy (temperature, light etc) flow from outside
         # 2. store accumulated energy (if any) in battery
-        # 3. most importantly, calculate final values for inside sensor(s) 
+        # 3. most importantly, calculate final values for inside sensor(s)
 
     def get_inside_params(self):
         # This method should be called AFTER updating the house.
@@ -121,7 +123,7 @@ class House:
         else:
             return 0
 
-    # from this point, define house actions. 
+    # from this point, define house actions.
     # IMPORTANT! All action names (and only them ) have to start with "action"!
 
     def action_source_grid(self):
@@ -139,7 +141,7 @@ class House:
         self.current_settings['cooling_lvl'] -= self.influence
         if self.current_settings['cooling_lvl'] < 0:
             self.current_settings['cooling_lvl'] = 0
-    
+
     def action_more_heating(self):
         self.current_settings['heating_lvl'] += self.influence
         if self.current_settings['heating_lvl'] > 1:
@@ -149,7 +151,7 @@ class House:
         self.current_settings['heating_lvl'] -= self.influence
         if self.current_settings['heating_lvl'] < 0:
             self.current_settings['heating_lvl'] = 0
-    
+
     def action_more_light(self):
         self.current_settings['light_lvl'] += self.influence
         if self.current_settings['light_lvl'] > 1:
@@ -159,7 +161,7 @@ class House:
         self.current_settings['light_lvl'] -= self.influence
         if self.current_settings['light_lvl'] < 0:
             self.current_settings['light_lvl'] = 0
-    
+
     def action_curtains_down(self):
         self.current_settings['curtains_lvl'] += self.influence
         if self.current_settings['curtains_lvl'] > 1:
@@ -169,11 +171,11 @@ class House:
         self.current_settings['curtains_lvl'] -= self.influence
         if self.current_settings['curtains_lvl'] < 0:
             self.current_settings['curtains_lvl'] = 0
-    
+
     def action_nop(self):
         pass
 
 
 
 
-                    
+
