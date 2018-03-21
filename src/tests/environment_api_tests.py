@@ -1,5 +1,8 @@
+import os
+import sys
 import unittest
-import os, sys
+from unittest.mock import MagicMock
+
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from environment import HouseEnergyEnvironment
 import types
@@ -37,5 +40,40 @@ class BasicEnvironmentTestCase(unittest.TestCase):
         )
 
 
-if __name__ == '__main__':
-    unittest.main()
+class EnvironmentStepTestCase(unittest.TestCase):
+    """ Testing environment's step function"""
+
+    def setUp(self):
+        self.env = HouseEnergyEnvironment()
+        self.env.house.action_more_light = MagicMock()
+        self.env.house.action_less_cooling = MagicMock()
+
+    def test_step_chosen_action_called(self):
+        """test calling chosen action once"""
+
+        self.env.step("action_more_light")
+        self.env.house.action_more_light.assert_called_once_with()
+
+        self.env.step("action_less_cooling")
+        self.env.house.action_less_cooling.assert_called_once_with()
+
+    def test_step_amount_of_returned_values(self):
+        """Test the amount of returned values"""
+
+        values = self.env.step("action_more_light")
+        self.assertEqual(len(values), 3, "Step should return 3 values")
+
+    def test_step_type_of_returned_values(self):
+        """Test the types of returned values"""
+
+        observation, reward, done = self.env.step("action_more_light")
+        self.assertTrue(isinstance(observation, dict),
+                        "First value should be a dict "
+                        "with new state observation")
+        self.assertTrue(isinstance(reward, float) or isinstance(reward, int),
+                        "Second value should be a number")
+        self.assertTrue(isinstance(done, bool),
+                        "Third value should be a bool")
+
+    if __name__ == '__main__':
+        unittest.main()
