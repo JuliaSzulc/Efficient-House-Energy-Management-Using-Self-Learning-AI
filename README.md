@@ -3,9 +3,9 @@
 
 ### Environment modelling
 
-- [Misja dla kogoś](www.nic.pl)
-
-Przydałyby się jakiekowleik podstawowe materiały o tym, jak modelować środowiska, głównie z uwzględnieniem temperatury, czy to ogólnie, czy w kontekście RL.
+- [Daylight illuminance info] (https://greenbusinesslight.com/resources/lighting-lux-lumens-watts/)
+- [Wind chill formula] (https://pl.wikipedia.org/wiki/Temperatura_odczuwalna#Model_2_%E2%80%93_temperatura-wiatr)
+- [Optimal illuminance levels] (https://panasonic.net/ecosolutions/lighting/technology/knowledge/03/)
 
 ### Python
 
