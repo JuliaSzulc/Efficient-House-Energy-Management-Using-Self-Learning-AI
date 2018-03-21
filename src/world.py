@@ -20,12 +20,22 @@ class World:
         # --- weather part ----
 
         # weather stats
+        # temp  -> is actually feeling temp
+        # sun   -> sun power before calculate with clouds
+        # light -> sun power after calculation
         self.weather = { 
             'temp': 12,
             'sun': 0,
+            'light': 0,
             'clouds': 0,
             'rain': 0,
             'wind': 0
+        }
+
+        self.delta_weather = {
+            'temp_delta': 0,
+            'sun_delta': 0,
+            'light_delta': 0,
         }
 
         # sun power in (0,1) range. 0 between [7 PM, 5 AM], 840 is shining time in minutes
@@ -43,7 +53,7 @@ class World:
 
         # pass max time frame in minutes to calibrate previous & current weather weights
         # parameters ([max_time_frame_in_minutes], [max_current_weather_meaning])
-        self.set_max_time_frame(1, 0.95)
+        self.calculate_weathers_weights(1, 0.95)
 
         # probability (summary 1.0) of difference wind in (0,1) power range [0.0, 0.1, 0.2, ..., 1.0]
         self.wind_power = [i/10 for i in range(0, 11)]
@@ -90,7 +100,7 @@ class World:
         midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
         self.daytime = (now - midnight).seconds // 60
 
-    def set_max_time_frame(self, max_frame, max_meaning):
+    def calculate_weathers_weights(self, max_frame, max_meaning):
         self.current_weather_meaning = (max_meaning/max_frame)*self.time_step_in_minutes
         self.previous_weather_meaning = 1-self.current_weather_meaning
         pass
@@ -112,6 +122,8 @@ class World:
     # from this point, only weather methods
 
     def _calculate_sun(self):
+        temp_sun = self.weather['sun']
+
         # sun shine between (5 AM , 7 PM) (14h)
         if 300 <= self.daytime <= 1140:
             self.weather['sun'] = self.sun_steps[self.last_step_sun]
@@ -120,6 +132,8 @@ class World:
         else:
             self.weather['sun'] = 0
             self.last_step_sun = 0
+
+        self.delta_weather['sun_delta'] = self.weather['sun'] - temp_sun
         pass
 
     def _calculate_wind(self):
@@ -130,6 +144,8 @@ class World:
         pass
 
     def _calculate_clouds(self):
+        temp_light = self.weather['light']
+
         # get random clouds
         # update clouds with wind power (stronger wind = less clouds)
         self.weather['clouds'] = round(self.current_weather_meaning *
@@ -137,6 +153,10 @@ class World:
                                        (1-self.weather['wind']) +
                                        self.previous_weather_meaning *
                                        self.weather['clouds'], 5)
+
+        # after clouds calculation we can count light parameter
+        self.weather['light'] = self.weather['sun']*(1-self.weather['clouds'])
+        self.delta_weather['light_delta'] = self.weather['light'] - temp_light
         pass
 
     def _calculate_rain(self):
@@ -148,11 +168,13 @@ class World:
         pass
 
     def _calculate_temperature(self):
+        temp_temperature = self.weather['temp']
+
         # calculate new temperature
         # lets say that ~30 degrees is max temperature when sun power is 1.0 & also
         # there is no clouds & wind which can change temperature by 5 degrees
         # (we don't use rain here for now) -> then:
-        new_temperature = round(random.uniform(11.5, 12.5), 5) + (18*self.weather['sun']*(1-self.weather['clouds']) -
+        new_temperature = round(random.uniform(11.5, 12.5), 5) + (18*self.weather['light'] -
                                                                   5*self.weather['wind'])
 
         # then update new temperature including our weather meanings
@@ -160,4 +182,6 @@ class World:
                                      self.weather['temp'] +
                                      self.current_weather_meaning *
                                      new_temperature, 5)
+
+        self.delta_weather['temp_delta'] = self.weather['temp'] - temp_temperature
         pass
