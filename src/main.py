@@ -19,9 +19,10 @@ def main():
     # params = dict() ?
     agent = Agent(env=env)
     # agent.network = load_model("models/model1.xxx") ?
-    # TODO: decide if we define number of episodes here and do a loop
-    # or move it to agent and call agent.run() only once
-    agent.run()
+
+    num_episodes = 10000
+    for i in range(num_episodes):
+        agent.run()
 
     # after learning
     # recover any important info about env, agent etc.

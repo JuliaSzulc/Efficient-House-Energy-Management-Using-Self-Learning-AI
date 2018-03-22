@@ -1,3 +1,6 @@
+from environment import HouseEnergyEnvironment
+
+
 class Agent:
     """Reinforcement Learning agent.
 
@@ -8,7 +11,10 @@ class Agent:
 
     def __init__(self, env):
         self.env = env
+        self.actions = self.env.get_actions()
         self.network = None
+        self.current_state = None
+        self.memory = [] # TODO - czy lista?
         # TODO - algorithm params (gamma, epsilon, batch size etc)
         # network specific params can be moved to the network class,
         # but it might be handy to have all params in one place.
@@ -21,8 +27,20 @@ class Agent:
 
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
-        # TODO implement me!
-        pass
+        # TODO: reset musi zwrócić początkowy stan środowiska
+        self.current_state = self.env.reset()
+        total_reward = 0
+        terminal_state = False
+        while not terminal_state:
+            action = self._get_next_action(self.current_state)
+            next_state, reward, terminal_state = self.env.step(action)
+            self.memory.append((self.current_state, action, reward,
+                                next_state, terminal_state))
+            self.current_state = next_state
+            total_reward += reward
+            self._train()
+
+        return total_reward
 
     def _train(self):
         """
@@ -37,7 +55,8 @@ class Agent:
         Returns next action given a state with use of the network
         Note: this should be epsilon-greedy
         """
-        pass
+        # TODO implement me!
+        return 1
 
     def return_model_info(self):
         """
@@ -46,4 +65,10 @@ class Agent:
         Method should return the network params and all other params
         that we can reproduce the exact configuration later/save it to the db
         """
+        # TODO implement me!
         pass
+
+    def serialize_state(self, param):
+        """Returns 1-dim tensor of state parameters from dict"""
+        # TODO implement me!
+        return 1
