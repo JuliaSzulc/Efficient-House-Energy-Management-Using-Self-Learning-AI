@@ -18,7 +18,7 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
     def setUp(self):
         self.world = World()
         self.sensors_out = [OutsideSensor() for _ in range(3)]
-        self.house = House(self.world.timeframe_minutes)
+        self.house = House(self.world.time_step_in_minutes)
         self.world.register(self.house)
         for s in self.sensors_out:
             self.world.register(s)

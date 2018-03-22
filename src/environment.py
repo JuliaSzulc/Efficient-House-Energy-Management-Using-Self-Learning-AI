@@ -53,7 +53,7 @@ class HouseEnergyEnvironment:
 
         self.world = World()
         self.outside_sensors = [OutsideSensor() for _ in range(1)]
-        self.house = House(self.world.timeframe_minutes)
+        self.house = House(self.world.time_step_in_minutes)
 
         # register listeners:
         self.world.register(self.house)
