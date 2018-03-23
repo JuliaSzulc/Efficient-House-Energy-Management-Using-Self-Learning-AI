@@ -64,8 +64,3 @@ class Agent:
         """
         # TODO implement me!
         pass
-
-    def serialize_state(self, param):
-        """Returns 1-dim tensor of state parameters from dict"""
-        # TODO implement me!
-        return 1

@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 from src.environment import HouseEnergyEnvironment
+import numpy as np
 import types
 
 
@@ -63,8 +64,8 @@ class EnvironmentStepTestCase(unittest.TestCase):
         """Test the types of returned values"""
 
         observation, reward, done = self.env.step("action_more_light")
-        self.assertTrue(isinstance(observation, dict),
-                        "First value should be a dict "
+        self.assertTrue(isinstance(observation, np.ndarray),
+                        "First value should be a 1-dim ndarray "
                         "with new state observation")
         self.assertTrue(isinstance(reward, float) or isinstance(reward, int),
                         "Second value should be a number")

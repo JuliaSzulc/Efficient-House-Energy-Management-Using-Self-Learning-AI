@@ -1,6 +1,7 @@
 from src.world import World
 from src.house import House
 from src.sensor_out import OutsideSensor
+import numpy as np
 import re
 
 
@@ -94,4 +95,9 @@ class HouseEnergyEnvironment:
         outside_params = [sensor.get_info() for sensor in self.outside_sensors]
         inside_params = self.house.get_inside_params()
         observation = {'outside': outside_params, 'inside': inside_params}
-        return observation
+        return self._serialize_state(observation)
+
+    def _serialize_state(self, state):
+        """Returns 1-dim ndarray of state parameters from dict"""
+        # TODO implement me!
+        return np.array([])
