@@ -1,10 +1,8 @@
 import unittest
-import os, sys
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from world import World
-from sensor_out import OutsideSensor
-from environment import HouseEnergyEnvironment
-from house import House
+from src.world import World
+from src.sensor_out import OutsideSensor
+from src.environment import HouseEnergyEnvironment
+from src.house import House
 
 # TODO: testujac inne rzeczy niż strukturę klas (np. metody w danej klasie)
 # utwórzcie nowy plik na wzór tego. Testując strukturę klas, ale w wyraźnie inny

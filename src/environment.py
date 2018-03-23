@@ -1,6 +1,6 @@
-from world import World
-from house import House
-from sensor_out import OutsideSensor
+from src.world import World
+from src.house import House
+from src.sensor_out import OutsideSensor
 import re
 
 
@@ -14,13 +14,14 @@ class HouseEnergyEnvironment:
     """
 
     def __init__(self):
+        # Remember to put all the declarations of class fields here!
 
         self.world = None
         self.outside_sensors = None
         self.house = None
 
-        # functionality moved to reset() method, to be able to reinitialize the
-        # whole environment
+        # Actual initialization is moved to reset() method,
+        # to be able to re-initialize the whole environment.
         self.reset()
 
     def step(self, action_name):
@@ -42,14 +43,16 @@ class HouseEnergyEnvironment:
         done = self.world.step()
 
         # get new environment state, calculate reward
-        outside_params = [sensor.get_info() for sensor in self.outside_sensors]
-        inside_params = self.house.get_inside_params()
+        observation = self._get_current_state()
         reward = self.house.reward()
-        observation = {'outside': outside_params, 'inside': inside_params}
         return observation, reward, done
 
     def reset(self):
-        """(Re)initializes the environment"""
+        """(Re)initializes the environment
+
+        Returns:
+            Initial state of the environment
+        """
 
         self.world = World()
         self.outside_sensors = [OutsideSensor() for _ in range(1)]
@@ -61,6 +64,7 @@ class HouseEnergyEnvironment:
             self.world.register(outside_sensor)
 
         # TODO: other environment parts
+        return self._get_current_state()
 
     def render(self):
         """Outputs the state of environment in a human-readable format"""
@@ -85,3 +89,9 @@ class HouseEnergyEnvironment:
         return [action for action in dir(self.house)
                 if callable(getattr(self.house, action))
                 and re.match("action*", action)]
+
+    def _get_current_state(self):
+        outside_params = [sensor.get_info() for sensor in self.outside_sensors]
+        inside_params = self.house.get_inside_params()
+        observation = {'outside': outside_params, 'inside': inside_params}
+        return observation

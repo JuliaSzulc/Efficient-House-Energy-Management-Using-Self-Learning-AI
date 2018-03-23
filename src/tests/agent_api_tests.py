@@ -1,10 +1,6 @@
-import os
-import sys
 import unittest
-
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from agent import Agent
-from environment import HouseEnergyEnvironment
+from src.agent import Agent
+from src.environment import HouseEnergyEnvironment
 
 
 class BasicAgentTestCase(unittest.TestCase):

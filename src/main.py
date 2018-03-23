@@ -1,5 +1,5 @@
-from agent import Agent
-from environment import HouseEnergyEnvironment
+from src.agent import Agent
+from src.environment import HouseEnergyEnvironment
 
 
 def save_to_database(info):

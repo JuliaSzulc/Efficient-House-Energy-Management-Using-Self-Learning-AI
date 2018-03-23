@@ -1,6 +1,3 @@
-from environment import HouseEnergyEnvironment
-
-
 class Agent:
     """Reinforcement Learning agent.
 

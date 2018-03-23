@@ -1,4 +1,4 @@
-class OutsideSensor():
+class OutsideSensor:
     """Weather sensor on the outside of the house"""
 
     def __init__(self):

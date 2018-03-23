@@ -1,10 +1,6 @@
-import os
-import sys
 import unittest
 from unittest.mock import MagicMock
-
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from environment import HouseEnergyEnvironment
+from src.environment import HouseEnergyEnvironment
 import types
 
 
