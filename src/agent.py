@@ -60,6 +60,8 @@ class Agent:
 
         self.gamma = 0.95
         self.epsilon = 0.05  #
+        self.epsilon_decay = 0.995
+        self.epsilon_min = 0.01
         self.batch_size = 16
         pass
 
@@ -93,9 +95,12 @@ class Agent:
         Returns next action given a state with use of the network
         Note: this should be epsilon-greedy
         """
-        # TODO implement me!
+        self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon_min, self.epsilon)
+        if np.random.random() < self.epsilon:
+            return self.env.action_space.sample()
 
-        return 1
+        return np.argmax(self.network.forward(state)[0])
 
     def return_model_info(self):
         """
