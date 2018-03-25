@@ -1,3 +1,6 @@
+from src.net import Net
+
+
 class Agent:
     """Reinforcement Learning agent.
 
@@ -11,8 +14,11 @@ class Agent:
         self.actions = self.env.get_actions()
         self.network = None
         self.current_state = None
-        self.memory = [] # TODO - czy lista?
-        # TODO - algorithm params (gamma, epsilon, batch size etc)
+        self.memory = []  # TODO - czy lista?
+        self.gamma = 0
+        self.epsilon = 0
+        self.batch_size = 0
+        self.initial_state = None
         # network specific params can be moved to the network class,
         # but it might be handy to have all params in one place.
         # Make sure to think this through.
@@ -20,12 +26,23 @@ class Agent:
 
     def reset(self):
         """Initialize the networks and other parameters"""
+        self.initial_state = self.env.reset()   # get initial state from env
+        input_neurons = len(self.initial_state)  # number of input neurons
+        hidden_neurons = 10  # need to think about it
+        output_neurons = len(self.actions)  # number of output neurons
+        self.network = Net(input_neurons=input_neurons,
+                           hidden_neurons=hidden_neurons,
+                           output_neurons=output_neurons)
+
+        self.gamma = 0.95
+        self.epsilon = 0.05  #
+        self.batch_size = 16
         pass
 
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
         # TODO: reset musi zwrócić początkowy stan środowiska
-        self.current_state = self.env.reset()
+        self.current_state = self.initial_state
         total_reward = 0
         terminal_state = False
         while not terminal_state:
@@ -53,6 +70,7 @@ class Agent:
         Note: this should be epsilon-greedy
         """
         # TODO implement me!
+
         return 1
 
     def return_model_info(self):
