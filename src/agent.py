@@ -1,4 +1,26 @@
-from src.net import Net
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+
+class Net(torch.nn.Module):
+    """
+        Simple Neural Network.
+
+    """
+    def __init__(self, input_neurons, hidden_neurons, output_neurons):
+        super().__init__()
+        self.fc1 = torch.nn.Linear(input_neurons, hidden_neurons)
+        self.fc2 = torch.nn.Linear(hidden_neurons, hidden_neurons)
+        self.fc3 = torch.nn.Linear(hidden_neurons, output_neurons)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = F.tanh(x)   # Hyperbolic tangent activation function
+        x = self.fc2(x)
+        # Need to think about activation function
+        x = self.fc3(x)
+        return F.softmax(x, dim=1)  # normalized exponential function
 
 
 class Agent:
@@ -17,6 +39,8 @@ class Agent:
         self.memory = []  # TODO - czy lista?
         self.gamma = 0
         self.epsilon = 0
+        self.epsilon_decay = 0
+        self.epsilon_min = 0
         self.batch_size = 0
         self.initial_state = None
         # network specific params can be moved to the network class,
@@ -42,7 +66,7 @@ class Agent:
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
         # TODO: reset musi zwrócić początkowy stan środowiska
-        self.current_state = self.initial_state
+        self.current_state = self.env.reset()
         total_reward = 0
         terminal_state = False
         while not terminal_state:
