@@ -22,7 +22,7 @@ class Net(torch.nn.Module):
         x = self.fc2(x)
         x = F.relu(x)
         x = self.fc3(x)
-        return F.softmax(x, dim=1)
+        return F.softmax(x, dim=0)
 
 
 class Agent:
@@ -94,34 +94,37 @@ class Agent:
         if len(self.memory) > self.batch_size:
             self.optimizer.zero_grad()
 
-            exp_batch = random.sample(self.memory, self.batch_size)
-            input_state_batch = autograd.Variable(
-                [x[0] for x in exp_batch], requires_grad=True)
-            action_batch = autograd.Variable([x[1] for x in exp_batch])
-            reward_batch = autograd.Variable([x[2] for x in exp_batch])
-            next_state_batch = autograd.Variable([x[3] for x in exp_batch],
-                                                 requires_grad=True)
-            is_terminal_state_batch = autograd.Variable(
-                [x[4] for x in exp_batch])
+            exp_batch = []
+            indices = np.random.randint(0, len(self.memory), self.batch_size)\
+                .tolist()
+            for i in indices:
+                exp_batch.append(self.memory[i])
+
+            input_state_batch = autograd.Variable(torch.FloatTensor(
+                [x[0] for x in exp_batch]))
+            action_batch = [x[1] for x in exp_batch]
+            reward_batch = autograd.Variable(torch.FloatTensor(
+                [x[2] for x in exp_batch]))
+            next_state_batch = autograd.Variable(torch.FloatTensor(
+                [x[3] for x in exp_batch]))
+            is_terminal_state_batch = autograd.Variable(torch.FloatTensor(
+                [not x[4] for x in exp_batch]))
 
             # for each state in batch calc Q
             q_t0_values = self.network(input_state_batch)
 
             # for each next_state in batch calc max{a}{Q(s,a)}
-            q_t1_max = torch.max(self.network(next_state_batch), 0)
+            q_t1_max = self.network(next_state_batch).max(0)[0]
 
             # if next_state - max{a}{Q(s,a)} should be zero
-            q_t1_max_with_terminal = torch.mul(q_t1_max,
-                                               is_terminal_state_batch)
+            q_t1_max_with_terminal = q_t1_max.mul(is_terminal_state_batch)
 
             # now calc the targets for each batch (only for the action
             # taken in the batch!)
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
-            loss = torch.zeros(self.batch_size, len(self.actions))
+            loss = autograd.Variable(torch.zeros(self.batch_size, len(self.actions)))
 
-            for sample, i in enumerate(loss):
-                sample[action_batch[i]] = F.mse_loss(
-                    q_t0_values[action_batch[i]], targets[i])
+            loss[action_batch] = F.mse_loss(q_t0_values[action_batch], targets).data[0]
 
             # 6. train net with the error
             loss.backward()
@@ -137,7 +140,8 @@ class Agent:
         if np.random.random() < self.epsilon:
             return self.env.action_space.sample()
 
-        return np.argmax(self.network.forward(state)[0])
+        return np.argmax(self.network.forward(
+            autograd.Variable(torch.Tensor(state)))[0])
 
     def return_model_info(self):
         """
