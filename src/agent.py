@@ -2,6 +2,7 @@ import numpy as np
 import random
 import torch
 from torch import autograd, nn, optim
+from torch.autograd import Variable
 import torch.nn.functional as F
 
 
@@ -18,9 +19,9 @@ class Net(torch.nn.Module):
 
     def forward(self, x):
         x = self.fc1(x)
-        x = F.relu(x)
+        x = F.sigmoid(x)
         x = self.fc2(x)
-        x = F.relu(x)
+        x = F.sigmoid(x)
         x = self.fc3(x)
         return F.softmax(x, dim=0)
 
@@ -75,14 +76,17 @@ class Agent:
         total_reward = 0
         terminal_state = False
         while not terminal_state:
-            action = self._get_next_action(self.current_state)
-            next_state, reward, terminal_state = self.env.step(action)
-            self.memory.append((self.current_state, action, reward,
+            action_index = self._get_next_action(self.current_state)
+            # print(self.actions[action_index])
+            next_state, reward, terminal_state = \
+                self.env.step(self.actions[action_index])
+
+            self.memory.append((self.current_state, action_index, reward,
                                 next_state, terminal_state))
+
             self.current_state = next_state
             total_reward += reward
             self._train()
-
         return total_reward
 
     def _train(self):
@@ -90,7 +94,7 @@ class Agent:
         Trains the underlying network with use of experience memory
         Note: this method does a training *step*, not whole training
         """
-        # TODO implement me!
+        # TODO refactor the code and comments to make the code clear
         if len(self.memory) > self.batch_size:
             self.optimizer.zero_grad()
 
@@ -100,14 +104,15 @@ class Agent:
             for i in indices:
                 exp_batch.append(self.memory[i])
 
-            input_state_batch = autograd.Variable(torch.FloatTensor(
+            # Warningi to błąd pycharma
+            input_state_batch = Variable(torch.FloatTensor(
                 [x[0] for x in exp_batch]))
             action_batch = [x[1] for x in exp_batch]
-            reward_batch = autograd.Variable(torch.FloatTensor(
+            reward_batch = Variable(torch.FloatTensor(
                 [x[2] for x in exp_batch]))
-            next_state_batch = autograd.Variable(torch.FloatTensor(
+            next_state_batch = Variable(torch.FloatTensor(
                 [x[3] for x in exp_batch]))
-            is_terminal_state_batch = autograd.Variable(torch.FloatTensor(
+            is_terminal_state_batch = Variable(torch.FloatTensor(
                 [not x[4] for x in exp_batch]))
 
             # for each state in batch calc Q
@@ -122,9 +127,8 @@ class Agent:
             # now calc the targets for each batch (only for the action
             # taken in the batch!)
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
-            loss = autograd.Variable(torch.zeros(self.batch_size, len(self.actions)))
 
-            loss[action_batch] = F.mse_loss(q_t0_values[action_batch], targets).data[0]
+            loss = F.smooth_l1_loss(q_t0_values, targets)
 
             # 6. train net with the error
             loss.backward()
@@ -138,7 +142,7 @@ class Agent:
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if np.random.random() < self.epsilon:
-            return self.env.action_space.sample()
+            return random.randint(0, len(self.actions))
 
         return np.argmax(self.network.forward(
             autograd.Variable(torch.Tensor(state)))[0])
