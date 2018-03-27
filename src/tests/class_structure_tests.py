@@ -15,9 +15,8 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
 
     def setUp(self):
         self.world = World()
-        self.sensors_out = [OutsideSensor() for _ in range(3)]
         self.house = House(self.world.time_step_in_minutes)
-        self.world.register(self.house)
+        self.sensors_out = [OutsideSensor(self.house) for _ in range(3)]
         for s in self.sensors_out:
             self.world.register(s)
 
@@ -41,7 +40,7 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
             self.assertEqual(
                 self.world.daytime,
                 self.house.daytime,
-                "house failed - wrond daytime"
+                "house failed - wrong daytime"
             )
 
     def test_sensors_weather(self):
@@ -57,17 +56,7 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
                         "sensor out failed - wrong weather"
                     )
 
-    def test_house_weather(self):
-        """Test house weather vs world weather"""
-        for step in range(3):
-            self.world.step()
-
-            for key in self.world.weather.keys():
-                self.assertEqual(
-                    self.world.weather[key],
-                    self.house.weather[key],
-                    "house failed - wrond weather"
-                )
+    # new method for world weather and house parameters should be implemented
 
 
 class EnvironmentStructureTestCase(unittest.TestCase):

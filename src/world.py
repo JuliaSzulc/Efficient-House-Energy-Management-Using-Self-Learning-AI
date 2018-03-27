@@ -3,7 +3,6 @@ import math
 import random
 from random import choices
 
-
 class World:
     """Time and weather computations"""
 

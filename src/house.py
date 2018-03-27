@@ -1,3 +1,5 @@
+from random import uniform
+
 class House:
 
     """Main environment part"""
@@ -9,6 +11,9 @@ class House:
         self.day_end = 18 * 60
         self.pv_absorption = 2000  # Watt on max sun intensity
         self.grid_cost = 0.5  # PLN for 1kWh
+        self.house_isolation_factor = 0.5
+        self.house_light_factor = 0.01
+        self.max_led_illuminance = 200  # lux
         self.battery = {
             'current': 0,
             'max': 14000  # Watt, as good as single Tesla PowerWall unit.
@@ -18,14 +23,14 @@ class House:
             'day': {
                 'temp_desired': 21,
                 'temp_epsilon': 0.5,
-                'light_desired': 0.7,
-                'light_epsilon': 0.05
+                'light_desired': 1.0,
+                'light_epsilon': 0.1
             },
             'night': {
                 'temp_desired': 18,
                 'temp_epsilon': 1,
                 'light_desired': 0.0,
-                'light_epsilon': 0.01
+                'light_epsilon': 0.1
             }
         }
 
@@ -41,43 +46,102 @@ class House:
         self.influence = 0.2 * timeframe
 
         self.current_settings = {
-            'energy_src': 'grid',
+            'energy_src': 'grid', # grid/pv
             'cooling_lvl': 0,
             'heating_lvl': 0,
             'light_lvl': 0,
             'curtains_lvl': 0
         }
 
-        self.daytime = None
-        self.weather = None
+        self.devices_power = {
+            'air_conditioner': 1500,
+            'heater': 3000,
+            'light': 20
+        }
 
-    def update(self, weather, daytime, **kwargs):
-        self.daytime = daytime
-        self.weather = weather
-        # TODO: this is the most important environment method.
-        # I assume that actions are already DONE at this point.
-        # we must carefully execute everything together now:
-        # 1. calculate energy (temperature, light etc) flow from outside
-        # 2. store accumulated energy (if any) in battery
-        # 3. most importantly, calculate final values for inside sensor(s)
+        # curtains don't use energy all the time, only for a faw seconds while their state changes
+        self.last_curtains_lvl = 0
+        self.curtains_change_energy = 5  # [Watt]
+
+        self.daytime = None
+
+    def calculate_light(self, outside_illumination):
+        # probably should include daytime (angle of the sunlight)
+        for sensor, data in self.inside_sensors.items():
+            data['light'] = ((outside_illumination * self.house_light_factor)
+                * (1 - self.current_settings['curtains_lvl'])
+                + self.current_settings['light_lvl'] *
+                self.max_led_illuminance) / self.max_led_illuminance
+
+    def calculate_temperature(self, wind_chill):
+        # as long as we implement only one heater the inside temperature is average
+        # temperature from all inside sensors
+        inside_temp = 0
+
+        for sensor, data in self.inside_sensors.items():
+            inside_temp += data['temperature']
+
+        inside_temp /= len(self.inside_sensors.items())
+
+        temp_delta = abs((wind_chill - inside_temp)
+            * (1 - self.house_isolation_factor))
+
+        # should be changed for some more complex formula
+        for data in self.inside_sensors.values():
+            data['temperature'] = inside_temp + (temp_delta * self.timeframe
+                * self.current_settings['heating_lvl']) - (temp_delta
+                * self.timeframe * self.current_settings['cooling_lvl'])
+
+    def calculate_accumulated_energy(self, outside_illumination):
+        accumulated_energy = outside_illumination * self.pv_absorption \
+            * self.timeframe
+
+        if self.battery['current'] + accumulated_energy <= self.battery['max']:
+            self.battery['current'] += accumulated_energy;
+
+    def update(self, sensor_out_info):
+        self.daytime = sensor_out_info['daytime']
+        self.calculate_accumulated_energy(sensor_out_info['light'])
+        self.calculate_temperature(sensor_out_info['wind_chill'])
+        self.calculate_light(sensor_out_info['illumination'])
 
     def get_inside_params(self):
-        """
-        This method should be called AFTER updating the house.
+        inside_params = {
+            'inside_sensors': self.inside_sensors,
+            'desired': self.user_requests,
+            'grid_cost': self.grid_cost,
+            'battery_level': self.battery['current']
+        }
 
-        """
+        for sensor in inside_params['inside_sensors'].values():
+            for parameter in sensor.keys():
+                sensor[parameter] += float(format(uniform(-0.1, 0.1), '.2f'))
 
-        # TODO: implement me!
-        # Should return all inside sensors params with some random noise error
-        # Note: this *has to* include: inside sensors values,
-        # current desired levels of params, current grid_cost,
-        # current battery level.
-        # Should return it as one dictionary with parameters named nicely.
-        pass
+        return inside_params
+
+    def calculate_device_cost(self, device_power, device_settings):
+        return float(format(device_power / 1000 / 60 * device_settings
+            * self.timeframe * self.grid_cost, '.4f'))
+
+    def calculate_curtains_cost(self):
+        return float(format(abs(self.current_settings['curtains_lvl']
+            - self.last_curtains_lvl) * self.curtains_change_energy
+            * self.grid_cost / 1000 / 60 * self.timeframe, '.4f'))
 
     def _calculate_energy_cost(self):
-        # TODO: implement me!
-        return 0
+        if self.current_settings['energy_src'] == 'pv':
+            return 0
+
+        cost = self.calculate_curtains_cost()
+        cost += self.calculate_device_cost(
+            self.devices_power['air_conditioner'],
+            self.current_settings['cooling_lvl'])
+        cost += self.calculate_device_cost(self.devices_power['heater'],
+            self.current_settings['heating_lvl'])
+        cost += self.calculate_device_cost(self.devices_power['light'],
+            self.current_settings['light_lvl'])
+
+        return cost
 
     def reward(self):
         """
@@ -192,4 +256,3 @@ class House:
 
     def action_nop(self):
         pass
-

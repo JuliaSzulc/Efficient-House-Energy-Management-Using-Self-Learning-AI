@@ -14,7 +14,7 @@ class HouseActionsDifferentTimeframes(unittest.TestCase):
     def setUp(self):
         self.house_long = House(100)
         self.house_short = House(1)
-        self.house_shortest = House(1/60) # one second timeframe
+        self.house_shortest = House(1 / 60)  # one second timeframe
 
         self.house_long.current_settings['heating_lvl'] = 0
         self.house_short.current_settings['heating_lvl'] = 0
@@ -53,11 +53,12 @@ class HouseActionsDifferentTimeframes(unittest.TestCase):
             self.house_shortest.action_less_cooling()
         self.assertEqual(self.house_shortest.current_settings['cooling_lvl'], 0)
 
+
 class HouseActionsTestCase(unittest.TestCase):
     """Testing house actions"""
 
     def setUp(self):
-        self.house = House(1) # one minute timeframe
+        self.house = House(1)  # one minute timeframe
         self.house.current_settings = {
             'energy_src': 'grid',
             'cooling_lvl': 0.5,
@@ -167,12 +168,12 @@ class HouseRewardTestCase(unittest.TestCase):
         self.house = House(timeframe=5)
         self.house.day_start = 7 * 60
         self.house.day_end = 24 * 60 - 5 * 60
-        self.house.daytime = 12 * 60 # default
+        self.house.daytime = 12 * 60  # default
 
         # define perfect conditions (so reward should be zero)
         self.house._calculate_energy_cost = MagicMock(return_value=0)
         self.house.user_requests = {
-            'day' : {
+            'day': {
                 'temp_desired': 21,
                 'temp_epsilon': 0.5,
                 'light_desired': 0.7,
@@ -222,6 +223,126 @@ class HouseRewardTestCase(unittest.TestCase):
         self.assertLess(reward_2, reward,
                         "Reward should be bigger, parameters are worse.")
 
+class HouseUpdateTestCase(unittest.TestCase):
+    """Testing all the methods from update and update itself"""
+
+    def setUp(self):
+        self.house = House(5)
+        self.house.battery = {
+            'current': 0,
+            'max': 14000
+        }
+
+        self.house.pv_absorption = 2000
+        self.house.house_isolation_factor = 0.5
+        self.house.house_light_factor = 0.01
+        self.house.max_led_illuminance = 200
+
+        self.house.inside_sensors = {
+            'first': {
+                'temperature': 20,
+                'light': 0.8
+            }
+        }
+
+        self.house.current_settings = {
+            'energy_src': 'grid',
+            'cooling_lvl': 0.2,
+            'heating_lvl': 0.3,
+            'light_lvl': 0.3,
+            'curtains_lvl': 0.1
+        }
+
+        self.sensor_out_info = {
+            'daytime': 12 * 60,
+            'wind_chill': 15,
+            'light': 0.4,
+            'illumination': 10000,
+            'clouds': 0.4,
+            'rain': 0,
+            'wind': 0.7
+        }
+
+        self.house.update(self.sensor_out_info)
+
+    def test_compare_daytime(self):
+        self.assertEqual(self.house.daytime, self.sensor_out_info['daytime'],
+            "Daytime is not correct.")
+
+    def test_check_accumulated_energy(self):
+        self.assertEqual(self.house.battery['current'], 4000, "Battery state is not correct")
+
+    def test_check_inside_temperature(self):
+        for sensor, data in self.house.inside_sensors.items():
+            self.assertEqual(data['temperature'], 21.25, "Inside temperature is not correct.")
+
+    def test_check_inside_brightness(self):
+        for sensor, data in self.house.inside_sensors.items():
+            self.assertEqual(data['light'], 0.75, "Inside brightness is not correct.")
+
+class HouseEnergyCostTestCase(unittest.TestCase):
+    """Testing energy cost calculation method"""
+
+    def setUp(self):
+        self.house = House(4)
+        self.house.influence = 0.8
+
+        self.last_curtains_lvl = 0.0
+        self.curtains_change_energy = 5
+
+        self.house.grid_cost = 0.5
+        self.house.current_settings = {
+            'energy_src': 'grid',
+            'cooling_lvl': 0,
+            'heating_lvl': 0.6,
+            'light_lvl': 0.4,
+            'curtains_lvl': 0.8
+        }
+        self.house.devices_power = {
+            'air_conditioner': 1500,
+            'heater': 3000,
+            'light': 20
+        }
+
+    def test_calculate_curtains_cost(self):
+        self.assertEqual(
+            self.house.calculate_curtains_cost(),
+            0.0001,
+            "Wrong curtains energy calculation.")
+
+    def test_calculate_air_conditioner_cost(self):
+        self.assertEqual(
+            self.house.calculate_device_cost(
+                self.house.devices_power['air_conditioner'],
+                self.house.current_settings['cooling_lvl']),
+            0,
+            "Wrong air conditioner energy calculation.")
+
+    def test_calculate_heater_cost(self):
+        self.assertEqual(
+            self.house.calculate_device_cost(
+                self.house.devices_power['heater'],
+                self.house.current_settings['heating_lvl']),
+            0.06,
+            "Wrong heater energy calculation.")
+
+    def test_calculate_light_cost(self):
+        self.assertEqual(
+            self.house.calculate_device_cost(
+                self.house.devices_power['light'],
+                self.house.current_settings['light_lvl']),
+            0.0003,
+            "Wrong light energy calculation.")
+
+    def test_calculate_energy_cost_for_active_grid(self):
+        self.assertEqual(self.house._calculate_energy_cost(), 0.0604,
+                         "Wrong total energy cost calculation.")
+
+    def test_calculate_energy_cost_for_active_pv(self):
+        self.house.current_settings['energy_src'] = 'pv'
+
+        self.assertEqual(self.house._calculate_energy_cost(), 0,
+            "While using photovoltaic energy source, cost should be 0.")
 
 class BasicHouseTestCase(unittest.TestCase):
     """Testing house usage and methods"""
