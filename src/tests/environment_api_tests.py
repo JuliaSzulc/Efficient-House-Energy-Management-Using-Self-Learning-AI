@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import MagicMock
-from src.environment import HouseEnergyEnvironment
+import os, sys
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from environment import HouseEnergyEnvironment
 import numpy as np
 import types
 
@@ -16,6 +18,15 @@ class BasicEnvironmentTestCase(unittest.TestCase):
 
         self.env.house.mocked_param = 0
         self.env.house.action_mocked = types.MethodType(action, self.env.house)
+
+    def test_serialize_state(self):
+        """test if returned state in step method has normalized values"""
+
+        observation, reward, done = self.env.step("action_mocked")
+        observation = observation.tolist()[0]
+        self.assertTrue(all([0 <= x <= 1 for x in observation]),
+                        "state is not serialized! observation vector:\n" +
+                        " ".join([str(x) for x in observation]))
 
     def test_get_action(self):
         """test getting mocked action"""
@@ -35,6 +46,7 @@ class BasicEnvironmentTestCase(unittest.TestCase):
             1,
             "mocked action on environment failed!"
         )
+
 
 
 class EnvironmentStepTestCase(unittest.TestCase):
