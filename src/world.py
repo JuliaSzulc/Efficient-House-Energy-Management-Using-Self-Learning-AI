@@ -58,7 +58,7 @@ class World:
         self.wind_power = [i/10 for i in range(0, 11)]
         self.wind_probability = [0.4, 0.1, 0.07, 0.1, 0.05, 0.03, 0.1, 0.04, 0.02, 0.05, 0.04]
 
-        # probability (summary 1.0) of difference wind in (0,1) power range [0.0, 0.1, 0.2, ..., 0.6]
+        # probability (summary 1.0) of difference clouds in (0, 0.6) power range [0.0, 0.1, 0.2, ..., 0.6]
         # 0.5 clouds means that the sun is half hidden
         self.clouds = [i/10 for i in range(0, 7)]
         self.clouds_probability = [0.2, 0.3, 0.2, 0.1, 0.07, 0.1, 0.03]
@@ -100,8 +100,14 @@ class World:
         self.daytime = (now - midnight).seconds // 60
 
     def calculate_weathers_weights(self, max_frame, max_meaning):
-        self.current_weather_meaning = (max_meaning/max_frame)*self.time_step_in_minutes
-        self.previous_weather_meaning = 1-self.current_weather_meaning
+        if max_frame != 0 and max_frame >= self.time_step_in_minutes:
+            if 0 <= max_meaning <= 1:
+                self.current_weather_meaning = (max_meaning/max_frame)*self.time_step_in_minutes
+                self.previous_weather_meaning = 1-self.current_weather_meaning
+            else:
+                print('incorrect max_meaning value')
+        else:
+            print('incorrect max_frame value')
         pass
 
     def _update_weather(self):
@@ -114,6 +120,7 @@ class World:
         self._calculate_sun()
         self._calculate_wind()
         self._calculate_clouds()
+        self._calculate_light()
         self._calculate_rain()
         self._calculate_temperature()
         pass
@@ -143,8 +150,6 @@ class World:
         pass
 
     def _calculate_clouds(self):
-        temp_light = self.weather['light']
-
         # get random clouds
         # update clouds with wind power (stronger wind = less clouds)
         self.weather['clouds'] = round(self.current_weather_meaning *
@@ -152,6 +157,10 @@ class World:
                                        (1-self.weather['wind']) +
                                        self.previous_weather_meaning *
                                        self.weather['clouds'], 5)
+        pass
+
+    def _calculate_light(self):
+        temp_light = self.weather['light']
 
         # after clouds calculation we can count light parameter
         self.weather['light'] = self.weather['sun']*(1-self.weather['clouds'])
