@@ -3,13 +3,12 @@ import math
 import random
 from random import choices
 
-
 class World:
     """Time and weather computations"""
-    
+
     def __init__(self):
         # time settings
-        self.start_date = datetime(2020, 1, 1, 0, 0, 0)   
+        self.start_date = datetime(2020, 1, 1, 0, 0, 0)
         self.current_date = self.start_date
         self.daytime = None
         self.time_step = timedelta(minutes=0.5)
@@ -23,7 +22,7 @@ class World:
         # temp  -> is actually feeling temp
         # sun   -> sun power before calculate with clouds
         # light -> sun power after calculation
-        self.weather = { 
+        self.weather = {
             'temp': 12,
             'sun': 0,
             'light': 0,
@@ -59,7 +58,7 @@ class World:
         self.wind_power = [i/10 for i in range(0, 11)]
         self.wind_probability = [0.4, 0.1, 0.07, 0.1, 0.05, 0.03, 0.1, 0.04, 0.02, 0.05, 0.04]
 
-        # probability (summary 1.0) of difference wind in (0,1) power range [0.0, 0.1, 0.2, ..., 0.6]
+        # probability (summary 1.0) of difference clouds in (0, 0.6) power range [0.0, 0.1, 0.2, ..., 0.6]
         # 0.5 clouds means that the sun is half hidden
         self.clouds = [i/10 for i in range(0, 7)]
         self.clouds_probability = [0.2, 0.3, 0.2, 0.1, 0.07, 0.1, 0.03]
@@ -68,7 +67,7 @@ class World:
 
         # other settings
         self.listeners = []
-        
+
     def register(self, listener):
         self.listeners.append(listener)
 
@@ -78,7 +77,7 @@ class World:
                 listener.update(daytime=self.daytime, weather=self.weather)
             except AttributeError:
                 print('listener has unimplemented method update')
-                    
+
     def step(self):
         """Proceed one step in time, collect info and update listeners
         Returns:
@@ -88,21 +87,27 @@ class World:
 
         if self.current_date >= self.stop_date:
             return True
-        
+
         self.current_date += self.time_step
         self.compute_daytime()
         self._update_weather()
         self._update_listeners()
         return False
-        
+
     def compute_daytime(self):
         now = self.current_date
         midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
         self.daytime = (now - midnight).seconds // 60
 
     def calculate_weathers_weights(self, max_frame, max_meaning):
-        self.current_weather_meaning = (max_meaning/max_frame)*self.time_step_in_minutes
-        self.previous_weather_meaning = 1-self.current_weather_meaning
+        if max_frame != 0 and max_frame >= self.time_step_in_minutes:
+            if 0 <= max_meaning <= 1:
+                self.current_weather_meaning = (max_meaning/max_frame)*self.time_step_in_minutes
+                self.previous_weather_meaning = 1-self.current_weather_meaning
+            else:
+                print('incorrect max_meaning value')
+        else:
+            print('incorrect max_frame value')
         pass
 
     def _update_weather(self):
@@ -115,6 +120,7 @@ class World:
         self._calculate_sun()
         self._calculate_wind()
         self._calculate_clouds()
+        self._calculate_light()
         self._calculate_rain()
         self._calculate_temperature()
         pass
@@ -144,8 +150,6 @@ class World:
         pass
 
     def _calculate_clouds(self):
-        temp_light = self.weather['light']
-
         # get random clouds
         # update clouds with wind power (stronger wind = less clouds)
         self.weather['clouds'] = round(self.current_weather_meaning *
@@ -153,6 +157,10 @@ class World:
                                        (1-self.weather['wind']) +
                                        self.previous_weather_meaning *
                                        self.weather['clouds'], 5)
+        pass
+
+    def _calculate_light(self):
+        temp_light = self.weather['light']
 
         # after clouds calculation we can count light parameter
         self.weather['light'] = self.weather['sun']*(1-self.weather['clouds'])
