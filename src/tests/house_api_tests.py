@@ -255,7 +255,7 @@ class HouseUpdateTestCase(unittest.TestCase):
 
         self.sensor_out_info = {
             'daytime': 12 * 60,
-            'wind_chill': 15,
+            'actual_temp': 15,
             'light': 0.4,
             'illumination': 10000,
             'clouds': 0.4,
@@ -285,10 +285,6 @@ class HouseEnergyCostTestCase(unittest.TestCase):
 
     def setUp(self):
         self.house = House(4)
-        self.house.influence = 0.8
-
-        self.last_curtains_lvl = 0.0
-        self.curtains_change_energy = 5
 
         self.house.grid_cost = 0.5
         self.house.current_settings = {
@@ -304,12 +300,6 @@ class HouseEnergyCostTestCase(unittest.TestCase):
             'light': 20
         }
 
-    def test_calculate_curtains_cost(self):
-        self.assertEqual(
-            self.house.calculate_curtains_cost(),
-            0.0001,
-            "Wrong curtains energy calculation.")
-
     def test_calculate_air_conditioner_cost(self):
         self.assertEqual(
             self.house.calculate_device_cost(
@@ -320,23 +310,25 @@ class HouseEnergyCostTestCase(unittest.TestCase):
 
     def test_calculate_heater_cost(self):
         self.assertEqual(
-            self.house.calculate_device_cost(
+            float(format(self.house.calculate_device_cost(
                 self.house.devices_power['heater'],
-                self.house.current_settings['heating_lvl']),
+                self.house.current_settings['heating_lvl']), '.2f')),
             0.06,
             "Wrong heater energy calculation.")
 
     def test_calculate_light_cost(self):
         self.assertEqual(
-            self.house.calculate_device_cost(
+            float(format(self.house.calculate_device_cost(
                 self.house.devices_power['light'],
-                self.house.current_settings['light_lvl']),
+                self.house.current_settings['light_lvl']), '.4f')),
             0.0003,
             "Wrong light energy calculation.")
 
     def test_calculate_energy_cost_for_active_grid(self):
-        self.assertEqual(self.house._calculate_energy_cost(), 0.0604,
-                         "Wrong total energy cost calculation.")
+        self.assertEqual(
+            float(format(self.house._calculate_energy_cost(), '.4f')),
+            0.0603,
+            "Wrong total energy cost calculation.")
 
     def test_calculate_energy_cost_for_active_pv(self):
         self.house.current_settings['energy_src'] = 'pv'

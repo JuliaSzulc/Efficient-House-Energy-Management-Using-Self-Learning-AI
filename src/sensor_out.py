@@ -29,12 +29,15 @@ class OutsideSensor:
 
         """
 
+        max_illumination = 25000 # 25k lux is maximum illumination of the ambient daylight
+
         sensor_info = {
             'daytime': self.daytime,
-            'wind_chill': 0.045 * (5.27**0.5 + 10.45 - 0.28 *
+            'actual_temp': 0.045 * (5.27**0.5 + 10.45 - 0.28 *
                 self.weather['wind']) * (self.weather['temp'] - 33) + 33,
-            'light': self.weather['sun'],
-            'illumination': self.weather['sun'] * 25000, # 25k lux is maximum illumination of the ambient daylight
+            'light': self.weather['light'],
+            'max_illumination': max_illumination,
+            'illumination': self.weather['light'] * max_illumination,
             'clouds': self.weather['clouds'],
             'rain': self.weather['rain'],
             'wind': self.weather['wind']

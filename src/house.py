@@ -23,7 +23,7 @@ class House:
             'day': {
                 'temp_desired': 21,
                 'temp_epsilon': 0.5,
-                'light_desired': 1.0,
+                'light_desired': 0.4, # 200 / (25000 * self.house_light_factor + self.max_led_illuminance)
                 'light_epsilon': 0.1
             },
             'night': {
@@ -59,10 +59,6 @@ class House:
             'light': 20
         }
 
-        # curtains don't use energy all the time, only for a faw seconds while their state changes
-        self.last_curtains_lvl = 0
-        self.curtains_change_energy = 5  # [Watt]
-
         self.daytime = None
 
     def calculate_light(self, outside_illumination):
@@ -73,7 +69,7 @@ class House:
                 + self.current_settings['light_lvl'] *
                 self.max_led_illuminance) / self.max_led_illuminance
 
-    def calculate_temperature(self, wind_chill):
+    def calculate_temperature(self, actual_temp):
         # as long as we implement only one heater the inside temperature is average
         # temperature from all inside sensors
         inside_temp = 0
@@ -83,7 +79,7 @@ class House:
 
         inside_temp /= len(self.inside_sensors.items())
 
-        temp_delta = abs((wind_chill - inside_temp)
+        temp_delta = abs((actual_temp - inside_temp)
             * (1 - self.house_isolation_factor))
 
         # should be changed for some more complex formula
@@ -102,7 +98,7 @@ class House:
     def update(self, sensor_out_info):
         self.daytime = sensor_out_info['daytime']
         self.calculate_accumulated_energy(sensor_out_info['light'])
-        self.calculate_temperature(sensor_out_info['wind_chill'])
+        self.calculate_temperature(sensor_out_info['actual_temp'])
         self.calculate_light(sensor_out_info['illumination'])
 
     def get_inside_params(self):
@@ -115,25 +111,19 @@ class House:
 
         for sensor in inside_params['inside_sensors'].values():
             for parameter in sensor.keys():
-                sensor[parameter] += float(format(uniform(-0.1, 0.1), '.2f'))
+                sensor[parameter] += uniform(-0.1, 0.1)
 
         return inside_params
 
     def calculate_device_cost(self, device_power, device_settings):
-        return float(format(device_power / 1000 / 60 * device_settings
-            * self.timeframe * self.grid_cost, '.4f'))
-
-    def calculate_curtains_cost(self):
-        return float(format(abs(self.current_settings['curtains_lvl']
-            - self.last_curtains_lvl) * self.curtains_change_energy
-            * self.grid_cost / 1000 / 60 * self.timeframe, '.4f'))
+        return device_power / 1000 / 60 * device_settings * self.timeframe \
+            * self.grid_cost
 
     def _calculate_energy_cost(self):
         if self.current_settings['energy_src'] == 'pv':
             return 0
 
-        cost = self.calculate_curtains_cost()
-        cost += self.calculate_device_cost(
+        cost = self.calculate_device_cost(
             self.devices_power['air_conditioner'],
             self.current_settings['cooling_lvl'])
         cost += self.calculate_device_cost(self.devices_power['heater'],
