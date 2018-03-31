@@ -66,6 +66,9 @@ class HouseEnergyEnvironment:
         for outside_sensor in self.outside_sensors:
             self.world.register(outside_sensor)
 
+        # transfer initial informations to listeners
+        self.world._update_listeners()
+
         # TODO: other environment parts
         return self._get_current_state()
 
@@ -91,7 +94,7 @@ class HouseEnergyEnvironment:
 
         return [action for action in dir(self.house)
                 if callable(getattr(self.house, action))
-                and re.match("action*", action)]
+                and re.match("action.*", action)]
 
     def _get_current_state(self):
         outside_params = [sensor.get_info() for sensor in self.outside_sensors]
@@ -130,13 +133,14 @@ class HouseEnergyEnvironment:
 
         for sensor in state['outside']:
             for key, value in sensor.items():
-                if key == 'wind_chill':
+                if key == 'actual_temp':
                     # temperature in range (-20, +40)'C
                     value = (value + 20) / 60
                 observation.append(value)
 
         # NOTE: inconsistency - we have LIST of outside sensors and DICT of
         # inside sensors.
+
 
         for dk, dv in state['inside'].items():
             if dk == 'inside_sensors':
@@ -156,16 +160,11 @@ class HouseEnergyEnvironment:
             else:
                 observation.append(dv)
 
-        # final safety zone = truncating everything
-        def truncate(x):
-            if not x: return 0
-            if x < 0: return 0
-            if x > 1: return 1
-            return x
+        # make sure that vector is normalized. no safety zone - it has to work!
+        assert all([x is not None and (0 <= x <= 1) for x in observation]),\
+        "Whoa, some of observation values are not" +\
+        "truncated to 0-1 or are None!" +\
+        "vector: " + str(observation) + str(state) + \
+        str([x is not None and (0 <= x <= 1) for x in observation])
 
-        # safely print message to error stream, but continue execution
-        if not all([x and (0 <= x <= 1) for x in observation]):
-            print("Whoa, some of observation values are not truncated to 0-1 or are None!",file=sys.stderr)
-
-        observation = [truncate(x) for x in observation]
         return np.array([observation])

@@ -1,5 +1,10 @@
 from random import uniform
 
+def truncate_0_1(x):
+    if x > 1: return 1
+    if x < 0: return 0
+    return x
+
 class House:
 
     """Main environment part"""
@@ -64,10 +69,12 @@ class House:
     def calculate_light(self, outside_illumination):
         # probably should include daytime (angle of the sunlight)
         for sensor, data in self.inside_sensors.items():
-            data['light'] = ((outside_illumination * self.house_light_factor)
+             light = ((outside_illumination * self.house_light_factor)
                 * (1 - self.current_settings['curtains_lvl'])
                 + self.current_settings['light_lvl'] *
                 self.max_led_illuminance) / self.max_led_illuminance
+
+             data['light'] = truncate_0_1(light)
 
     def calculate_temperature(self, actual_temp):
         # as long as we implement only one heater the inside temperature is average
@@ -84,9 +91,11 @@ class House:
 
         # should be changed for some more complex formula
         for data in self.inside_sensors.values():
-            data['temperature'] = inside_temp + (temp_delta * self.timeframe
+            temperature = inside_temp + (temp_delta * self.timeframe
                 * self.current_settings['heating_lvl']) - (temp_delta
                 * self.timeframe * self.current_settings['cooling_lvl'])
+
+            data['temperature'] = temperature
 
     def calculate_accumulated_energy(self, outside_illumination):
         accumulated_energy = outside_illumination * self.pv_absorption \
@@ -110,8 +119,15 @@ class House:
         }
 
         for sensor in inside_params['inside_sensors'].values():
-            for parameter in sensor.keys():
-                sensor[parameter] += uniform(-0.1, 0.1)
+            for key, value in sensor.items():
+                noised = uniform(-0.1, 0.1)
+
+                if key == 'temperature':
+                    noised += value
+                if key == 'light':
+                    noised = truncate_0_1(noised + value)
+
+                sensor[key] = noised
 
         return inside_params
 
@@ -202,47 +218,41 @@ class House:
         self.current_settings['energy_src'] = 'grid'
 
     def action_source_battery(self):
-        self.current_settings['energy_src'] = 'battery'
+        # only if battery is more than 40%
+        if self.battery['current'] >= 0.4 * self.battery['max']:
+            self.current_settings['energy_src'] = 'battery'
 
     def action_more_cooling(self):
-        self.current_settings['cooling_lvl'] += self.influence
-        if self.current_settings['cooling_lvl'] > 1:
-            self.current_settings['cooling_lvl'] = 1
+        self.current_settings['cooling_lvl'] = \
+            truncate_0_1(self.current_settings['cooling_lvl'] + self.influence)
 
     def action_less_cooling(self):
-        self.current_settings['cooling_lvl'] -= self.influence
-        if self.current_settings['cooling_lvl'] < 0:
-            self.current_settings['cooling_lvl'] = 0
+        self.current_settings['cooling_lvl'] = \
+            truncate_0_1(self.current_settings['cooling_lvl'] - self.influence)
 
     def action_more_heating(self):
-        self.current_settings['heating_lvl'] += self.influence
-        if self.current_settings['heating_lvl'] > 1:
-            self.current_settings['heating_lvl'] = 1
+        self.current_settings['heating_lvl'] = \
+            truncate_0_1(self.current_settings['heating_lvl'] + self.influence)
 
     def action_less_heating(self):
-        self.current_settings['heating_lvl'] -= self.influence
-        if self.current_settings['heating_lvl'] < 0:
-            self.current_settings['heating_lvl'] = 0
+        self.current_settings['heating_lvl'] = \
+            truncate_0_1(self.current_settings['heating_lvl'] - self.influence)
 
     def action_more_light(self):
-        self.current_settings['light_lvl'] += self.influence
-        if self.current_settings['light_lvl'] > 1:
-            self.current_settings['light_lvl'] = 1
+        self.current_settings['light_lvl'] = \
+            truncate_0_1(self.current_settings['light_lvl'] + self.influence)
 
     def action_less_light(self):
-        self.current_settings['light_lvl'] -= self.influence
-        if self.current_settings['light_lvl'] < 0:
-            self.current_settings['light_lvl'] = 0
+        self.current_settings['light_lvl'] = \
+            truncate_0_1(self.current_settings['light_lvl'] - self.influence)
 
     def action_curtains_down(self):
-        self.current_settings['curtains_lvl'] += self.influence
-        if self.current_settings['curtains_lvl'] > 1:
-            self.current_settings['curtains_lvl'] = 1
+        self.current_settings['curtains_lvl'] = \
+            truncate_0_1(self.current_settings['curtains_lvl'] + self.influence)
 
     def action_curtains_up(self):
-        self.current_settings['curtains_lvl'] -= self.influence
-        if self.current_settings['curtains_lvl'] < 0:
-            self.current_settings['curtains_lvl'] = 0
+        self.current_settings['curtains_lvl'] = \
+            truncate_0_1(self.current_settings['curtains_lvl'] - self.influence)
 
     def action_nop(self):
         pass
