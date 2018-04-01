@@ -74,9 +74,9 @@ class SunPowerInDifferentStates(unittest.TestCase):
             self.assertTrue(6.5 <= self.world.weather['temp'] <= 30.5,
                             "Clouds value calculated without wind incorrect.")
 
-    def test_weather_meaning_scale(self):
-        self.assertEqual(self.world.previous_weather_meaning + self.world.current_weather_meaning, 1,
-                         "Incorrect weather meaning scale values.")
+    def test_weather_weight_scale(self):
+        self.assertEqual(self.world.previous_weather_weight + self.world.current_weather_weight, 1,
+                         "Incorrect weather weight scale values.")
 
 
 if __name__ == '__main__':

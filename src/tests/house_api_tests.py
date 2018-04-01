@@ -302,7 +302,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
 
     def test_calculate_air_conditioner_cost(self):
         self.assertEqual(
-            self.house.calculate_device_cost(
+            self.house._calculate_device_cost(
                 self.house.devices_power['air_conditioner'],
                 self.house.current_settings['cooling_lvl']),
             0,
@@ -310,7 +310,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
 
     def test_calculate_heater_cost(self):
         self.assertEqual(
-            float(format(self.house.calculate_device_cost(
+            float(format(self.house._calculate_device_cost(
                 self.house.devices_power['heater'],
                 self.house.current_settings['heating_lvl']), '.2f')),
             0.06,
@@ -318,7 +318,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
 
     def test_calculate_light_cost(self):
         self.assertEqual(
-            float(format(self.house.calculate_device_cost(
+            float(format(self.house._calculate_device_cost(
                 self.house.devices_power['light'],
                 self.house.current_settings['light_lvl']), '.4f')),
             0.0003,

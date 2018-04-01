@@ -1,0 +1,47 @@
+Staramy się używać Googlowego formatu docstringów.
+    https://google.github.io/styleguide/pyguide.html#Comments
+    Głównie chodzi o sposób opisywania metod / funkcji.
+    Docstringi konieczne są tylko w metodach publicznych, w prywatnych są
+    opcjonalne i mogą mieć formę pojedynczej linii komentarza, np:
+        # This method handles something
+
+Trzymamy się 80 znaków w jednej linii
+    jeśli trzeba, to łamiemy linię za pomocą escape'owania znaku nowej linii
+    (czyli znaku \).
+    Długie formuły matematyczne staramy się łamać na znakach, które umieszczamy
+    na początku kolejnych linii:
+
+        a = (2344 * self.stupid_long_x + 987246 * self.stupid_long_y)\
+            * 4 - self.whatever_else_here - 40 * self.dict['foo']\
+            + 5 / self.whatever_else_here2
+
+    Jeżeli dzielimy listę / słownik / zbiór, to nie potrzebujemy znaków \
+    ( python pozwala ogólnie na łamanie linii w dowolnym miejscu w obrębie
+    nawiasów )
+    Jeżeli pierwszy wiersz mieści się w jednej linii, to:
+
+        x = (element_miesci_sie_w_jednej_linii,
+             element_miesci_sie_rowniez_w_linii)
+
+    Jeśli się nie mieści, lub chcemy zachować szczególną czytelność:
+
+        x = (
+            ten_element_nie_zmiescil_sie_juz_w_linii,
+            lub_po_prostu_uwazam,
+            ze_tak_bedzie_czytelniej
+        )
+
+Skomplikowane warunki logiczne rozbijamy na mniejsze i przypisujemy do
+zmiennych, wg zasady "extract booleans to tell a story"
+    Zamiast:
+       if 21 < x < 4500 and  (b % 25) / 3 == 0:
+            ...
+
+    Piszemy:
+        x_in_range = 21 < x < 4500
+        proper_b = not (b % 25) / 3
+
+        if x_in_range and proper_b:
+            ...
+
+
