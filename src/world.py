@@ -49,8 +49,9 @@ class World:
         # sun power in (0,1) range. 0 between [7 PM, 5 AM],
         # 840 is shining time in minutes
         self.last_step_sun = 0
-        self.time_step_in_minutes = self.time_step.seconds // 60 or 1
-        self.sun_steps_count = 840 // self.time_step_in_minutes
+        self.time_step_in_minutes = self.time_step.seconds / 60
+
+        self.sun_steps_count = int(840 // self.time_step_in_minutes or 1)
         self.sun_steps = [
             math.sin(2 * math.pi * 0.5 * (i / self.sun_steps_count))\
             for i in range(self.sun_steps_count)
@@ -69,7 +70,7 @@ class World:
 
         # probability (summary 1.0) of difference wind in (0,1)
         # power range [0.0, 0.1, 0.2, ..., 1.0]
-        self.wind_power = [i/10 for i in range(11)]
+        self.wind_power = [i / 10 for i in range(11)]
         self.wind_probability = [0.4, 0.1, 0.07, 0.1, 0.05, 0.03, 0.1, 0.04,
                                  0.02, 0.05, 0.04]
 
@@ -225,3 +226,26 @@ class World:
 
         self.delta_weather['temp_delta'] = self.weather['temp']\
                                            - temp_temperature
+
+if __name__ == '__main__':
+    # plot graph for weather in single episode
+    import matplotlib.pyplot as plt
+    temp, sun, light, clouds, rain, wind = [],[],[],[],[],[]
+
+    w = World()
+    while not w.step():
+        temp.append((w.weather['temp'] + 20) / 60)
+        sun.append(w.weather['sun'])
+        light.append(w.weather['light'])
+        clouds.append(w.weather['clouds'])
+        rain.append(w.weather['rain'])
+        wind.append(w.weather['wind'])
+
+    plt.plot(temp, ',', label='temperature')
+    plt.plot(sun, label='sun')
+    plt.plot(light, ',', label='light')
+    plt.plot(clouds, ',', label='clouds')
+    plt.plot(rain, label='rain')
+    # plt.plot(wind, '.', label='wind')
+    plt.legend()
+    plt.show()
