@@ -1,14 +1,14 @@
 import numpy as np
 import random
 import torch
-from torch import autograd, nn, optim
+from torch import autograd, optim
 from torch.autograd import Variable
 import torch.nn.functional as F
 
 
 class Net(torch.nn.Module):
     """
-        Simple Neural Network.
+        Neural Network with variable layer sizes and 2 hidden layers.
 
     """
     def __init__(self, input_size, hidden1_size, hidden2_size, output_size):
@@ -19,11 +19,11 @@ class Net(torch.nn.Module):
 
     def forward(self, x):
         x = self.fc1(x)
-        x = F.sigmoid(x)
+        x = F.relu(x)
         x = self.fc2(x)
-        x = F.sigmoid(x)
+        x = F.relu(x)
         x = self.fc3(x)
-        return F.softmax(x, dim=0)
+        return x
 
 
 class Agent:
@@ -36,54 +36,54 @@ class Agent:
 
     def __init__(self, env):
         self.env = env
-        self.actions = self.env.get_actions()
+        self.actions = None
         self.network = None
         self.current_state = None
-        self.memory = []  # TODO - czy lista?
+        self.memory = []  # TODO - change to limited size structure
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
         self.epsilon_min = 0
         self.batch_size = 0
-        self.l_rate = 0.005
+        self.l_rate = 0
         self.optimizer = None
         self.initial_state = None
-        # initialize parameters and the network
+
         self.reset()
 
     def reset(self):
         """Initialize the networks and other parameters"""
         self.initial_state = self.env.reset()
+        self.actions = self.env.get_actions()
         input_size = len(self.initial_state)
-        hidden1_size = 15
-        hidden2_size = 10
+        hidden1_size = 25
+        hidden2_size = 15
         output_size = len(self.actions)
         self.network = Net(input_size, hidden1_size, hidden2_size, output_size)
         self.gamma = 0.95
-        self.epsilon = 0.05  #
+        self.epsilon = 0.05
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
         self.batch_size = 16
-        self.l_rate = 0.005
-        self.optimizer = optim.SGD(self.network.parameters(),
-                                   lr=self.l_rate, momentum=0.9)
-        pass
+        self.l_rate = 0.01
+        self.optimizer = optim.Adagrad(self.network.parameters(),
+                                       lr=self.l_rate)
 
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
-        # TODO: reset musi zwrócić początkowy stan środowiska
         self.current_state = self.env.reset()
         total_reward = 0
         terminal_state = False
         while not terminal_state:
-            action_index = self._get_next_action(self.current_state)
-            # print(self.actions[action_index])
+            action_index = self._get_next_action()
             next_state, reward, terminal_state = \
                 self.env.step(self.actions[action_index])
 
+            # TODO limit memory size
             self.memory.append((self.current_state, action_index, reward,
                                 next_state, terminal_state))
 
+            # print("Reward = ", reward)
             self.current_state = next_state
             total_reward += reward
             self._train()
@@ -94,47 +94,64 @@ class Agent:
         Trains the underlying network with use of experience memory
         Note: this method does a training *step*, not whole training
         """
-        # TODO refactor the code and comments to make the code clear
+        # TODO make notebook (and maintain it) explaining this function
+        # TODO then move the current comments there
         if len(self.memory) > self.batch_size:
-            self.optimizer.zero_grad()
+            # Sample random transition batch and transform it into separate
+            # batches (of autograd.Variable type)
+            exp_batch = self.get_experience_batch()
 
-            exp_batch = []
-            indices = np.random.randint(0, len(self.memory), self.batch_size)\
-                .tolist()
-            for i in indices:
-                exp_batch.append(self.memory[i])
+            input_state_batch = exp_batch[0]
+            action_batch = exp_batch[1]
+            reward_batch = exp_batch[2]
+            next_state_batch = exp_batch[3]
+            terminal_mask_batch = exp_batch[4]
 
-            # Warningi to błąd pycharma
-            input_state_batch = Variable(torch.FloatTensor(
-                [x[0] for x in exp_batch]))
-            action_batch = [x[1] for x in exp_batch]
-            reward_batch = Variable(torch.FloatTensor(
-                [x[2] for x in exp_batch]))
-            next_state_batch = Variable(torch.FloatTensor(
-                [x[3] for x in exp_batch]))
-            is_terminal_state_batch = Variable(torch.FloatTensor(
-                [not x[4] for x in exp_batch]))
+            # As q learning states, we want to calculate the error:
+            # Q(s,a) - (r + max{a}{Q(s_next,a)})
 
-            # for each state in batch calc Q
-            q_t0_values = self.network(input_state_batch)
+            # 1. Calculate Q(s,a) for each input state
+            all_q_values = self.network(input_state_batch)
 
-            # for each next_state in batch calc max{a}{Q(s,a)}
-            q_t1_max = self.network(next_state_batch).max(0)[0]
+            # 2. Retrieve q_values only for actions that were taken
+            # This use of gather function works the same as:
+            # for i in range(len(all_q_values)):
+            #   q_values.append(all_q_values[i][action_batch[i]])
+            # but we cannot use such loop, because Variables are immutable,
+            # so they don't have 'append' function etc.
+            # squeezing magic needed for size mismatches, debug
+            # yourself if you wonder why the're necessary
+            q_values = all_q_values.\
+                gather(1, action_batch.unsqueeze(1)).squeeze()
 
-            # if next_state - max{a}{Q(s,a)} should be zero
-            q_t1_max_with_terminal = q_t1_max.mul(is_terminal_state_batch)
+            # q_next_max = max{a}{Q(s_next,a)}
+            # Note: We create new Variable after the first line. Why?
+            # We used the network parameters to calculate
+            # q_next_max, but we don't want the backward() function to
+            # propagate twice into these parameters. Creating new Variable
+            # 'cuts' this part of computational graph - prevents it.
+            q_next_max = self.network(next_state_batch)
+            q_next_max = Variable(q_next_max.data)
+            q_next_max, _ = q_next_max.max(dim=1)
 
-            # now calc the targets for each batch (only for the action
-            # taken in the batch!)
+            # If the next state was terminal, we don't calculate the q value -
+            # the target should be just = r
+            q_t1_max_with_terminal = q_next_max.mul(1 - terminal_mask_batch)
+
+            # Calculate the target = r + max{a}{Q(s_next,a)}
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 
-            loss = F.smooth_l1_loss(q_t0_values, targets)
-
-            # 6. train net with the error
+            # calculate the loss (nll -> negative log likelihood/cross entropy)
+            # and optimize the parameters
+            self.optimizer.zero_grad()
+            loss = F.nll_loss(q_values, targets)
             loss.backward()
             self.optimizer.step()
 
-    def _get_next_action(self, state):
+            # might be useful for debugging
+            # print("Loss = ", loss.data.numpy()[0])
+
+    def _get_next_action(self):
         """
         Returns next action given a state with use of the network
         Note: this should be epsilon-greedy
@@ -142,10 +159,12 @@ class Agent:
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if np.random.random() < self.epsilon:
-            return random.randint(0, len(self.actions))
+            return random.randint(0, len(self.actions) - 1)
 
-        return np.argmax(self.network.forward(
-            autograd.Variable(torch.Tensor(state)))[0])
+        outputs = self.network.forward(
+            autograd.Variable(torch.FloatTensor(self.current_state)))
+
+        return np.argmax(outputs.data.numpy())
 
     def return_model_info(self):
         """
@@ -156,3 +175,39 @@ class Agent:
         """
         # TODO implement me!
         pass
+
+    def get_experience_batch(self):
+        """
+        Retrieves a random batch of transitions from memory and transforms it
+        to separate PyTorch Variables.
+
+        Transition is a tuple in form of:
+        (state, action, reward, next_state, terminal_state)
+        Returns:
+            exp_batch - list of Variables in given order:
+                [0] - input_state_batch
+                [1] - action_batch
+                [2] - reward_batch
+                [3] - next_state_batch
+                [4] - terminal_mask_batch
+        """
+        exp_batch = [0, 0, 0, 0, 0]
+
+        # sampling random batch of transitions
+        transition_batch = []
+        indices = np.random.randint(0, len(self.memory), self.batch_size) \
+            .tolist()
+        for i in indices:
+            transition_batch.append(self.memory[i])
+
+        # TODO: can/should we make this code cleaner?
+        # Float Tensors
+        for i in [0, 2, 3, 4]:
+            exp_batch[i] = Variable(torch.Tensor(
+                [x[i] for x in transition_batch]))
+
+        # Long Tensor for actions
+        exp_batch[1] = Variable(
+            torch.LongTensor([int(x[1]) for x in transition_batch]))
+
+        return exp_batch
