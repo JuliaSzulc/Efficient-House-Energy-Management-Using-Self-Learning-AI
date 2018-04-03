@@ -191,9 +191,8 @@ class Agent:
                 [3] - next_state_batch
                 [4] - terminal_mask_batch
         """
-        exp_batch = [0, 0, 0, 0, 0]
 
-        # sampling random batch of transitions
+        exp_batch = [0, 0, 0, 0, 0]
         transition_batch = []
         indices = np.random.randint(0, len(self.memory), self.batch_size) \
             .tolist()
