@@ -5,7 +5,7 @@ import os, sys
 import math
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from src.house import House
+from house import House
 
 
 class HouseActionsDifferentTimeframes(unittest.TestCase):

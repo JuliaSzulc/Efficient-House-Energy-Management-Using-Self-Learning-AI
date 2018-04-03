@@ -3,6 +3,7 @@ import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from world import World
 from datetime import timedelta
+import random
 
 class WeatherOnTimeTestCase(unittest.TestCase):
     """ Testing weather with continuous time on different time steps """
@@ -11,22 +12,25 @@ class WeatherOnTimeTestCase(unittest.TestCase):
         self.worlds = []
 
         timesteps = [0.5, 1, 5, 15, 30]
+        #should work on random timesteps 
+        # timesteps += [random.randrange(1, 30) for _ in range(10)]
         for timestep in timesteps:
-            w = World(timestep)
-            self.worlds.append(w)
+            self.worlds.append(World(timestep))
 
         self.temp_for_rain_not_falling = [0, 0.2, 0.39]
         self.temp_for_rain_falling = [0.4, 0.41, 0.6]
 
     def test_sun_power_in_our_shining_time(self):
         for world in self.worlds:
-            print(world.time_step_in_minutes)
             for _ in range(1000):
                 world.step()
 
                 if 300 < world.daytime < 1140:
                     self.assertTrue(0 < world.weather['sun'] <= 1,
-                                    "Sun should shine now.")
+                                    "Sun should shine now. timestep = "
+                                    + str(world.time_step_in_minutes)
+                                    + " current value = "
+                                    + str(world.weather['sun']))
 
     def test_sun_power_outside_our_shining_time(self):
         for world in self.worlds:

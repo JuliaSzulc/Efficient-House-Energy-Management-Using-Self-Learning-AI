@@ -16,14 +16,14 @@ from random import choices
 class World:
     """Time and weather computations"""
 
-    def __init__(self, time_step_in_minutes=0.5):
+    def __init__(self, time_step_in_minutes=0.5, duration_days=1):
         # --- time settings ---
         self.start_date = datetime(2020, 1, 1, 0, 0, 0)
         self.current_date = self.start_date
         self.daytime = None
         self.time_step_in_minutes = time_step_in_minutes
         self.time_step = timedelta(minutes=time_step_in_minutes)
-        self.stop_date = self.start_date + timedelta(days=1)
+        self.stop_date = self.start_date + timedelta(days=duration_days)
 
         self._compute_daytime()
 
@@ -238,7 +238,7 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     temp, sun, light, clouds, rain, wind = [],[],[],[],[],[]
 
-    w = World()
+    w = World(duration_days=5)
     while not w.step():
         temp.append((w.weather['temp'] + 20) / 60)
         sun.append(w.weather['sun'])
