@@ -16,12 +16,13 @@ from random import choices
 class World:
     """Time and weather computations"""
 
-    def __init__(self):
+    def __init__(self, time_step_in_minutes=0.5):
         # --- time settings ---
         self.start_date = datetime(2020, 1, 1, 0, 0, 0)
         self.current_date = self.start_date
         self.daytime = None
-        self.time_step = timedelta(minutes=0.5)
+        self.time_step_in_minutes = time_step_in_minutes
+        self.time_step = timedelta(minutes=time_step_in_minutes)
         self.stop_date = self.start_date + timedelta(days=1)
 
         self._compute_daytime()
@@ -49,7 +50,6 @@ class World:
         # sun power in (0,1) range. 0 between [7 PM, 5 AM],
         # 840 is shining time in minutes
         self.last_step_sun = 0
-        self.time_step_in_minutes = self.time_step.seconds / 60
 
         self.sun_steps_count = int(840 // self.time_step_in_minutes or 1)
         self.sun_steps = [
@@ -66,7 +66,13 @@ class World:
         #  max time frame in minutes to calibrate previous & current
         # weather weights parameters ([max_time_frame_in_minutes],
         # [max_current_weather_weight])
-        self._calculate_weathers_weights(1, 0.95)
+
+        # FIXME: [from Michal] max time frame is a wrong concept. It should be
+        # working for ANY timeframe, not asking for max possible value! For now
+        # i'm setting it to maxiumum value from test cases (30min), but it's
+        # only temporary - should be fixed asap
+        max_frame = 30 # minutes.
+        self._calculate_weathers_weights(max_frame, 0.95)
 
         # probability (summary 1.0) of difference wind in (0,1)
         # power range [0.0, 0.1, 0.2, ..., 1.0]

@@ -1,82 +1,110 @@
 import unittest
-from unittest.mock import MagicMock
 import os, sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from world import World
+from datetime import timedelta
 
-class SunPowerInDifferentStates(unittest.TestCase):
-    """ Testing sun power changes while day time is changing """
+class WeatherOnTimeTestCase(unittest.TestCase):
+    """ Testing weather with continuous time on different time steps """
 
     def setUp(self):
-        self.world = World()
+        self.worlds = []
+
+        timesteps = [0.5, 1, 5, 15, 30]
+        for timestep in timesteps:
+            w = World(timestep)
+            self.worlds.append(w)
+
+        self.temp_for_rain_not_falling = [0, 0.2, 0.39]
+        self.temp_for_rain_falling = [0.4, 0.41, 0.6]
 
     def test_sun_power_in_our_shining_time(self):
-        for _ in range(1000):
-            self.world.step()
+        for world in self.worlds:
+            print(world.time_step_in_minutes)
+            for _ in range(1000):
+                world.step()
 
-            if 300 < self.world.daytime < 1140:
-                self.assertTrue(0 < self.world.weather['sun'] <= 1, "Sun should shining now.")
+                if 300 < world.daytime < 1140:
+                    self.assertTrue(0 < world.weather['sun'] <= 1,
+                                    "Sun should shine now.")
 
     def test_sun_power_outside_our_shining_time(self):
-        for _ in range(1000):
-            self.world.step()
+        for world in self.worlds:
+            for _ in range(1000):
+                world.step()
 
-            if not (300 <= self.world.daytime <= 1140):
-                self.assertTrue(self.world.weather['sun'] == 0, "Sun should not shining now.")
+                if not 300 <= world.daytime <= 1140:
+                    self.assertTrue(world.weather['sun'] == 0,
+                                    "Sun should not be shining now.")
 
     def test_wind_power_in_different_stapes(self):
-        for _ in range(1000):
-            self.world.step()
+        for world in self.worlds:
+            for _ in range(1000):
+                world.step()
 
-            self.assertTrue(0 <= self.world.weather['wind'] <= 1, "Wind power incorrect value.")
+                self.assertTrue(0 <= world.weather['wind'] <= 1,
+                                "Wind power has incorrect value.")
 
     def test_clouds_interact_with_wind(self):
-        for _ in range(1000):
-            self.world.step()
+        for world in self.worlds:
+            for _ in range(1000):
+                world.step()
 
-            if self.world.weather['wind']:
-                self.assertTrue(0 <= self.world.weather['clouds'] < 0.6, "Clouds value calculated with wind incorrect.")
+                if world.weather['wind']:
+                    self.assertTrue(0 <= world.weather['clouds'] < 0.6,
+                                    "Clouds value calculated with wind\
+                                    is incorrect.")
 
     def test_clouds_interact_without_wind(self):
-        for _ in range(1000):
-            self.world.step()
+        for world in self.worlds:
+            for _ in range(1000):
+                world.step()
 
-            if self.world.weather['wind'] == 0:
-                self.assertTrue(0 <= self.world.weather['clouds'] <= 0.6,
-                                "Clouds value calculated without wind incorrect.")
+                if world.weather['wind'] == 0:
+                    self.assertTrue(0 <= world.weather['clouds'] <= 0.6,
+                                    "Clouds value calculated without wind\
+                                    is incorrect.")
 
     def test_rain_not_falling(self):
-        temp_list = [0, 0.2, 0.39]
-
-        for value in temp_list:
-            self.world.weather['clouds'] = value
-            self.world._calculate_rain()
-            self.assertEqual(self.world.weather['rain'], 0, "Incorrect rain value - rain should be not falling.")
+        for world in self.worlds:
+            for value in self.temp_for_rain_not_falling:
+                world.weather['clouds'] = value
+                world._calculate_rain()
+                self.assertEqual(world.weather['rain'], 0,
+                                 "Incorrect rain value - rain should not be\
+                                 falling.")
 
     def test_rain_falling(self):
-        temp_list = [0.4, 0.41, 0.6]
-
-        for value in temp_list:
-            self.world.weather['clouds'] = value
-            self.world._calculate_rain()
-            self.assertEqual(self.world.weather['rain'], 1, "Incorrect rain value - rain should be falling.")
+        for world in self.worlds:
+            for value in self.temp_for_rain_falling:
+                world.weather['clouds'] = value
+                world._calculate_rain()
+                self.assertEqual(world.weather['rain'], 1,
+                                 "Incorrect rain value - rain should be\
+                                 falling.")
 
     def test_light_value(self):
-        self.world.weather['sun'] = 0.4
-        self.world.weather['clouds'] = 0.5
-        self.world._calculate_light()
-        self.assertEqual(self.world.weather['light'], 0.2, "Incorrect light value.")
+        for world in self.worlds:
+            world.weather['sun'] = 0.4
+            world.weather['clouds'] = 0.5
+            world._calculate_light()
+            self.assertEqual(world.weather['light'], 0.2,
+                             "Incorrect light value.")
 
     def test_temperature_value(self):
-        for _ in range(1000):
-            self.world.step()
+        for world in self.worlds:
+            for _ in range(1000):
+                world.step()
 
-            self.assertTrue(6.5 <= self.world.weather['temp'] <= 30.5,
-                            "Clouds value calculated without wind incorrect.")
+                self.assertTrue(6.5 <= world.weather['temp'] <= 30.5,
+                                "Clouds value calculated without wind\
+                                is incorrect.")
 
     def test_weather_weight_scale(self):
-        self.assertEqual(self.world.previous_weather_weight + self.world.current_weather_weight, 1,
-                         "Incorrect weather weight scale values.")
+        for world in self.worlds:
+            self.assertEqual(world.previous_weather_weight\
+                             + world.current_weather_weight, 1,
+                             "Incorrect weather weight scale values.")
 
 
 if __name__ == '__main__':
