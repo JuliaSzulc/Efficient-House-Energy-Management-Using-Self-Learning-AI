@@ -6,8 +6,8 @@ and provides a nice facade for a model.
 
 """
 import re
-import numpy as np
 from collections import OrderedDict
+import numpy as np
 from world import World
 from house import House
 from sensor_out import OutsideSensor
@@ -47,6 +47,7 @@ class HouseEnergyEnvironment:
                            (episode end).
 
         """
+
         # make an action in the house
         getattr(self.house, action_name)()
 

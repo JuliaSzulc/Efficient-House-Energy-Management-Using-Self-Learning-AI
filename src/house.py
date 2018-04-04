@@ -13,6 +13,7 @@ directly from outside.
 from random import uniform
 from collections import OrderedDict
 
+
 def truncate(arg, lower=0, upper=1):
     """This function returns value truncated within range <lower, upper>
 
@@ -25,6 +26,7 @@ def truncate(arg, lower=0, upper=1):
         arg (number) - truncated function argument
 
     """
+
     if arg > upper:
         return upper
     if arg < lower:
@@ -40,7 +42,7 @@ class House:
         self.timeframe = timeframe
         self.day_start = 7 * 60
         self.day_end = 18 * 60
-        self.daytime = None # current time
+        self.daytime = None  # current time
 
         # --- ENERGY / LIGHT house settings ---
         self.pv_absorption = 2000  # Watt on max sun intensity
@@ -86,7 +88,7 @@ class House:
 
         # --- ACTIONS-controlled settings, to be used by RL-agent ---
         self.current_settings = {
-            'energy_src': 'grid', # grid/pv
+            'energy_src': 'grid',  # grid/pv
             'cooling_lvl': 0,
             'heating_lvl': 0,
             'light_lvl': 0,
@@ -99,9 +101,9 @@ class House:
     def _calculate_light(self, outside_illumination):
         # probably should include daytime (angle of the sunlight)
         for data in self.inside_sensors.values():
-            light = ((outside_illumination * self.house_light_factor)\
-                     * (1 - self.current_settings['curtains_lvl'])\
-                     + self.current_settings['light_lvl']\
+            light = ((outside_illumination * self.house_light_factor)
+                     * (1 - self.current_settings['curtains_lvl'])
+                     + self.current_settings['light_lvl']
                      * self.max_led_illuminance) / self.max_led_illuminance
 
             data['light'] = truncate(light)
@@ -112,16 +114,16 @@ class House:
         temperatures = [d['temperature'] for d in self.inside_sensors.values()]
         inside_temp = sum(temperatures) / len(temperatures)
 
-        temp_delta = abs((actual_temp - inside_temp)\
+        temp_delta = abs((actual_temp - inside_temp)
                          * (1 - self.house_isolation_factor))
 
         # should be changed for some more complex formula
         for data in self.inside_sensors.values():
             temperature = inside_temp +\
-                          (temp_delta * self.timeframe\
-                          * self.current_settings['heating_lvl'])\
-                          - (temp_delta * self.timeframe\
-                          * self.current_settings['cooling_lvl'])
+                          (temp_delta * self.timeframe
+                           * self.current_settings['heating_lvl'])\
+                          - (temp_delta * self.timeframe
+                             * self.current_settings['cooling_lvl'])
 
             data['temperature'] = temperature
 

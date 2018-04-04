@@ -6,6 +6,7 @@ They are also passing these informations forward to the house.
 """
 from collections import OrderedDict
 
+
 class OutsideSensor:
     """Weather sensor on the outside of the house"""
 
@@ -27,7 +28,7 @@ class OutsideSensor:
         self.house_listener = house_listener
 
     def update(self, weather, daytime):
-        # receives update from subject and passes information forward
+        """Updates object with info from subject and passes info forward"""
         self.daytime = daytime
         self.weather = weather
         self.house_listener.update(self.get_info())
@@ -43,9 +44,9 @@ class OutsideSensor:
         # actual_temp is calculated by the formula given in documentation
         sensor_info = OrderedDict({
             'daytime': self.daytime,
-            'actual_temp':\
-                0.045 * (5.27**0.5 + 10.45 - 0.28 * self.weather['wind']) *\
-                (self.weather['temp'] - 33) + 33,
+            'actual_temp':
+                0.045 * (5.27**0.5 + 10.45 - 0.28 * self.weather['wind'])
+                * (self.weather['temp'] - 33) + 33,
             'light': self.weather['light'],
             'illumination': self.weather['light'] * self.max_illumination,
             'clouds': self.weather['clouds'],

@@ -66,6 +66,13 @@ class HouseActionsTestCase(unittest.TestCase):
             'light_lvl': 0.5,
             'curtains_lvl': 0.5
         }
+        self.house.battery['current'] = 0.5
+
+        self.house_empty_battery = House(1)
+        self.house_empty_battery.battery['current'] = 0.2
+        self.house_empty_battery.current_settings = {
+            'energy_src': 'grid',
+        }
 
     def test_action_sources(self):
         """Test changing between power sources"""
@@ -75,6 +82,17 @@ class HouseActionsTestCase(unittest.TestCase):
 
         self.house.action_source_grid()
         self.assertTrue(self.house.current_settings['energy_src'], 'grid')
+
+    def test_action_source_battery_restriction(self):
+        """Baterry power source should be available only when charged to
+        more than 40%"""
+
+        self.house_empty_battery.action_source_battery()
+        self.assertTrue(
+        self.house_empty_battery.current_settings['energy_src'],
+            'grid'
+        )
+
 
     def test_action_more_cooling(self):
         """Test more cooling"""

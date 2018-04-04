@@ -13,6 +13,7 @@ import math
 import random
 from random import choices
 
+
 class World:
     """Time and weather computations"""
 
@@ -53,7 +54,7 @@ class World:
 
         self.sun_steps_count = int(840 // self.time_step_in_minutes or 1)
         self.sun_steps = [
-            math.sin(2 * math.pi * 0.5 * (i / self.sun_steps_count))\
+            math.sin(2 * math.pi * 0.5 * (i / self.sun_steps_count))
             for i in range(self.sun_steps_count)
         ]
         self.sun_steps.append(0.0)
@@ -71,7 +72,7 @@ class World:
         # working for ANY timeframe, not asking for max possible value! For now
         # i'm setting it to maxiumum value from test cases (30min), but it's
         # only temporary - should be fixed asap
-        max_frame = 30 # minutes.
+        max_frame = 30  # minutes.
         self._calculate_weathers_weights(max_frame, 0.95)
 
         # probability (summary 1.0) of difference wind in (0,1)
@@ -83,7 +84,7 @@ class World:
         # probability (summary 1.0) of difference clouds in (0, 0.6)
         # power range [0.0, 0.1, 0.2, ..., 0.6]
         # 0.5 clouds means that the sun is half hidden
-        self.clouds = [i/10 for i in range(7)]
+        self.clouds = [i / 10 for i in range(7)]
         self.clouds_probability = [0.2, 0.3, 0.2, 0.1, 0.07, 0.1, 0.03]
 
         # --- end of the weather part ---
@@ -99,11 +100,11 @@ class World:
                        update() method.
 
         """
+
         self.listeners.append(listener)
 
     def update_listeners(self):
         """Update all listeners with current weather and time"""
-
         for listener in self.listeners:
             try:
                 listener.update(daytime=self.daytime, weather=self.weather)
@@ -139,8 +140,8 @@ class World:
         assert correct_frame, 'incorrect max_frame value'
         assert correct_max_weight, 'incorrect max_weight value'
 
-        self.current_weather_weight = (max_weight/max_frame)\
-                                        * self.time_step_in_minutes
+        self.current_weather_weight = max_weight / max_frame\
+                                      * self.time_step_in_minutes
         self.previous_weather_weight = 1 - self.current_weather_weight
 
     def _update_weather(self):
@@ -173,7 +174,6 @@ class World:
 
         self.delta_weather['sun_delta'] = self.weather['sun'] - temp_sun
 
-
     def _calculate_wind(self):
         # get random wind
         self.weather['wind'] = self.current_weather_weight\
@@ -182,7 +182,6 @@ class World:
                                          k=1)[0]\
                                + self.previous_weather_weight\
                                * self.weather['wind']
-
 
     def _calculate_clouds(self):
         # get random clouds
@@ -195,15 +194,14 @@ class World:
                                  + self.previous_weather_weight\
                                  * self.weather['clouds']
 
-
     def _calculate_light(self):
         temp_light = self.weather['light']
 
         # after clouds calculation we can count light parameter
         self.weather['light'] = self.weather['sun']\
                                 * (1 - self.weather['clouds'])
-        self.delta_weather['light_delta'] = self.weather['light'] - temp_light
 
+        self.delta_weather['light_delta'] = self.weather['light'] - temp_light
 
     def _calculate_rain(self):
         # if clouds are big enough then start raining
@@ -211,7 +209,6 @@ class World:
             self.weather['rain'] = 1
         else:
             self.weather['rain'] = 0
-
 
     def _calculate_temperature(self):
         temp_temperature = self.weather['temp']
@@ -221,8 +218,8 @@ class World:
         # is 1.0 & also there is no clouds & wind which can change temperature
         # by 5 degrees (we don't use rain here for now) -> then:
         new_temperature = random.uniform(11.5, 12.5)\
-                          + (18 * self.weather['light']\
-                          - 5 * self.weather['wind'])
+                          + (18 * self.weather['light']
+                             - 5 * self.weather['wind'])
 
         # then update new temperature including our weather weights
         self.weather['temp'] = self.previous_weather_weight\
@@ -233,19 +230,19 @@ class World:
         self.delta_weather['temp_delta'] = self.weather['temp']\
                                            - temp_temperature
 
-if __name__ == '__main__':
-    # plot graph for weather in single episode
-    import matplotlib.pyplot as plt
-    temp, sun, light, clouds, rain, wind = [],[],[],[],[],[]
 
-    w = World(duration_days=5)
-    while not w.step():
-        temp.append((w.weather['temp'] + 20) / 60)
-        sun.append(w.weather['sun'])
-        light.append(w.weather['light'])
-        clouds.append(w.weather['clouds'])
-        rain.append(w.weather['rain'])
-        wind.append(w.weather['wind'])
+def plot_weather():
+    """Plot normalized weather graph in a single episode"""
+    temp, sun, light, clouds, rain, wind = [], [], [], [], [], []
+
+    world = World(duration_days=5)
+    while not world.step():
+        temp.append((world.weather['temp'] + 20) / 60)
+        sun.append(world.weather['sun'])
+        light.append(world.weather['light'])
+        clouds.append(world.weather['clouds'])
+        rain.append(world.weather['rain'])
+        wind.append(world.weather['wind'])
 
     plt.plot(temp, ',', label='temperature')
     plt.plot(sun, label='sun')
@@ -255,3 +252,8 @@ if __name__ == '__main__':
     # plt.plot(wind, '.', label='wind')
     plt.legend()
     plt.show()
+
+
+if __name__ == '__main__':
+    import matplotlib.pyplot as plt
+    plot_weather()

@@ -1,19 +1,38 @@
-Staramy się używać Googlowego formatu docstringów.
-    https://google.github.io/styleguide/pyguide.html#Comments
-    Głównie chodzi o sposób opisywania metod / funkcji.
-    Docstringi konieczne są tylko w metodach publicznych, w prywatnych są
-    opcjonalne i mogą mieć formę pojedynczej linii komentarza, np:
-        # This method handles something
+UŻYWAMY PEP8 - w razie wątpliwości najpierw szukamy w nim. Nie gryzie!
+www.python.org/dev/peps/pep-0008/
 
-Trzymamy się 80 znaków w jednej linii
+Warto zauważyć, że PEP8 zaleca ignorowanie PEP8, kiedy uważamy, że tak będzie
+lepiej. W naszym przypadku dzieje się tak przy łamaniu linii na długich
+wyrażeniach, dlatego poszczególne errory PEPa wyłączyłem w pliku setup.cfg
+[pycodestyle].
+
+
+###############################################################################
+
+Puste linie
+    Po jednoliniowych docstringach nie dajemy pustej linii. Po wieloliniowych,
+    lub po docstringach dokumentujących klasę, dajemy pustą linię.
+
+    Przed metodą / funkcją - jedna pusta linia.
+    Przed klasą - dwie puste linie.
+
+
+###############################################################################
+
+80 znaków w jednej linii
+    UWAGA! tutaj działamy na pograniczu PEP8, doczytaj do końca!
+
     jeśli trzeba, to łamiemy linię za pomocą escape'owania znaku nowej linii
     (czyli znaku \).
+
     Długie formuły matematyczne staramy się łamać na znakach, które umieszczamy
     na początku kolejnych linii:
 
         a = (2344 * self.stupid_long_x + 987246 * self.stupid_long_y)\
             * 4 - self.whatever_else_here - 40 * self.dict['foo']\
-            + 5 / self.whatever_else_here2
+            + 5 / self.whatever_else_here2 + (ads + qwe + adsfasdf
+                                              + asdf - fdsa + adf
+                                              - asdf + wer)
 
     Jeżeli dzielimy listę / słownik / zbiór, to nie potrzebujemy znaków \
     ( python pozwala ogólnie na łamanie linii w dowolnym miejscu w obrębie
@@ -26,22 +45,219 @@ Trzymamy się 80 znaków w jednej linii
     Jeśli się nie mieści, lub chcemy zachować szczególną czytelność:
 
         x = (
-            ten_element_nie_zmiescil_sie_juz_w_linii,
+            ten_element_nie_zmiescil_sie_juz_w_linii_niestety_ale_to_nic,
             lub_po_prostu_uwazam,
             ze_tak_bedzie_czytelniej
         )
 
-Skomplikowane warunki logiczne rozbijamy na mniejsze i przypisujemy do
-zmiennych, wg zasady "extract booleans to tell a story"
-    Zamiast:
-       if 21 < x < 4500 and  (b % 25) / 3 == 0:
+    UWAGA: PEP8 proponuje, aby zawsze wyrównywać do pojedynczego wcięcia, w
+    taki sposób:
+        blablabla = first\
+            + second\
+            + third
+
+    Jednak moim zdaniem zdecydowanie czytelniejszy jest zapis
+        blablabla = first\
+                    + second\
+                    + third
+
+    więc sugeruję jednak trzymać się tego. Dodałem plik setup.cfg w korzeniu
+    naszego projektu, w którym po przecinku można wyłączać konkretne errory - w
+    tym wypadku wyłączam E127 ( i jeszcze parę innych głupich )
+
+
+###############################################################################
+
+Docstringi
+    Staramy się używać Googlowego formatu docstringów.
+    https://google.github.io/styleguide/pyguide.html#Comments
+
+    Głównie chodzi o sposób opisywania metod / funkcji.
+    Docstringi konieczne są tylko w metodach publicznych, w prywatnych są
+    opcjonalne i mogą mieć formę pojedynczej linii komentarza, np:
+        def _private(self):
+            # This method handles something
             ...
 
-    Piszemy:
-        x_in_range = 21 < x < 4500
-        proper_b = not (b % 25) / 3
+    W docstringach używamy """, a nie '''!
 
-        if x_in_range and proper_b:
+    W pierwszej linii docstringa opisujemy istotę sprawy - to ona będzie się
+    wyświetlała w IDE, w różnego rodzaju "szybkiej pomocy" itd. Jeśli
+    potrzebujemy więcej miejsca, to robimy linię odstępu i piszemy dalej.
+    Wieloliniowe dosctringi kończymy za pomocą """ w nowej linii, poprzedzone
+    pustą linią.
+    Przykłady:
+
+        def funkcja():
+            """Przykład jednoliniowego docstringa."""
+            # ciało funkcji zaczynamy pisać od razu.
+            ...
+
+        def funkcja2(x, y):
+            """Tutaj szybki opis - istota działania.
+
+            Tutaj bardziej szczególny opis. Wyjaśnienie mechaniki czy coś. Nie
+            warto przesadzać, to ma być użyteczne jako pomoc dotycząca funkcji.
+
+            Args:
+                x(typ obiektu): Opis pierwszego parametru.
+                y(typ obiektu): Przydługi, aczkolwiek istotny opis drugiego
+                                parametru zachowujący się odpowiednio w liniach
+                                o długości 80.
+
+            Returns:
+                z(typ obiektu): Opis tego, co zostanie zwrócone.
+
+            """
+
+            # ciało funkcji poprzedzamy jedną linią odstępu.
             ...
 
 
+###############################################################################
+
+Skomplikowane warunki logiczne
+    rozbijamy na mniejsze i przypisujemy do
+    zmiennych, wg zasady "extract booleans to tell a story"
+        Zamiast:
+           if 21 < x < 4500 and  (b % 25) / 3 == 0:
+                ...
+
+        Piszemy:
+            x_in_range = 21 < x < 4500
+            proper_b = not (b % 25) / 3
+
+            if x_in_range and proper_b:
+                ...
+
+    w ten sposób instrukcja warunkowa jest prawie tak czytelna, jak język
+    naturalny.
+
+
+###############################################################################
+
+TESTY:
+    używamy modułu unittest.
+
+    każdy pisze testy sobie. Główne założenia testów są dwa: potwierdzenie, że
+    program działa TERAZ, i będzie działał, kiedy ktoś W PRZYSZŁOŚCI go
+    zmodernizuje. Dlatego nawet zwykłe głupie sprawdzenie czy dla danego
+    wejścia otrzymujemy dane wyjście jest istotne i pomocne, i zaprocenuje w
+    przyszłości.
+
+    Polecam stosować TDD, czyli najpierw napisać sobie dobre testy, a potem
+    taki kod, żeby je spełniał.
+
+    Pojedyncza metoda testowa powinna sprawdzać JEDNĄ RZECZ.
+    - Nazwy metod zaczynamy od słowa test (to nasza umowa).
+
+    Nazwy wszystkiego w testach (inaczej niż w kodzie źródłowym) mają być do
+    przesady klarowne - ma nie być wątpliwości co dana metoda / klasa robi
+
+    - Strukturę testów najłatwiej planować "od dołu":
+        - metoda testowa sprawdza konkretną funkcjonalność. Obiekty na których
+          testujemy tworzymy w metodzie setUp.
+        - jeżeli metoda setUp robi się zbyt skomplikowana lub chcemy stworzyć
+          zupełnie nową, inną pulę obiektów testowych, to znak, że potrzeba nam
+          nowej klasy, z nową metodą setUp.
+        - jeżeli nowa funkcjonalność jaką chcemy dodać nie pasuje nam do
+          pozostałych metod / klas w danym pliku, to tworzymy nowy plik/ klase
+          / metode.
+
+    Pokrycie testami można sprawdzić za pomocą mojego skryptu get_coverage.sh
+    Ono nie jest miarodajne jeśli chodzi o jakość testów, ale kod pokryty w
+    100% jest przynajmniej odporny na literówki i inne głupstwa.
+
+
+###############################################################################
+
+Metody prywatne
+    zaczynamy od "_". Nie jest to hermetyzacja na całego, ale silna konwencja,
+    którą uznają wszystkie lintery też (pylint np. nie będzie wam się czepiał,
+    jeśli metoda zaczynająca się od _ nie będzie posiadała docstringa itd.)
+
+    Zasada klasyczna dla obiektówki - wszystko co nie musi być koniecznie
+    publiczne, t.j. nie jest używane z zewnątrz, powinno być prywatne.
+
+    Normalnie zasada nazewnictwa z "_" stosuje się też do pól (atrybutów) 
+    klasy ale jako, że my w żaden sposób nie odwołujemy się do nich 
+    bezpośrednio z zewnątrz - myślę, że możemy sobie podarować.
+
+
+###############################################################################
+
+Praca z gitem
+    Nazewnictwo commitów
+        Podobnie jak docstringi - Pierwsza linia to sedno i podsumowanie,
+        potem jeśli trzeba - linia przerwy i kolejne akapity. Pilnujemy max 80
+        znaków w jednej linii.
+
+        Pierwsza linia powinna kończyć zdanie "this commit will...", np:
+
+                         /  Add new magic features
+        THIS COMMIT WILL -  Create some stupid stuff
+                         \  Test all databases
+        itd.
+
+        Jeśli chcecie pisać długie wiadomości, to lepiej, żeby one wyjaśniały
+        DLACZEGO dane rzeczy są zmienione / wprowadzone, niż JAK zostało to
+        zrobione (to już jednoznacznie kod pokazuje).
+
+    Nazewnictwo branchy
+        Tutaj nie widzę jakichś super istotnych zasad; pracujemy na Trello więc
+        dobrze jakby branch uwzględniał w nazwie jakieś nawiązanie do taska nad
+        którym dana osoba na tym branchu pracuje - żeby się łatwo można było
+        zorientować. Wszystkie branche zostaną i tak docelowo domergowane do
+        mastera.
+
+
+###############################################################################
+
+Pythonic
+    Python ma specyficzną filozofię, która kładzie duży nacisk na czytelność i
+    łatwość przekazywania myśli na kod.
+    https://www.python.org/dev/peps/pep-0020/
+
+    Generalnie staramy się nie udziwniać kodu ponad to, co jest przyjęte jako
+    standard (zwykłe list comprehensions spoko, ale już poczwórnie zagnieżdżone
+    - niekoniecznie). Zazwyczaj jest jeden konkretny sposób w jaki najlepiej
+    napisać daną rzecz.
+
+    Czasem warto napisać coś bardziej dosłownie, nawet kosztem utraty na
+    wydajności (która i tak nie jest mocną stroną Pythona) żeby zyskać na
+    czytelności, a zoptymalizować np. dopiero oficjalną, przemyślaną, majową
+    wersję programu.
+
+    "Premature optimization is the root of all evil." - D.Knuth
+
+
+###############################################################################
+
+Nazewnictwo zmiennych i metod
+    staramy się nazywać konkretnie, najlepiej jednym/dwoma słowami w
+    snake_case. Długie nazwy to dużo pisania, a w krótkich ciężko się połapać.
+
+    _ jest dopuszczalną nazwą zmiennej i zwyczajowo określa zmienną pomocniczą,
+    do której się nie odwołujemy, ale wykorzystujemy np w pętlach:
+
+        for _ in range(10):
+            # zrób coś 10 razy bez wykorzystania zmiennej _
+
+
+###############################################################################
+
+Dodatkowe rzeczy, które nie pasowały mi gdzie indziej:
+
+    NIGDY nie zmieniać zawartości struktur danych podczas iterowania po nich!
+    zawsze da się to rozwiązać lepiej. Kiedy naprawdę MUSIMY, a wydajność jest
+    super ważna, to iterować od tyłu (jak was to interesuje, to poczytajcie na
+    stacku)
+
+    UWAŻAĆ przy przekazywaniu mutowalnych typów danych jako argumenty (częste
+    wpadki przy pracy z listami). Kiedy w magiczny sposób funkcja zaczyna
+    operować na obiektach, do których nie powinna mieć dostępu, to
+    najprawdopodobniej mylicie deep i shallow copy - piszcie do mnie lub
+    googlujcie po pomoc :)
+
+
+Michał Popiel, Wrocław 3.03.2018

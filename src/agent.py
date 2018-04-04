@@ -1,3 +1,10 @@
+"""This module provides the clue of the project - RL agent.
+
+It works with environment by taking actions and gaining observations and
+reward, and his objective is to minimalize cost function in a continuous
+environment.
+
+"""
 import numpy as np
 import random
 import torch

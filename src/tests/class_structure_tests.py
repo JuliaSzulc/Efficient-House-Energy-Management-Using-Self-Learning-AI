@@ -6,11 +6,6 @@ from sensor_out import OutsideSensor
 from environment import HouseEnergyEnvironment
 from house import House
 
-# TODO: testujac inne rzeczy niż strukturę klas (np. metody w danej klasie)
-# utwórzcie nowy plik na wzór tego. Testując strukturę klas, ale w wyraźnie inny
-# sposób, utwórzcie nową klasę dziedziczącą po unittest.TestCase, a w niej
-# metodę setUp która przygotowuje obiekty i kolejno metody testujące.
-
 
 class BasicSubjectListenerTestCase(unittest.TestCase):
     """Testing observer/listener model and basic classes structure"""
@@ -58,7 +53,12 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
                         "sensor out failed - wrong weather"
                     )
 
-    # new method for world weather and house parameters should be implemented
+    def test_catch_attrib_error(self):
+        """Testing listener with unimplemented method update"""
+
+        listener = []
+        self.world.register(listener)
+        self.assertRaises(AttributeError, self.world.update_listeners())
 
 
 class EnvironmentStructureTestCase(unittest.TestCase):
