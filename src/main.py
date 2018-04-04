@@ -1,11 +1,16 @@
-from src.agent import Agent
-from src.environment import HouseEnergyEnvironment
+"""This it the main executable module for the project.
+
+it sets RL-agent along with environment, prints the resultes to user and
+database etc.
+
+"""
+from agent import Agent
+from environment import HouseEnergyEnvironment
 
 
 def save_to_database(info):
     """Save all the information about an experiment to db"""
     print(info)
-    pass
 
 
 def main():
@@ -21,14 +26,14 @@ def main():
     # agent.network = load_model("models/model1.xxx") ?
 
     num_episodes = 10000
-    for i in range(num_episodes):
+    for _ in range(num_episodes):
         agent.run()
 
     # after learning
     # recover any important info about env, agent etc.
     info = None
     if save_experiment:
-        # save to database 
+        # save to database
         save_to_database(info)
 
 

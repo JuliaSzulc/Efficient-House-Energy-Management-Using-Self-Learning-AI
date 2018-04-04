@@ -1,9 +1,16 @@
+"""This module provides environment for the RL model,
+
+which is given in form of a class, based on examples from OpenAI
+repositories. That class puts up together different environment elements,
+and provides a nice facade for a model.
+
+"""
+import re
+from collections import OrderedDict
+import numpy as np
 from world import World
 from house import House
 from sensor_out import OutsideSensor
-import numpy as np
-import re
-import sys
 
 
 class HouseEnergyEnvironment:
@@ -40,6 +47,7 @@ class HouseEnergyEnvironment:
                            (episode end).
 
         """
+
         # make an action in the house
         getattr(self.house, action_name)()
 
@@ -66,7 +74,9 @@ class HouseEnergyEnvironment:
         for outside_sensor in self.outside_sensors:
             self.world.register(outside_sensor)
 
-        # TODO: other environment parts
+        # transfer initial informations to listeners
+        self.world.update_listeners()
+
         return self._get_current_state()
 
     def render(self):
@@ -91,21 +101,25 @@ class HouseEnergyEnvironment:
 
         return [action for action in dir(self.house)
                 if callable(getattr(self.house, action))
-                and re.match("action*", action)]
+                and re.match("action.*", action)]
 
     def _get_current_state(self):
         outside_params = [sensor.get_info() for sensor in self.outside_sensors]
         inside_params = self.house.get_inside_params()
-        observation = {'outside': outside_params, 'inside': inside_params}
+        observation = OrderedDict({
+            'outside': outside_params,
+            'inside': inside_params
+        })
         return self._serialize_state(observation)
 
-    def _serialize_state(self, state):
+    @staticmethod
+    def _serialize_state(state):
         """Returns 1-dim ndarray of state parameters from dict
 
         Current array structure:
 
         [0] daytime //OUTSIDE
-        [1] wind_chill
+        [1] temperature_outside
         [2] light
         [.] illumination
         [.] clouds
@@ -113,11 +127,11 @@ class HouseEnergyEnvironment:
         [ ] wind
         [ ] temperature //INSIDE
         [ ] light
-        [ ] temp_desired
+        [ ] temp_desired / day
         [ ] temp_epsilon
         [ ] light_desired
         [ ] light_epsilon
-        [ ] temp_desired
+        [ ] temp_desired / night
         [ ] temp_epsilon
         [ ] light_desired
         [ ] light_epsilon
@@ -130,7 +144,7 @@ class HouseEnergyEnvironment:
 
         for sensor in state['outside']:
             for key, value in sensor.items():
-                if key == 'wind_chill':
+                if key == 'actual_temp':
                     # temperature in range (-20, +40)'C
                     value = (value + 20) / 60
                 observation.append(value)
@@ -138,34 +152,28 @@ class HouseEnergyEnvironment:
         # NOTE: inconsistency - we have LIST of outside sensors and DICT of
         # inside sensors.
 
-        for dk, dv in state['inside'].items():
-            if dk == 'inside_sensors':
-                for sensor in dv.values():
+        for d_key, d_value in state['inside'].items():
+            if d_key == 'inside_sensors':
+                for sensor in d_value.values():
                     for key, value in sensor.items():
                         if re.match('temp.*', key):
                             # temperature in range (-20, +40)'C
                             value = (value + 20) / 60
                         observation.append(value)
-            elif dk == 'desired':
-                for daytime in dv.values():
+            elif d_key == 'desired':
+                for daytime in d_value.values():
                     for key, value in daytime.items():
                         if re.match('temp.*', key):
                             # temperature in range (-20, +40)'C
                             value = (value + 20) / 60
                         observation.append(value)
             else:
-                observation.append(dv)
+                observation.append(d_value)
 
-        # final safety zone = truncating everything
-        def truncate(x):
-            if not x: return 0
-            if x < 0: return 0
-            if x > 1: return 1
-            return x
+        # make sure that vector is normalized. no safety zone - it has to work!
+        assert all([x is not None and (0 <= x <= 1) for x in observation]),\
+                    "Whoa, some of observation values are not" +\
+                    "truncated to 0-1 or are None!" +\
+                    "vector: " + str(observation)
 
-        # safely print message to error stream, but continue execution
-        if not all([x and (0 <= x <= 1) for x in observation]):
-            print("Whoa, some of observation values are not truncated to 0-1 or are None!",file=sys.stderr)
-
-        observation = [truncate(x) for x in observation]
         return np.array([observation])

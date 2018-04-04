@@ -5,7 +5,7 @@ import os, sys
 import math
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from src.house import House
+from house import House
 
 
 class HouseActionsDifferentTimeframes(unittest.TestCase):
@@ -66,6 +66,13 @@ class HouseActionsTestCase(unittest.TestCase):
             'light_lvl': 0.5,
             'curtains_lvl': 0.5
         }
+        self.house.battery['current'] = 0.5
+
+        self.house_empty_battery = House(1)
+        self.house_empty_battery.battery['current'] = 0.2
+        self.house_empty_battery.current_settings = {
+            'energy_src': 'grid',
+        }
 
     def test_action_sources(self):
         """Test changing between power sources"""
@@ -75,6 +82,17 @@ class HouseActionsTestCase(unittest.TestCase):
 
         self.house.action_source_grid()
         self.assertTrue(self.house.current_settings['energy_src'], 'grid')
+
+    def test_action_source_battery_restriction(self):
+        """Baterry power source should be available only when charged to
+        more than 40%"""
+
+        self.house_empty_battery.action_source_battery()
+        self.assertTrue(
+        self.house_empty_battery.current_settings['energy_src'],
+            'grid'
+        )
+
 
     def test_action_more_cooling(self):
         """Test more cooling"""
@@ -302,7 +320,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
 
     def test_calculate_air_conditioner_cost(self):
         self.assertEqual(
-            self.house.calculate_device_cost(
+            self.house._calculate_device_cost(
                 self.house.devices_power['air_conditioner'],
                 self.house.current_settings['cooling_lvl']),
             0,
@@ -310,7 +328,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
 
     def test_calculate_heater_cost(self):
         self.assertEqual(
-            float(format(self.house.calculate_device_cost(
+            float(format(self.house._calculate_device_cost(
                 self.house.devices_power['heater'],
                 self.house.current_settings['heating_lvl']), '.2f')),
             0.06,
@@ -318,7 +336,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
 
     def test_calculate_light_cost(self):
         self.assertEqual(
-            float(format(self.house.calculate_device_cost(
+            float(format(self.house._calculate_device_cost(
                 self.house.devices_power['light'],
                 self.house.current_settings['light_lvl']), '.4f')),
             0.0003,

@@ -1,5 +1,8 @@
 import unittest
-from src.agent import Agent
+import os, sys
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+from agent import Agent
+from environment import HouseEnergyEnvironment
 import numpy as np
 
 

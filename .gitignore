@@ -107,3 +107,7 @@ ENV/
 # texowe smieci
 *.aux
 *.synctex.gz
+
+# htmlki z coverage
+*.coverage
+./src/tests/htmlcov/
