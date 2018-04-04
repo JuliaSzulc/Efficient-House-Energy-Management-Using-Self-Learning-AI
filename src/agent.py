@@ -150,6 +150,7 @@ class Agent:
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 
             # calculate the loss (nll -> negative log likelihood/cross entropy)
+            # TODO mse -> nll_loss.
             # and optimize the parameters
             self.optimizer.zero_grad()
             loss = F.mse_loss(q_values, targets)
