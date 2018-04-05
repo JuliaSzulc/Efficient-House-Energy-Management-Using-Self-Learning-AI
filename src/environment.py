@@ -80,9 +80,41 @@ class HouseEnergyEnvironment:
         return self._get_current_state()
 
     def render(self):
-        """Outputs the state of environment in a human-readable format"""
-        # TODO: print the state of environment to console. maybe simple
-        # gui in the future?
+        """Outputs the state of environment in a human-readable format
+
+        Method takes numpy array returned by _get_current_astate() method.
+
+        Args:
+            dataset (numpy array) - its collection of values such as daytime,
+            temperature, light etc.
+
+        Returns:
+            labels_names(list) - names of specified values in dataSet
+            dataSet (numpy array) - values of daytime, light etc.
+        """
+
+        # - gui in the future?
+        # - maybe but in main, here just formatted text
+
+        dataSet = self._get_current_state()
+
+        labels_names = ['Daytime //OUTSIDE: ',
+                        'Temperature_outside: ',
+                        'Light: ',
+                        'Illumination: ',
+                        'Clouds: ',
+                        'Rain: ',
+                        'Wind: ',
+                        'Temperature //INSIDE: ',
+                        'Light: ',
+                        'Temp_desired /current: ',
+                        'Temp_epsilon: ',
+                        'Light_desired: ',
+                        'Light_epsilon: ',
+                        'Grid_cost: ',
+                        'Battery_level: ']
+
+        return labels_names, dataSet
 
     def get_actions(self):
         """Names of actions for RL-agent
@@ -181,9 +213,9 @@ class HouseEnergyEnvironment:
                 observation.append(d_value)
 
         # make sure that vector is normalized. no safety zone - it has to work!
-        assert all([x is not None and (0 <= x <= 1) for x in observation]),\
-                    "Whoa, some of observation values are not" +\
-                    "truncated to 0-1 or are None!" +\
-                    "vector: " + str(observation)
+        assert all([x is not None and (0 <= x <= 1) for x in observation]), \
+            "Whoa, some of observation values are not" + \
+            "truncated to 0-1 or are None!" + \
+            "vector: " + str(observation)
 
         return np.array(observation)
