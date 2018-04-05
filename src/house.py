@@ -94,7 +94,6 @@ class House:
             'light_lvl': 0,
             'curtains_lvl': 0
         }
-        self.curtains_moved = False
         # actions influence on current settings - default to 0.2 / min
         self.influence = 0.2 * timeframe
 
@@ -313,19 +312,13 @@ class House:
 
     def action_curtains_down(self):
         """Action to be taken by RL-agent"""
-        bfor = self.current_settings['curtains_lvl']
-        aftr = truncate(self.current_settings['curtains_lvl'] + self.influence)
-        self.current_settings['curtains_lvl'] = aftr
-        if bfor != aftr:
-            self.curtains_moved = True
+        self.current_settings['curtains_lvl'] = \
+            truncate(self.current_settings['curtains_lvl'] + self.influence)
 
     def action_curtains_up(self):
         """Action to be taken by RL-agent"""
-        bfor = self.current_settings['curtains_lvl']
-        aftr = truncate(self.current_settings['curtains_lvl'] - self.influence)
-        self.current_settings['curtains_lvl'] = aftr
-        if bfor != aftr:
-            self.curtains_moved = True
+        self.current_settings['curtains_lvl'] = \
+            truncate(self.current_settings['curtains_lvl'] - self.influence)
 
     def action_nop(self):
         """Action to be taken by RL-agent - do nothing"""

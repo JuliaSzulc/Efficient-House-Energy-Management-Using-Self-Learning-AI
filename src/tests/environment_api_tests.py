@@ -19,14 +19,26 @@ class BasicEnvironmentTestCase(unittest.TestCase):
         self.env.house.mocked_param = 0
         self.env.house.action_mocked = types.MethodType(action, self.env.house)
 
-    def test_serialize_state(self):
+    def test_serialize_state_values(self):
         """test if returned state in step method has normalized values"""
+        for _ in range(10):
+            observation, reward, done = self.env.step("action_mocked")
+            observation = observation.tolist()
+            self.assertTrue(all([0 <= x <= 1 for x in observation]),
+                            "state is not serialized! observation vector:\n" +
+                            " ".join([str(x) for x in observation]))
 
-        observation, reward, done = self.env.step("action_mocked")
-        observation = observation.tolist()[0]
-        self.assertTrue(all([0 <= x <= 1 for x in observation]),
-                        "state is not serialized! observation vector:\n" +
-                        " ".join([str(x) for x in observation]))
+    def test_serialized_vector_length(self):
+        """Test if vector have proper length"""
+        proper = 15
+        for _ in range(10):
+            observation, reward, done = self.env.step("action_mocked")
+            observation = observation.tolist()
+            self.assertEqual(
+                len(observation),
+                proper,
+                "If this is intentional, change this test case."
+            )
 
     def test_get_action(self):
         """test getting mocked action"""
@@ -46,7 +58,6 @@ class BasicEnvironmentTestCase(unittest.TestCase):
             1,
             "mocked action on environment failed!"
         )
-
 
 
 class EnvironmentStepTestCase(unittest.TestCase):
