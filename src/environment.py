@@ -127,11 +127,7 @@ class HouseEnergyEnvironment:
         [ ] wind
         [ ] temperature //INSIDE
         [ ] light
-        [ ] temp_desired / day
-        [ ] temp_epsilon
-        [ ] light_desired
-        [ ] light_epsilon
-        [ ] temp_desired / night
+        [ ] temp_desired / current
         [ ] temp_epsilon
         [ ] light_desired
         [ ] light_epsilon
@@ -141,12 +137,17 @@ class HouseEnergyEnvironment:
         """
 
         observation = []
-
+        time_of_day = 'night'  # to choose appropiate current desired temp
         for sensor in state['outside']:
             for key, value in sensor.items():
                 if key == 'actual_temp':
                     # temperature in range (-20, +40)'C
                     value = (value + 20) / 60
+                elif key == 'daytime':
+                    if 300 <= value <= 1140:
+                        time_of_day = 'day'
+                    # time in range (0, 1440) min
+                    value /= 1440
                 observation.append(value)
 
         # NOTE: inconsistency - we have LIST of outside sensors and DICT of
@@ -161,8 +162,10 @@ class HouseEnergyEnvironment:
                             value = (value + 20) / 60
                         observation.append(value)
             elif d_key == 'desired':
-                for daytime in d_value.values():
-                    for key, value in daytime.items():
+                for daytime, params in d_value.items():
+                    if daytime != time_of_day:
+                        continue
+                    for key, value in params.items():
                         if re.match('temp.*', key):
                             # temperature in range (-20, +40)'C
                             value = (value + 20) / 60
@@ -176,4 +179,4 @@ class HouseEnergyEnvironment:
                     "truncated to 0-1 or are None!" +\
                     "vector: " + str(observation)
 
-        return np.array([observation])
+        return np.array(observation)
