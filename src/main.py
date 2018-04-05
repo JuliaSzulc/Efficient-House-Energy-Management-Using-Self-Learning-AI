@@ -6,6 +6,7 @@ database etc.
 """
 from agent import Agent
 from environment import HouseEnergyEnvironment
+import matplotlib.pyplot as plt
 
 
 def save_to_database(info):
@@ -25,9 +26,14 @@ def main():
     agent = Agent(env=env)
     # agent.network = load_model("models/model1.xxx") ?
 
+    rewards = []
     num_episodes = 10000
-    for _ in range(num_episodes):
-        agent.run()
+    for i in range(num_episodes):
+        print("episode {} / {}".format(i, num_episodes))
+        rewards.append(agent.run())
+
+    plt.plot(rewards)
+    plt.show()
 
     # after learning
     # recover any important info about env, agent etc.

@@ -19,9 +19,10 @@ class BasicEnvironmentTestCase(unittest.TestCase):
         self.env.house.mocked_param = 0
         self.env.house.action_mocked = types.MethodType(action, self.env.house)
 
-    def test_serialize_state_values(self):
+    def test_serialize_state_values_on_full_episode(self):
         """test if returned state in step method has normalized values"""
-        for _ in range(10):
+        done = False
+        while not done:
             observation, reward, done = self.env.step("action_mocked")
             observation = observation.tolist()
             self.assertTrue(all([0 <= x <= 1 for x in observation]),

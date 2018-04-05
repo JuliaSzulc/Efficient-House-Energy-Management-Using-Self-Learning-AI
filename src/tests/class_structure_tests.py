@@ -58,7 +58,8 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
 
         listener = []
         self.world.register(listener)
-        self.assertRaises(AttributeError, self.world.update_listeners())
+        with self.assertRaises(AttributeError):
+            self.world.update_listeners()
 
 
 class EnvironmentStructureTestCase(unittest.TestCase):

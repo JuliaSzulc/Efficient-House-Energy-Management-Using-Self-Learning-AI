@@ -109,7 +109,7 @@ class World:
             try:
                 listener.update(daytime=self.daytime, weather=self.weather)
             except AttributeError:
-                print('listener has unimplemented method update')
+                raise AttributeError('listener has unimplemented method update')
 
     def step(self):
         """Proceed one step in time, collect info and update listeners
