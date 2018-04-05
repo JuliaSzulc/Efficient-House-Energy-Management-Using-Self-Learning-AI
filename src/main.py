@@ -25,7 +25,7 @@ def manual_testing():
         actions (list) - available actions to make
         file_auto_log (bool) - true/false, says if logs should be saved to file
         stage (number) - count of passed steps in env
-        last_render TODO: depends on what env.render() returns
+        last_render (tuple) - names ans values of env parameters
         log_file (file) - output for logs
 
     """
@@ -35,7 +35,7 @@ def manual_testing():
 
     step = 0
     file_auto_log = False
-    last_render = env.render()
+    curr_render = last_render = env.render()
     log_file = open("Manual_Tests_v1.log", "a")
     while True:
 
@@ -78,12 +78,38 @@ def manual_testing():
             '+----------------------------------------------------------+\n' \
             '|                       Testing menu                       |\n' \
             '|----------------------------------------------------------|\n' \
-            '{0}Last values:\n {1}\nCurrent values:\n {2}'.format(
-                sub_menu_actions, last_render,
-                env.render())
+            '{0}'.format(sub_menu_actions, 'Value:', 'Previous:', '?',
+                         'Current')
+
+        render_menu = 'Rendered values:\n'
+        render_menu += \
+            '+---------------------------+-----------+---+---------+\n'
+        render_menu += '| {0:25} | {1:10}| {2} | {3:8}|\n'.format('Value:',
+                                                                  'Previous:',
+                                                                  '?',
+                                                                  'Current')
+        render_menu += \
+            '+---------------------------+-----------+---+---------+\n'
+        for i in range(len(last_render[0])):
+            if float(last_render[1][i]) < float(curr_render[1][i]):
+                mark = '<'
+            elif float(last_render[1][i]) > float(curr_render[1][i]):
+                mark = '>'
+            else:
+                mark = '='
+
+            render_menu += '| {0:25} |{1:10.5f} | {2} | {3:7.5f} |\n'.format(
+                last_render[0][i], last_render[1][i], mark, curr_render[1][i])
+        render_menu += \
+            '+---------------------------+-----------+---+---------+\n'
+
+        menu += render_menu
 
         # print build menu
         print(menu)
+
+        if file_auto_log:
+            log_file.write(render_menu)
 
         # ---------- build menu end ----------
 
@@ -91,24 +117,25 @@ def manual_testing():
             option = input('\nSelect option:\n')
 
             if int(option) in range(1, len(actions) + 1):
-                last_render = env.render()
+                last_render = curr_render
 
                 if file_auto_log:
                     log_file.write(
-                        'Current step: {0}\n'
-                        'Last values:{1}\2'
-                        'Current values:{2}\n'
-                        'Chosen action:{3}\n'.format(
-                            step, last_render, env.render(),
-                            actions[int(option) - 1]))
+                        '\nCurrent step: {0}\n'
+                        'Chosen action: {1}\n'.format(
+                            step + 1, actions[int(option) - 1]))
 
                 # pass the action with the step
                 env.step(actions[int(option) - 1])
+                curr_render = env.render()
                 step += 1
             elif int(option) == len(actions) + 1:
                 file_auto_log = not file_auto_log
                 if file_auto_log:
                     log_file.write('\n----- New Test ----\n\n')
+                    step = 0
+                    env.reset()
+                    last_render = curr_render = env.render()
 
             elif int(option) == len(actions) + 2:
                 break
