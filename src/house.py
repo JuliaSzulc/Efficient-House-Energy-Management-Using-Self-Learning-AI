@@ -47,7 +47,7 @@ class House:
         # --- ENERGY / LIGHT house settings ---
         self.pv_absorption = 2000  # Watt on max sun intensity
         self.grid_cost = 0.5  # PLN for 1kWh
-        self.house_isolation_factor = 0.5
+        self.house_isolation_factor = 0.9
         self.house_light_factor = 0.01
         self.max_led_illuminance = 200  # lux
         self.battery = {
@@ -68,13 +68,13 @@ class House:
                 'temp_desired': 21,
                 'temp_epsilon': 0.5,
                 'light_desired': 0.4,
-                'light_epsilon': 0.1
+                'light_epsilon': 0.05
             }),
             'night': OrderedDict({
                 'temp_desired': 18,
                 'temp_epsilon': 1,
                 'light_desired': 0.0,
-                'light_epsilon': 0.1
+                'light_epsilon': 0.05
             })
         })
 
@@ -114,17 +114,17 @@ class House:
         temperatures = [d['temperature'] for d in self.inside_sensors.values()]
         inside_temp = sum(temperatures) / len(temperatures)
 
-        temp_delta = abs((actual_temp - inside_temp)
-                         * (1 - self.house_isolation_factor))
+        temp_delta = (actual_temp - inside_temp) \
+                         * (1 - self.house_isolation_factor)
 
         # should be changed for some more complex formula
         for data in self.inside_sensors.values():
-            temperature = inside_temp +\
-                          (temp_delta * self.timeframe
-                           * self.current_settings['heating_lvl'])\
-                          - (temp_delta * self.timeframe
+            temperature = inside_temp + (temp_delta * self.timeframe) + \
+                          + (self.timeframe
+                             * self.current_settings['heating_lvl']) \
+                          - (self.timeframe
                              * self.current_settings['cooling_lvl'])
-
+            # print("Inside: ", temperature, "  | Outside: ", actual_temp)
             data['temperature'] = temperature
 
     def _calculate_accumulated_energy(self, outside_illumination):
@@ -223,7 +223,7 @@ class House:
         """
 
         w_temp, w_light, w_cost = 1.0, 1.0, 1.0
-        temp_exponent, light_exponent = 2, 2
+        temp_exponent, light_exponent = 1, 1
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
@@ -263,8 +263,8 @@ class House:
              and desired param (with epsilon-acceptable consideration)
         """
 
-        difference = current - desired
-        if abs(difference) > epsilon:
+        difference = abs(current - desired)
+        if difference > epsilon:
             return pow(difference, power)
         return 0
 

@@ -95,6 +95,8 @@ class Agent:
             self.current_state = next_state
             total_reward += reward
             self._train()
+
+        print("Total Reward: ", total_reward)
         return total_reward
 
     def _train(self):
