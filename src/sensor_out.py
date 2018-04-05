@@ -14,6 +14,7 @@ class OutsideSensor:
         self.daytime = None
 
         # 25k lux is maximum illumination of the ambient daylight
+        # NOTE: this is a global, consider moving it to some config JSON / XML
         self.max_illumination = 25000
 
         self.weather = {

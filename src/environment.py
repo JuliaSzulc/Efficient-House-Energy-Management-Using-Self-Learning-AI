@@ -148,6 +148,9 @@ class HouseEnergyEnvironment:
                         time_of_day = 'day'
                     # time in range (0, 1440) min
                     value /= 1440
+                elif key == 'illumination':
+                    # illumination in range (0, 25000)
+                    value /= 25000
                 observation.append(value)
 
         # NOTE: inconsistency - we have LIST of outside sensors and DICT of
@@ -170,6 +173,10 @@ class HouseEnergyEnvironment:
                             # temperature in range (-20, +40)'C
                             value = (value + 20) / 60
                         observation.append(value)
+            elif d_key == 'battery_level':
+                # battery in range (0, 14000) W
+                d_value /= 14000
+                observation.append(d_value)
             else:
                 observation.append(d_value)
 
