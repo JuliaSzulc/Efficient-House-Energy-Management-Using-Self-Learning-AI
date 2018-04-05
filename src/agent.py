@@ -8,6 +8,7 @@ environment.
 import numpy as np
 import random
 import torch
+from collections import deque
 from torch import autograd, optim
 from torch.autograd import Variable
 import torch.nn.functional as F
@@ -46,7 +47,7 @@ class Agent:
         self.actions = None
         self.network = None
         self.current_state = None
-        self.memory = []  # TODO - change to limited size structure
+        self.memory = deque(maxlen=2000)  # TODO - change to limited size structure
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
@@ -149,9 +150,10 @@ class Agent:
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 
             # calculate the loss (nll -> negative log likelihood/cross entropy)
+            # TODO mse -> nll_loss.
             # and optimize the parameters
             self.optimizer.zero_grad()
-            loss = F.nll_loss(q_values, targets)
+            loss = F.mse_loss(q_values, targets)
             loss.backward()
             self.optimizer.step()
 
@@ -200,11 +202,7 @@ class Agent:
         """
 
         exp_batch = [0, 0, 0, 0, 0]
-        transition_batch = []
-        indices = np.random.randint(0, len(self.memory), self.batch_size) \
-            .tolist()
-        for i in indices:
-            transition_batch.append(self.memory[i])
+        transition_batch = random.sample(self.memory, self.batch_size)
 
         # TODO: can/should we make this code cleaner?
         # Float Tensors
