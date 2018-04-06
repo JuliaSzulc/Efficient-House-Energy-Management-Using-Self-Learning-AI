@@ -114,6 +114,36 @@ class HouseEnergyEnvironment:
                         'Grid_cost: ',
                         'Battery_level: ']
 
+        # # ------------------ Removing tutorial ------------------
+        # # to remove just comment the line, and remove its value from dataSet
+        # labels_names = [#'Daytime //OUTSIDE: ',
+        #                 'Temperature_outside: ',
+        #                 'Light: ',
+        #                 'Illumination: ',
+        #                 #'Clouds: ',
+        #                 #'Rain: ',
+        #                 #'Wind: ',
+        #                 'Temperature //INSIDE: ',
+        #                 'Light: ',
+        #                 'Temp_desired /current: ',
+        #                 #'Temp_epsilon: ',
+        #                 'Light_desired: ',
+        #                 #'Light_epsilon: ',
+        #                 'Grid_cost: ',
+        #                 'Battery_level: ']
+        #
+        # # care for dynamic indexes change, if you remove element others
+        # # indexes will change !!!
+        # dataSet = np.delete(dataSet, 0)
+        # dataSet = np.delete(dataSet, 3)
+        # dataSet = np.delete(dataSet, 3)
+        # dataSet = np.delete(dataSet, 3)
+        # dataSet = np.delete(dataSet, 6)
+        # dataSet = np.delete(dataSet, 7)
+        #
+        # # it will be error if dataSet length and labels_names length r not eq.
+        # # --------------------------------------------------------------------
+
         return labels_names, dataSet
 
     def get_actions(self):
