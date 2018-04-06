@@ -169,8 +169,8 @@ def manual_testing():
                 plt.legend()
                 plt.show()
             elif int(option) == len(actions) + 3:
-                time = float(input('Pass time in hour'))
-                while (time - env.world.time_step_in_minutes/60) > 0:
+                time = float(input('Pass time in hour:\n'))
+                while (time - env.world.time_step_in_minutes/60) >= 0:
 
                     last_render = curr_render
 
