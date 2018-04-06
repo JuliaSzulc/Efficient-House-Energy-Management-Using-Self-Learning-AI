@@ -165,7 +165,7 @@ def manual_testing():
                         i.clear()
             elif int(option) == len(actions) + 2:
                 for i in range(len(curr_render[0])):
-                    plt.plot(values_for_plt[i], '-o', label=curr_render[0][i])
+                    plt.plot(values_for_plt[i], label=curr_render[0][i])
                 plt.legend()
                 plt.show()
             elif int(option) == len(actions) + 3:
