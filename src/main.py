@@ -32,10 +32,13 @@ def manual_testing():
 
     env = HouseEnergyEnvironment()
     actions = env.get_actions()
+    curr_render = last_render = env.render()
+
+    # create len(curr_render[0]) lists for plots
+    values_for_plt = [[] for y in range(len(curr_render[0]))]
 
     step = 0
     file_auto_log = False
-    curr_render = last_render = env.render()
     log_file = open("Manual_Tests_v1.log", "a")
     while True:
 
@@ -55,14 +58,19 @@ def manual_testing():
                 j += 1
             elif i == 2:
                 sub_menu_actions += \
-                    '| {0:2}) {1:25} | {2:2}) Exit tests {3:10}|\n' \
+                    '| {0:2}) {1:25} | {2:2}) Show plots {3:10}|\n' \
                         .format(i, action, j, ' ')
                 j += 1
             elif i == 3:
                 sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2:2}) Exit tests {3:10}|\n' \
+                        .format(i, action, j, ' ')
+                j += 1
+            elif i == 4:
+                sub_menu_actions += \
                     '| {0:2}) {1:25} |--------------------------|\n' \
                         .format(i, action)
-            elif i == 4:
+            elif i == 5:
                 sub_menu_actions += \
                     '| {0:2}) {1:25} | Current step: {3:10} |\n' \
                         .format(i, action, ' ', step)
@@ -108,6 +116,13 @@ def manual_testing():
         # print build menu
         print(menu)
 
+        # update lists for plots
+        for i in range(len(curr_render[1])):
+            values_for_plt[i].append(curr_render[1][i])
+
+        # for i in range(len(curr_render)):
+        #     values_for_plt[1][i].
+
         if file_auto_log:
             log_file.write(render_menu)
 
@@ -136,8 +151,12 @@ def manual_testing():
                     step = 0
                     env.reset()
                     last_render = curr_render = env.render()
-
             elif int(option) == len(actions) + 2:
+                for i in range(len(curr_render[0])):
+                    plt.plot(values_for_plt[i], '-o', label=curr_render[0][i])
+                plt.legend()
+                plt.show()
+            elif int(option) == len(actions) + 3:
                 break
             else:
                 raise ValueError()
