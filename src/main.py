@@ -63,17 +63,30 @@ def manual_testing():
                 j += 1
             elif i == 3:
                 sub_menu_actions += \
-                    '| {0:2}) {1:25} | {2:2}) Exit tests {3:10}|\n' \
-                        .format(i, action, j, ' ')
+                    '| {0:2}) {1:25} | {2:2}) Nop act. for time    |\n' \
+                        .format(i, action, j)
                 j += 1
             elif i == 4:
                 sub_menu_actions += \
-                    '| {0:2}) {1:25} |--------------------------|\n' \
-                        .format(i, action)
+                    '| {0:2}) {1:25} | {2:2}) Exit tests {3:10}|\n' \
+                        .format(i, action, j, ' ')
+                j += 1
             elif i == 5:
                 sub_menu_actions += \
-                    '| {0:2}) {1:25} | Current step: {3:10} |\n' \
-                        .format(i, action, ' ', step)
+                    '| {0:2}) {1:25} |--------------------------|\n' \
+                        .format(i, action)
+            elif i == 6:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | Current step: {2:10} |\n' \
+                        .format(i, action, step)
+            elif i == 7:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | Current time: {2:10} |\n' \
+                        .format(i, action, ' ')
+            elif i == 8:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2}      |\n' \
+                        .format(i, action, env.world.current_date)
             else:
                 sub_menu_actions += '| {0:2}) {1:25} | {2:25}|\n' \
                     .format(i, action, ' ')
@@ -156,6 +169,24 @@ def manual_testing():
                 plt.legend()
                 plt.show()
             elif int(option) == len(actions) + 3:
+                time = float(input('Pass time in hour'))
+                while (time - env.world.time_step_in_minutes/60) > 0:
+
+                    last_render = curr_render
+
+                    # pass the action with the step
+                    env.step('action_nop')
+
+                    curr_render = env.render()
+                    step += 1
+
+                    # update lists for plots
+                    for i in range(len(curr_render[1])):
+                        values_for_plt[i].append(curr_render[1][i])
+
+                    time -= env.world.time_step_in_minutes/60
+
+            elif int(option) == len(actions) + 4:
                 break
             else:
                 raise ValueError()
