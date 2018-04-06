@@ -120,9 +120,6 @@ def manual_testing():
         for i in range(len(curr_render[1])):
             values_for_plt[i].append(curr_render[1][i])
 
-        # for i in range(len(curr_render)):
-        #     values_for_plt[1][i].
-
         if file_auto_log:
             log_file.write(render_menu)
 
@@ -151,7 +148,8 @@ def manual_testing():
                     step = 0
                     env.reset()
                     last_render = curr_render = env.render()
-                    values_for_plt.clear()
+                    for i in values_for_plt:
+                        i.clear()
             elif int(option) == len(actions) + 2:
                 for i in range(len(curr_render[0])):
                     plt.plot(values_for_plt[i], '-o', label=curr_render[0][i])
