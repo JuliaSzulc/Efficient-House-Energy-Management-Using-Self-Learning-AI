@@ -151,6 +151,7 @@ def manual_testing():
                     step = 0
                     env.reset()
                     last_render = curr_render = env.render()
+                    values_for_plt.clear()
             elif int(option) == len(actions) + 2:
                 for i in range(len(curr_render[0])):
                     plt.plot(values_for_plt[i], '-o', label=curr_render[0][i])
