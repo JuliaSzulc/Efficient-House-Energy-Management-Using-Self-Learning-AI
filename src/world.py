@@ -17,7 +17,7 @@ from random import choices
 class World:
     """Time and weather computations"""
 
-    def __init__(self, time_step_in_minutes=0.5, duration_days=1):
+    def __init__(self, time_step_in_minutes=5, duration_days=1):
         # --- time settings ---
         self.start_date = datetime(2020, 1, 1, 0, 0, 0)
         self.current_date = self.start_date

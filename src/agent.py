@@ -9,7 +9,7 @@ import numpy as np
 import random
 import torch
 from collections import deque
-from torch import autograd, optim
+from torch import autograd, optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
@@ -47,7 +47,7 @@ class Agent:
         self.actions = None
         self.network = None
         self.current_state = None
-        self.memory = deque(maxlen=2000)  # TODO - change to limited size structure
+        self.memory = deque(maxlen=5000)  # TODO - change to limited size structure
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
@@ -64,16 +64,16 @@ class Agent:
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
         input_size = len(self.initial_state)
-        hidden1_size = 20
+        hidden1_size = 10
         hidden2_size = 10
         output_size = len(self.actions)
         self.network = Net(input_size, hidden1_size, hidden2_size, output_size)
         self.gamma = 0.90
-        self.epsilon = 0.2
+        self.epsilon = 0.1
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.01
-        self.batch_size = 32
-        self.l_rate = 0.01
+        self.batch_size = 16
+        self.l_rate = 0.005
         self.optimizer = optim.Adagrad(self.network.parameters(),
                                        lr=self.l_rate)
 
@@ -88,8 +88,8 @@ class Agent:
                 self.env.step(self.actions[action_index])
 
             # clip the reward
-            if reward < -1:
-                reward = -1
+            # if reward < -1:
+            #    reward = -1
 
             # TODO limit memory size
             self.memory.append((self.current_state, action_index, reward,
@@ -158,7 +158,7 @@ class Agent:
             # TODO mse -> nll_loss.
             # and optimize the parameters
             self.optimizer.zero_grad()
-            loss = F.mse_loss(q_values, targets)
+            loss = nn.modules.SmoothL1Loss()(q_values, targets)
             loss.backward()
             self.optimizer.step()
 

@@ -8,6 +8,7 @@ from agent import Agent
 from environment import HouseEnergyEnvironment
 import matplotlib.pyplot as plt
 from manual_test import ManualTestTerminal
+import numpy as np
 
 def save_to_database(info):
     """Save all the information about an experiment to db"""
@@ -33,14 +34,17 @@ def main():
     # agent.network = load_model("models/model1.xxx") ?
 
     rewards = []
-    num_episodes = 1000
+    num_episodes = 10000
     for i in range(num_episodes):
         t_reward = agent.run()
         rewards.append(t_reward)
         print("episode {} / {} | Reward: {}".format(i, num_episodes, t_reward))
 
+    avg_rewards = []
+    for i in range(100):
+        avg_rewards.append(np.mean(rewards[100 * i: 100 * (i+1)]))
 
-    plt.plot(rewards)
+    plt.plot(avg_rewards)
     plt.show()
 
     # after learning

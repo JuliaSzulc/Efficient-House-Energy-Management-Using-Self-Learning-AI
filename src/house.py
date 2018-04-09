@@ -242,7 +242,7 @@ class House:
                        + (temp_penalty * w_temp)
                        + (light_penalty * w_light))
 
-        return reward / 20
+        return reward / 30
 
     def _get_current_user_requests(self):
         """
