@@ -198,6 +198,7 @@ class World:
         temp_light = self.weather['light']
 
         # after clouds calculation we can count light parameter
+        #FIXME - chmury nie zasłaniają słońca w 100% jak sa na 1
         self.weather['light'] = self.weather['sun']\
                                 * (1 - self.weather['clouds'])
 

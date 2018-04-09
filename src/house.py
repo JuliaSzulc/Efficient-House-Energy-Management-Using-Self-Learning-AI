@@ -11,6 +11,7 @@ directly from outside.
 
 """
 from random import uniform
+from random import randint
 from collections import OrderedDict
 
 
@@ -81,7 +82,7 @@ class House:
         # --- SENSORS indications ---
         self.inside_sensors = OrderedDict({
             'first': OrderedDict({
-                'temperature': 0,
+                'temperature': randint(15, 25),
                 'light': 0
             })
         })
@@ -114,15 +115,16 @@ class House:
         inside_temp = sum(temperatures) / len(temperatures)
 
         temp_delta = (actual_temp - inside_temp) \
-                         * (1 - self.house_isolation_factor)
+                     * (1 - self.house_isolation_factor)
 
         # should be changed for some more complex formula
         for data in self.inside_sensors.values():
-            temperature = inside_temp + (temp_delta * self.timeframe) + \
+            temperature = inside_temp + (temp_delta * self.timeframe / 50) + \
                           + (self.timeframe
-                             * self.current_settings['heating_lvl']) \
+                             * self.current_settings['heating_lvl'] / 2) \
                           - (self.timeframe
-                             * self.current_settings['cooling_lvl'])
+                             * self.current_settings['cooling_lvl'] / 2)
+
             # print("Inside: ", temperature, "  | Outside: ", actual_temp)
             data['temperature'] = temperature
 
@@ -172,7 +174,7 @@ class House:
 
         for sensor in inside_params['inside_sensors'].values():
             for key, value in sensor.items():
-                noised = uniform(-0.1, 0.1)
+                noised = uniform(-0.01, 0.01)
 
                 if key == 'temperature':
                     noised += value
@@ -242,7 +244,7 @@ class House:
                        + (temp_penalty * w_temp)
                        + (light_penalty * w_light))
 
-        return reward
+        return reward / 10
 
     def _get_current_user_requests(self):
         """

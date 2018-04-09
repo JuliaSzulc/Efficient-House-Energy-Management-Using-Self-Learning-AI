@@ -12,6 +12,24 @@ from world import World
 from house import House
 from sensor_out import OutsideSensor
 
+def truncate(arg, lower=0, upper=1):
+    """This function returns value truncated within range <lower, upper>
+
+    Args:
+        arg (number) - value to be truncated
+        lower (number) - lower truncating bound, default to 0
+        upper (number) - upper truncating bound, default to 1
+
+    Returns:
+        arg (number) - truncated function argument
+
+    """
+
+    if arg > upper:
+        return upper
+    if arg < lower:
+        return lower
+    return arg
 
 class HouseEnergyEnvironment:
     """Endpoints / facade for RL environment.
@@ -92,7 +110,7 @@ class HouseEnergyEnvironment:
             labels_names(list) - names of specified values in dataSet
             dataSet (numpy array) - values of daytime, light etc.
         """
-
+        # FIXME - render unnormalized values!
         # - gui in the future?
         # - maybe but in main, here just formatted text
 
@@ -195,10 +213,12 @@ class HouseEnergyEnvironment:
         [ ] light_epsilon
         [ ] grid_cost
         [ ] battery_level
-
+        FIXME where are deltas? (filip)
+        FIXME throw out outside illumination - unnormalized light duplicate
         """
 
         observation = []
+        # FIXME (filip) use get_current_user_requests
         time_of_day = 'night'  # to choose appropiate current desired temp
         for sensor in state['outside']:
             for key, value in sensor.items():
@@ -206,6 +226,7 @@ class HouseEnergyEnvironment:
                     # temperature in range (-20, +40)'C
                     value = (value + 20) / 60
                 elif key == 'daytime':
+                    # FIXME (filip)
                     if 300 <= value <= 1140:
                         time_of_day = 'day'
                     # time in range (0, 1440) min

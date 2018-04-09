@@ -102,6 +102,7 @@ ENV/
 
 # nasze wlasne projektowe wykluczenia:
 .idea/
+setup.cfg
 *~
 *.swp
 # texowe smieci

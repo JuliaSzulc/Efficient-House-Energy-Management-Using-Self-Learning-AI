@@ -19,7 +19,7 @@ def main():
 
     # TODO: properly implement me (after environment and agent get done)
     save_experiment = False
-    run_manual_tests = True
+    run_manual_tests = False
 
     # start manual tests
     if run_manual_tests:
@@ -36,7 +36,8 @@ def main():
     num_episodes = 10000
     for i in range(num_episodes):
         print("episode {} / {}".format(i, num_episodes))
-        rewards.append(agent.run())
+        total_reward = agent.run()
+        rewards.append(total_reward)
 
     plt.plot(rewards)
     plt.show()
