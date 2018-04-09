@@ -87,6 +87,10 @@ class Agent:
             next_state, reward, terminal_state = \
                 self.env.step(self.actions[action_index])
 
+            # clip the reward
+            if reward < -1:
+                reward = -1
+
             # TODO limit memory size
             self.memory.append((self.current_state, action_index, reward,
                                 next_state, terminal_state))
@@ -96,7 +100,6 @@ class Agent:
             total_reward += reward
             self._train()
 
-        print("Total Reward: ", total_reward)
         return total_reward
 
     def _train(self):

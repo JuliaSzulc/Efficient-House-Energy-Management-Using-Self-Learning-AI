@@ -33,11 +33,12 @@ def main():
     # agent.network = load_model("models/model1.xxx") ?
 
     rewards = []
-    num_episodes = 10000
+    num_episodes = 1000
     for i in range(num_episodes):
-        print("episode {} / {}".format(i, num_episodes))
-        total_reward = agent.run()
-        rewards.append(total_reward)
+        t_reward = agent.run()
+        rewards.append(t_reward)
+        print("episode {} / {} | Reward: {}".format(i, num_episodes, t_reward))
+
 
     plt.plot(rewards)
     plt.show()

@@ -121,9 +121,9 @@ class House:
         for data in self.inside_sensors.values():
             temperature = inside_temp + (temp_delta * self.timeframe / 50) + \
                           + (self.timeframe
-                             * self.current_settings['heating_lvl'] / 2) \
+                             * self.current_settings['heating_lvl'] / 10) \
                           - (self.timeframe
-                             * self.current_settings['cooling_lvl'] / 2)
+                             * self.current_settings['cooling_lvl'] / 10)
 
             # print("Inside: ", temperature, "  | Outside: ", actual_temp)
             data['temperature'] = temperature
@@ -174,14 +174,12 @@ class House:
 
         for sensor in inside_params['inside_sensors'].values():
             for key, value in sensor.items():
-                noised = uniform(-0.01, 0.01)
-
                 if key == 'temperature':
-                    noised += value
-                if key == 'light':
-                    noised = truncate(noised + value)
-
-                sensor[key] = noised
+                    sensor[key] = truncate(value
+                                           + uniform(-0.05, 0.05), -20, 40)
+                elif key == 'light':
+                    sensor[key] = truncate(value
+                                           + uniform(-0.01, 0.01))
 
         return inside_params
 
@@ -223,8 +221,8 @@ class House:
              reward(float): weighted sum of penalties
         """
 
-        w_temp, w_light, w_cost = 1.0, 1.0, 1.0
-        temp_exponent, light_exponent = 1, 1
+        w_temp, w_light, w_cost = 1.0, 5.0, 50.0
+        temp_exponent, light_exponent = 1.1, 2
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
@@ -244,7 +242,7 @@ class House:
                        + (temp_penalty * w_temp)
                        + (light_penalty * w_light))
 
-        return reward / 10
+        return reward / 20
 
     def _get_current_user_requests(self):
         """

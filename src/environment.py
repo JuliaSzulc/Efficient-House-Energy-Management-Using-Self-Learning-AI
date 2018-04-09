@@ -226,8 +226,8 @@ class HouseEnergyEnvironment:
                     # temperature in range (-20, +40)'C
                     value = (value + 20) / 60
                 elif key == 'daytime':
-                    # FIXME (filip)
-                    if 300 <= value <= 1140:
+                    # FIXME (filip) use get_current_user_requests
+                    if 420 <= value <= 1080:
                         time_of_day = 'day'
                     # time in range (0, 1440) min
                     value /= 1440
@@ -249,6 +249,7 @@ class HouseEnergyEnvironment:
                         observation.append(value)
             elif d_key == 'desired':
                 for daytime, params in d_value.items():
+                    # FIXME (filip) use get_current_user_requests
                     if daytime != time_of_day:
                         continue
                     for key, value in params.items():
