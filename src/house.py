@@ -45,7 +45,7 @@ class House:
         self.daytime = None  # current time
 
         # --- ENERGY / LIGHT house settings ---
-        self.pv_absorption = 2000  # Watt on max sun intensity
+        self.pv_absorption = 125  # Watt on max sun intensity (growth on 1 min)
         self.grid_cost = 0.5  # PLN for 1kWh
         self.house_isolation_factor = 0.9
         self.house_light_factor = 0.01
@@ -126,12 +126,17 @@ class House:
             # print("Inside: ", temperature, "  | Outside: ", actual_temp)
             data['temperature'] = temperature
 
-    def _calculate_accumulated_energy(self, outside_illumination):
-        acc = outside_illumination * self.pv_absorption \
+    def _calculate_accumulated_energy(self, outside_light):
+         # outside_light is normalized light from world [0, 1]
+        # acc is value describes battery power growth in one full step where
+        # it can rise pv_absorption per minute maximum
+
+        acc = outside_light * self.pv_absorption \
               * self.timeframe
 
-        self.battery['current'] = truncate(arg=(acc + self.battery['current']),
-                                           upper=self.battery['max'])
+        self.battery['current'] = truncate(
+            arg=(acc + self.battery['current']),
+            upper=self.battery['max'])
 
     def update(self, sensor_out_info):
         """Updates house parameters

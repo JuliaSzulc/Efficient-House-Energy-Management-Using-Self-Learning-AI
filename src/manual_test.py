@@ -58,8 +58,8 @@ class ManualTestTerminal:
 
             # ---------- build menu ----------
             sub_menu_actions = \
-                '|     Available actions menu    |          Others          |\n' \
-                '|-------------------------------+--------------------------|\n'
+                '|     Available actions menu    |          Others           |\n' \
+                '|-------------------------------+---------------------------|\n'
 
             # dynamic build depends on actions count
             i = 1
@@ -67,65 +67,64 @@ class ManualTestTerminal:
             for action in self.actions:
                 if i == 1:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) File auto log: {3:5} |\n' \
+                        '| {0:2}) {1:25} | {2:2}) File auto log: {3:5}  |\n' \
                             .format(i, action, j, str(file_auto_log))
                     j += 1
                 elif i == 2:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Show plots {3:10}|\n' \
+                        '| {0:2}) {1:25} | {2:2}) Show plots {3:10} |\n' \
                             .format(i, action, j, ' ')
                     j += 1
                 elif i == 3:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Nop act. for time    |\n' \
+                        '| {0:2}) {1:25} | {2:2}) Nop act. for time     |\n' \
                             .format(i, action, j)
                     j += 1
                 elif i == 4:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Exit tests {3:10}|\n' \
+                        '| {0:2}) {1:25} | {2:2}) Exit tests {3:10} |\n' \
                             .format(i, action, j, ' ')
                     j += 1
                 elif i == 5:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} |--------------------------|\n' \
+                        '| {0:2}) {1:25} |---------------------------|\n' \
                             .format(i, action)
                 elif i == 6:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} | Current step: {2:10} |\n' \
+                        '| {0:2}) {1:25} | Current step: {2:10}  |\n' \
                             .format(i, action, step)
                 elif i == 7:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} | Current time: {2:10} |\n' \
+                        '| {0:2}) {1:25} | Current time: {2:10}  |\n' \
                             .format(i, action, ' ')
                 elif i == 8:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2}      |\n' \
+                        '| {0:2}) {1:25} | {2}       |\n' \
                             .format(i, action, self.env.world.current_date)
                 else:
-                    sub_menu_actions += '| {0:2}) {1:25} | {2:25}|\n' \
+                    sub_menu_actions += '| {0:2}) {1:25} | {2:25} |\n' \
                         .format(i, action, ' ')
                 i += 1
             sub_menu_actions += \
-                '+-------------------------------+--------------------------+\n'
+                '+-------------------------------+---------------------------+\n'
 
             # add main menu tag
             menu = \
-                '+----------------------------------------------------------+\n' \
-                '|                       Testing menu                       |\n' \
-                '|----------------------------------------------------------|\n' \
-                '{0}'.format(sub_menu_actions, 'Value:', 'Previous:', '?',
-                             'Current')
+                '+-----------------------------------------------------------+\n' \
+                '|                       Testing menu                        |\n' \
+                '|-----------------------------------------------------------|\n' \
+                '{0}'.format(sub_menu_actions)
 
             render_menu = 'Rendered values:\n'
             render_menu += \
-                '+---------------------------+-----------+---+---------+\n'
-            render_menu += '| {0:25} | {1:10}| {2} | {3:8}|\n'. \
+                '+---------------------------+-----------+---+-----------+\n'
+            render_menu += '| {0:25} | {1:10}| {2} |  {3:8} |\n'. \
                 format('Value:',
                        'Previous:',
                        '?',
                        'Current')
             render_menu += \
-                '+---------------------------+-----------+---+---------+\n'
+                '+---------------------------+-----------+---+-----------+\n'
             for i in range(len(last_render[0])):
                 if float(last_render[1][i]) < float(curr_render[1][i]):
                     mark = '<'
@@ -134,12 +133,12 @@ class ManualTestTerminal:
                 else:
                     mark = '='
 
-                render_menu += '| {0:25} |{1:10.5f} | {2} | {3:7.5f} |\n'. \
+                render_menu += '| {0:25} |{1:10.5f} | {2} | {3:9.5f} |\n'. \
                     format(last_render[0][i], last_render[1][i], mark,
                            curr_render[1][i])
 
             render_menu += \
-                '+---------------------------+-----------+---+---------+\n'
+                '+---------------------------+-----------+---+-----------+\n'
 
             menu += render_menu
 
