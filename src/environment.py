@@ -104,7 +104,7 @@ class HouseEnergyEnvironment:
 
         Args:
             dataset (numpy array) - its collection of values such as daytime,
-            temperature, light etc.
+            temperature, light etc. and aso reward
 
         Returns:
             labels_names(list) - names of specified values in dataSet
@@ -115,6 +115,10 @@ class HouseEnergyEnvironment:
         # - maybe but in main, here just formatted text
 
         dataSet = self._get_current_state()
+
+        reward = self.house.reward()
+
+        dataSet = np.append(dataSet, reward)
 
         labels_names = ['Daytime //OUTSIDE: ',
                         'Temperature_outside: ',
@@ -130,7 +134,9 @@ class HouseEnergyEnvironment:
                         'Light_desired: ',
                         'Light_epsilon: ',
                         'Grid_cost: ',
-                        'Battery_level: ']
+                        'Battery_level: ',
+                        'TOTAL REWARD: '
+                        ]
 
         # # ------------------ Removing tutorial ------------------
         # # to remove just comment the line, and remove its value from dataSet
