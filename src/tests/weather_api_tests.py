@@ -102,7 +102,7 @@ class WeatherOnTimeTestCase(unittest.TestCase):
             for _ in range(1000):
                 world.step()
 
-                self.assertTrue(6.5 <= world.weather['temp'] <= 30.5,
+                self.assertTrue(6.5 <= world.weather['temperature'] <= 30.5,
                                 "Clouds value calculated without wind\
                                 is incorrect.")
 

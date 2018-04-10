@@ -31,7 +31,7 @@ class BasicEnvironmentTestCase(unittest.TestCase):
 
     def test_serialized_vector_length(self):
         """Test if vector have proper length"""
-        proper = 15
+        proper = 20
         for _ in range(10):
             observation, reward, done = self.env.step("action_mocked")
             observation = observation.tolist()

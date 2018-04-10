@@ -2,8 +2,7 @@
 
 Grouped in World class, these methods play a major role in
 HouseEnergyEnvironment. World takes care of weather and time computations, and
-also es them forward to all listeners - in default case, all outside
-sensors.
+sends them forward to all listeners - house and outside sensors.
 
 It should be used inside environment class only.
 
@@ -17,8 +16,7 @@ from random import choices
 class World:
     """Time and weather computations"""
 
-    def __init__(self, time_step_in_minutes=5, duration_days=1):
-        # --- time settings ---
+    def __init__(self, time_step_in_minutes=1, duration_days=1):
         self.start_date = datetime(2020, 1, 1, 0, 0, 0)
         self.current_date = self.start_date
         self.daytime = None
@@ -34,7 +32,7 @@ class World:
         # sun   -> sun power before calculating with clouds
         # light -> sun power after calculation
         self.weather = {
-            'temp': 12,
+            'temperature': 12,
             'sun': 0.0,
             'light': 0,
             'clouds': 0,
@@ -115,8 +113,6 @@ class World:
         """Proceed one step in time, collect info and update listeners
         Returns:
             done(boolean): information if the state after the step is terminal
-                           (episode end).
-
         """
 
         if self.current_date >= self.stop_date:
@@ -134,23 +130,19 @@ class World:
         self.daytime = (now - midnight).seconds // 60
 
     def _calculate_weathers_weights(self, max_frame, max_weight):
+        # FIXME the whole concept (in weather v2)
         correct_frame = max_frame and max_frame >= self.time_step_in_minutes
         correct_max_weight = 0 <= max_weight <= 1
 
         assert correct_frame, 'incorrect max_frame value'
         assert correct_max_weight, 'incorrect max_weight value'
 
-        self.current_weather_weight = max_weight / max_frame\
-                                      * self.time_step_in_minutes
+        self.current_weather_weight = max_weight / max_frame \
+            * self.time_step_in_minutes
         self.previous_weather_weight = 1 - self.current_weather_weight
 
     def _update_weather(self):
-        # 1) get sun state on the sky
-        # 2) check wind power
-        # 3) create clouds & calculate with wind
-        # 4) start raining when clouds come
-        # 5) calculate final temperature
-
+        # Note that the order of methods is important!
         self._calculate_sun()
         self._calculate_wind()
         self._calculate_clouds()
@@ -158,12 +150,10 @@ class World:
         self._calculate_rain()
         self._calculate_temperature()
 
-    # from this point, only weather methods
-
     def _calculate_sun(self):
-        temp_sun = self.weather['sun']
+        last_sun_value = self.weather['sun']
 
-        # sun shine between (5 AM , 7 PM) (14h)
+        # (5:00, 19:00)
         if 300 <= self.daytime <= 1140:
             self.weather['sun'] = self.sun_steps[self.last_step_sun]
             self.last_step_sun += 1
@@ -172,10 +162,9 @@ class World:
             self.weather['sun'] = 0
             self.last_step_sun = 0
 
-        self.delta_weather['sun_delta'] = self.weather['sun'] - temp_sun
+        self.delta_weather['sun_delta'] = self.weather['sun'] - last_sun_value
 
     def _calculate_wind(self):
-        # get random wind
         self.weather['wind'] = self.current_weather_weight\
                                * choices(self.wind_power,
                                          self.wind_probability,
@@ -184,52 +173,45 @@ class World:
                                * self.weather['wind']
 
     def _calculate_clouds(self):
-        # get random clouds
         # update clouds with wind power (stronger wind = less clouds)
-        self.weather['clouds'] = self.current_weather_weight\
-                                 * choices(self.clouds,
-                                           self.clouds_probability,
-                                           k=1)[0]\
-                                 * (1 - self.weather['wind'])\
-                                 + self.previous_weather_weight\
-                                 * self.weather['clouds']
+        self.weather['clouds'] = \
+            self.current_weather_weight \
+            * choices(self.clouds, self.clouds_probability, k=1)[0] \
+            * (1 - self.weather['wind']) \
+            + self.previous_weather_weight * self.weather['clouds']
 
     def _calculate_light(self):
-        temp_light = self.weather['light']
+        last_light = self.weather['light']
 
-        # after clouds calculation we can count light parameter
-        #FIXME - chmury nie zasłaniają słońca w 100% jak sa na 1
         self.weather['light'] = self.weather['sun']\
-                                * (1 - self.weather['clouds'])
-
-        self.delta_weather['light_delta'] = self.weather['light'] - temp_light
+            * (1 - self.weather['clouds'])
+        self.delta_weather['light_delta'] = self.weather['light'] - last_light
 
     def _calculate_rain(self):
-        # if clouds are big enough then start raining
         if self.weather['clouds'] >= 0.4:
             self.weather['rain'] = 1
         else:
             self.weather['rain'] = 0
 
     def _calculate_temperature(self):
-        temp_temperature = self.weather['temp']
+        last_temperature = self.weather['temperature']
 
         # calculate new temperature
         # lets say that ~30 degrees is max temperature when sun power
         # is 1.0 & also there is no clouds & wind which can change temperature
         # by 5 degrees (we don't use rain here for now) -> then:
-        new_temperature = random.uniform(11.5, 12.5)\
-                          + (18 * self.weather['light']
-                             - 5 * self.weather['wind'])
+        new_temperature = random.uniform(11.5, 12.5) \
+            + (18 * self.weather['light']
+                - 5 * self.weather['wind'])
 
         # then update new temperature including our weather weights
-        self.weather['temp'] = self.previous_weather_weight\
-                               * self.weather['temp']\
-                               + self.current_weather_weight\
-                               * new_temperature
+        self.weather['temperature'] = self.previous_weather_weight \
+            * last_temperature \
+            + self.current_weather_weight \
+            * new_temperature
 
-        self.delta_weather['temp_delta'] = self.weather['temp']\
-                                           - temp_temperature
+        self.delta_weather['temp_delta'] = self.weather['temperature'] \
+            - last_temperature
 
 
 def plot_weather():
@@ -238,7 +220,7 @@ def plot_weather():
 
     world = World(duration_days=5)
     while not world.step():
-        temp.append((world.weather['temp'] + 20) / 60)
+        temp.append((world.weather['temperature'] + 20) / 60)
         sun.append(world.weather['sun'])
         light.append(world.weather['light'])
         clouds.append(world.weather['clouds'])

@@ -18,23 +18,18 @@ def save_to_database(info):
 def main():
     """Run the experiment and save the results if needed"""
 
-    # TODO: properly implement me (after environment and agent get done)
     save_experiment = False
     run_manual_tests = False
 
-    # start manual tests
     if run_manual_tests:
         tests = ManualTestTerminal()
         tests.manual_testing()
 
     env = HouseEnergyEnvironment()
-    # env.render() ?
-    # params = dict() ?
     agent = Agent(env=env)
-    # agent.network = load_model("models/model1.xxx") ?
 
     rewards = []
-    num_episodes = 10000
+    num_episodes = 1000
     for i in range(num_episodes):
         t_reward = agent.run()
         rewards.append(t_reward)
@@ -42,7 +37,7 @@ def main():
 
     avg_rewards = []
     for i in range(100):
-        avg_rewards.append(np.mean(rewards[100 * i: 100 * (i+1)]))
+        avg_rewards.append(np.mean(rewards[10 * i: 10 * (i+1)]))
 
     plt.plot(avg_rewards)
     plt.show()

@@ -1,7 +1,7 @@
 """This module provides class for outside sensors
 
 These sensors are meant to reflect current world weather almost exactly.
-They are also passing these informations forward to the house.
+They are also passing these information forward to the house.
 
 """
 from collections import OrderedDict
@@ -38,8 +38,7 @@ class OutsideSensor:
         """Collect weather info from sensor
 
         Returns:
-            sensor_info (dict) : weather information
-
+            sensor_info(dict): weather information
         """
 
         # actual_temp is calculated by the formula given in documentation
@@ -47,7 +46,7 @@ class OutsideSensor:
             'daytime': self.daytime,
             'actual_temp':
                 0.045 * (5.27**0.5 + 10.45 - 0.28 * self.weather['wind'])
-                * (self.weather['temp'] - 33) + 33,
+                * (self.weather['temperature'] - 33) + 33,
             'light': self.weather['light'],
             'illumination': self.weather['light'] * self.max_illumination,
             'clouds': self.weather['clouds'],

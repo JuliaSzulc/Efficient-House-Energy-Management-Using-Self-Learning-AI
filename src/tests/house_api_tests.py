@@ -1,11 +1,12 @@
 import unittest
 from unittest.mock import MagicMock
 import os, sys
-
+from collections import OrderedDict
 import math
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from house import House
+
 
 
 class HouseActionsDifferentTimeframes(unittest.TestCase):
@@ -16,42 +17,44 @@ class HouseActionsDifferentTimeframes(unittest.TestCase):
         self.house_short = House(1)
         self.house_shortest = House(1 / 60)  # one second timeframe
 
-        self.house_long.current_settings['heating_lvl'] = 0
-        self.house_short.current_settings['heating_lvl'] = 0
-        self.house_shortest.current_settings['heating_lvl'] = 0
+        self.house_long.devices_settings['heating_lvl'] = 0
+        self.house_short.devices_settings['heating_lvl'] = 0
+        self.house_shortest.devices_settings['heating_lvl'] = 0
 
-        self.house_long.current_settings['cooling_lvl'] = 1
-        self.house_short.current_settings['cooling_lvl'] = 1
-        self.house_shortest.current_settings['cooling_lvl'] = 1
+        self.house_long.devices_settings['cooling_lvl'] = 1
+        self.house_short.devices_settings['cooling_lvl'] = 1
+        self.house_shortest.devices_settings['cooling_lvl'] = 1
 
     def test_long_timeframe(self):
         """Test example action on long timeframe"""
 
         self.house_long.action_more_heating()
-        self.assertEqual(self.house_long.current_settings['heating_lvl'], 1)
+        self.assertEqual(self.house_long.devices_settings['heating_lvl'], 1)
 
         self.house_long.action_less_cooling()
-        self.assertEqual(self.house_long.current_settings['cooling_lvl'], 0)
+        self.assertEqual(self.house_long.devices_settings['cooling_lvl'], 0)
 
     def test_short_timeframe(self):
         """Test example action on short timeframe"""
 
         self.house_short.action_more_heating()
-        self.assertEqual(self.house_short.current_settings['heating_lvl'], 0.2)
+        self.assertEqual(self.house_short.devices_settings['heating_lvl'], 0.2)
 
         self.house_short.action_less_cooling()
-        self.assertEqual(self.house_short.current_settings['cooling_lvl'], 0.8)
+        self.assertEqual(self.house_short.devices_settings['cooling_lvl'], 0.8)
 
     def test_shortest_timeframe(self):
         """Test example action on shortest timeframe"""
 
         for _ in range(5 * 60 + 1):
             self.house_shortest.action_more_heating()
-        self.assertEqual(self.house_shortest.current_settings['heating_lvl'], 1)
+        self.assertEqual(self.house_shortest.devices_settings['heating_lvl'],
+                         1)
 
         for _ in range(5 * 60 + 1):
             self.house_shortest.action_less_cooling()
-        self.assertEqual(self.house_shortest.current_settings['cooling_lvl'], 0)
+        self.assertEqual(self.house_shortest.devices_settings['cooling_lvl'],
+                         0)
 
 
 class HouseActionsTestCase(unittest.TestCase):
@@ -59,7 +62,7 @@ class HouseActionsTestCase(unittest.TestCase):
 
     def setUp(self):
         self.house = House(1)  # one minute timeframe
-        self.house.current_settings = {
+        self.house.devices_settings = {
             'energy_src': 'grid',
             'cooling_lvl': 0.5,
             'heating_lvl': 0.5,
@@ -70,7 +73,7 @@ class HouseActionsTestCase(unittest.TestCase):
 
         self.house_empty_battery = House(1)
         self.house_empty_battery.battery['current'] = 0.2
-        self.house_empty_battery.current_settings = {
+        self.house_empty_battery.devices_settings = {
             'energy_src': 'grid',
         }
 
@@ -78,10 +81,10 @@ class HouseActionsTestCase(unittest.TestCase):
         """Test changing between power sources"""
 
         self.house.action_source_battery()
-        self.assertTrue(self.house.current_settings['energy_src'], 'battery')
+        self.assertTrue(self.house.devices_settings['energy_src'], 'battery')
 
         self.house.action_source_grid()
-        self.assertTrue(self.house.current_settings['energy_src'], 'grid')
+        self.assertTrue(self.house.devices_settings['energy_src'], 'grid')
 
     def test_action_source_battery_restriction(self):
         """Baterry power source should be available only when charged to
@@ -89,90 +92,88 @@ class HouseActionsTestCase(unittest.TestCase):
 
         self.house_empty_battery.action_source_battery()
         self.assertTrue(
-        self.house_empty_battery.current_settings['energy_src'],
-            'grid'
-        )
-
+            self.house_empty_battery.devices_settings['energy_src'],
+            'grid')
 
     def test_action_more_cooling(self):
         """Test more cooling"""
 
         self.house.action_more_cooling()
-        self.assertEqual(self.house.current_settings['cooling_lvl'], 0.7)
+        self.assertEqual(self.house.devices_settings['cooling_lvl'], 0.7)
 
         for _ in range(3):
             self.house.action_more_cooling()
-        self.assertEqual(self.house.current_settings['cooling_lvl'], 1)
+        self.assertEqual(self.house.devices_settings['cooling_lvl'], 1)
 
     def test_action_more_heating(self):
         """Test more heating"""
 
         self.house.action_more_heating()
-        self.assertEqual(self.house.current_settings['heating_lvl'], 0.7)
+        self.assertEqual(self.house.devices_settings['heating_lvl'], 0.7)
 
         for _ in range(3):
             self.house.action_more_heating()
-        self.assertEqual(self.house.current_settings['heating_lvl'], 1)
+        self.assertEqual(self.house.devices_settings['heating_lvl'], 1)
 
     def test_action_more_light(self):
         """Test more light"""
 
         self.house.action_more_light()
-        self.assertEqual(self.house.current_settings['light_lvl'], 0.7)
+        self.assertEqual(self.house.devices_settings['light_lvl'], 0.7)
 
         for _ in range(3):
             self.house.action_more_light()
-        self.assertEqual(self.house.current_settings['light_lvl'], 1)
+        self.assertEqual(self.house.devices_settings['light_lvl'], 1)
 
     def test_action_less_cooling(self):
         """Test less cooling"""
 
         self.house.action_less_cooling()
-        self.assertEqual(self.house.current_settings['cooling_lvl'], 0.3)
+        self.assertEqual(self.house.devices_settings['cooling_lvl'], 0.3)
 
         for _ in range(3):
             self.house.action_less_cooling()
-        self.assertEqual(self.house.current_settings['cooling_lvl'], 0)
+        self.assertEqual(self.house.devices_settings['cooling_lvl'], 0)
 
     def test_action_less_heating(self):
         """Test less heating"""
 
         self.house.action_less_heating()
-        self.assertEqual(self.house.current_settings['heating_lvl'], 0.3)
+        self.assertEqual(self.house.devices_settings['heating_lvl'], 0.3)
 
         for _ in range(3):
             self.house.action_less_heating()
-        self.assertEqual(self.house.current_settings['heating_lvl'], 0)
+        self.assertEqual(self.house.devices_settings['heating_lvl'], 0)
 
     def test_action_less_light(self):
         """Test less light"""
 
         self.house.action_less_light()
-        self.assertEqual(self.house.current_settings['light_lvl'], 0.3)
+        self.assertEqual(self.house.devices_settings['light_lvl'], 0.3)
 
         for _ in range(3):
             self.house.action_less_light()
-        self.assertEqual(self.house.current_settings['light_lvl'], 0)
+        self.assertEqual(self.house.devices_settings['light_lvl'], 0)
 
     def test_action_curtains_up(self):
         """Test curtains up"""
 
         self.house.action_curtains_up()
-        self.assertEqual(self.house.current_settings['curtains_lvl'], 0.3)
+        self.assertEqual(self.house.devices_settings['curtains_lvl'], 0.3)
 
         for _ in range(3):
             self.house.action_curtains_up()
-        self.assertEqual(self.house.current_settings['curtains_lvl'], 0)
+        self.assertEqual(self.house.devices_settings['curtains_lvl'], 0)
 
     def test_action_curtains_down(self):
         """Test curtains down"""
 
         self.house.action_curtains_down()
-        self.assertEqual(self.house.current_settings['curtains_lvl'], 0.7)
+        self.assertEqual(self.house.devices_settings['curtains_lvl'], 0.7)
 
         for _ in range(3):
             self.house.action_curtains_down()
-        self.assertEqual(self.house.current_settings['curtains_lvl'], 1)
+        self.assertEqual(self.house.devices_settings['curtains_lvl'], 1)
 
 
 class HouseRewardTestCase(unittest.TestCase):
@@ -241,6 +242,7 @@ class HouseRewardTestCase(unittest.TestCase):
         self.assertLess(reward_2, reward,
                         "Reward should be bigger, parameters are worse.")
 
+
 class HouseUpdateTestCase(unittest.TestCase):
     """Testing all the methods from update and update itself"""
 
@@ -263,7 +265,7 @@ class HouseUpdateTestCase(unittest.TestCase):
             }
         }
 
-        self.house.current_settings = {
+        self.house.devices_settings = {
             'energy_src': 'grid',
             'cooling_lvl': 0.2,
             'heating_lvl': 0.3,
@@ -285,19 +287,23 @@ class HouseUpdateTestCase(unittest.TestCase):
 
     def test_compare_daytime(self):
         self.assertEqual(self.house.daytime, self.sensor_out_info['daytime'],
-            "Daytime is not correct.")
+                         "Daytime is not correct.")
 
     def test_check_accumulated_energy(self):
-        self.assertEqual(self.house.battery['current'], 4000, "Battery state is not correct")
+        self.assertEqual(self.house.battery['current'], 4000,
+                         "Battery state is not correct")
 
     # TODO write proper test for temp function
     # def test_check_inside_temperature(self):
     #     for sensor, data in self.house.inside_sensors.items():
-    #        self.assertEqual(data['temperature'], 21.25, "Inside temperature is not correct.")
+    #        self.assertEqual(data['temperature'], 21.25,
+    #                         "Inside temperature is not correct.")
 
     def test_check_inside_brightness(self):
         for sensor, data in self.house.inside_sensors.items():
-            self.assertEqual(data['light'], 0.75, "Inside brightness is not correct.")
+            self.assertEqual(data['light'], 0.75,
+                             "Inside brightness is not correct.")
+
 
 class HouseEnergyCostTestCase(unittest.TestCase):
     """Testing energy cost calculation method"""
@@ -306,7 +312,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
         self.house = House(4)
 
         self.house.grid_cost = 0.5
-        self.house.current_settings = {
+        self.house.devices_settings = {
             'energy_src': 'grid',
             'cooling_lvl': 0,
             'heating_lvl': 0.6,
@@ -323,7 +329,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
         self.assertEqual(
             self.house._calculate_device_cost(
                 self.house.devices_power['air_conditioner'],
-                self.house.current_settings['cooling_lvl']),
+                self.house.devices_settings['cooling_lvl']),
             0,
             "Wrong air conditioner energy calculation.")
 
@@ -331,7 +337,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
         self.assertEqual(
             float(format(self.house._calculate_device_cost(
                 self.house.devices_power['heater'],
-                self.house.current_settings['heating_lvl']), '.2f')),
+                self.house.devices_settings['heating_lvl']), '.2f')),
             0.06,
             "Wrong heater energy calculation.")
 
@@ -339,7 +345,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
         self.assertEqual(
             float(format(self.house._calculate_device_cost(
                 self.house.devices_power['light'],
-                self.house.current_settings['light_lvl']), '.4f')),
+                self.house.devices_settings['light_lvl']), '.4f')),
             0.0003,
             "Wrong light energy calculation.")
 
@@ -350,10 +356,12 @@ class HouseEnergyCostTestCase(unittest.TestCase):
             "Wrong total energy cost calculation.")
 
     def test_calculate_energy_cost_for_active_pv(self):
-        self.house.current_settings['energy_src'] = 'pv'
+        self.house.devices_settings['energy_src'] = 'pv'
 
         self.assertEqual(self.house._calculate_energy_cost(), 0,
-            "While using photovoltaic energy source, cost should be 0.")
+                         "While using photovoltaic energy source,"
+                         " cost should be 0.")
+
 
 class BasicHouseTestCase(unittest.TestCase):
     """Testing house usage and methods"""
@@ -362,6 +370,23 @@ class BasicHouseTestCase(unittest.TestCase):
         self.house = House(5)
         self.house.day_start = 7 * 60
         self.house.day_end = 24 * 60 - 5 * 60
+
+    def test_get_inside_params(self):
+        """
+        Tests if returned dictionary is OrderedDict
+        and if any inside dicitonaries are OrderedDict
+        """
+        inside_params = self.house.get_inside_params()
+
+        is_ordered_dict = type(inside_params) is OrderedDict
+
+        self.assertTrue(is_ordered_dict, "Returned dictionary has to be of "
+                                         "OrderedDict type")
+
+        for param in [d for d in inside_params if isinstance(d, dict)]:
+            is_ordered_dict = type(param) is OrderedDict
+            self.assertTrue(is_ordered_dict, "Inside dictionary has to be of "
+                            "OrderedDict type")
 
     def test_get_current_user_requests(self):
         """

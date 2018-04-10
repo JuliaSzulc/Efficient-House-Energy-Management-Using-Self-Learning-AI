@@ -39,20 +39,22 @@ class House:
     """Main environment part"""
 
     def __init__(self, timeframe):
-        # --- TIME house settings in minutes ---
+        #  --- Time ---
+        # fields are expressed in minutes
         self.timeframe = timeframe
         self.day_start = 7 * 60
         self.day_end = 18 * 60
-        self.daytime = None  # current time
+        self.daytime = 0
 
-        # --- ENERGY / LIGHT house settings ---
+        #  --- Energy / Light settings ---
         self.pv_absorption = 125  # Watt on max sun intensity (growth on 1 min)
         self.grid_cost = 0.5  # PLN for 1kWh
-        self.house_isolation_factor = 0.9
+        self.house_isolation_factor = 0.998
         self.house_light_factor = 0.01
         self.max_led_illuminance = 200  # lux
         self.battery = {
             'current': 0,
+            'delta': 0,
             'max': 14000  # Watt, as good as single Tesla PowerWall unit.
         }
         self.devices_power = {
@@ -61,7 +63,7 @@ class House:
             'light': 20
         }
 
-        #  --- REQUESTS - user settings ---
+        #  --- Requests ---
         # calculation of 'light_desired':
         # 200 / (25000 * self.house_light_factor + self.max_led_illuminance)
         self.user_requests = OrderedDict({
@@ -79,22 +81,24 @@ class House:
             })
         })
 
-        # --- SENSORS indications ---
+        #  --- Sensors ---
         self.inside_sensors = OrderedDict({
             'first': OrderedDict({
-                'temperature': randint(15, 25),
+                'temperature_delta': 0,
+                'temperature': randint(12, 29),
                 'light': 0
             })
         })
 
-        # --- ACTIONS-controlled settings, to be used by RL-agent ---
-        self.current_settings = {
+        #  --- Action-controlled settings ---
+        self.devices_settings = OrderedDict({
             'energy_src': 'grid',  # grid/pv
             'cooling_lvl': 0,
             'heating_lvl': 0,
             'light_lvl': 0,
             'curtains_lvl': 0
-        }
+        })
+
         # actions influence on current settings - default to 0.2 / min
         self.influence = 0.2 * timeframe
 
@@ -102,51 +106,42 @@ class House:
         # probably should include daytime (angle of the sunlight)
         for data in self.inside_sensors.values():
             light = ((outside_illumination * self.house_light_factor)
-                     * (1 - self.current_settings['curtains_lvl'])
-                     + self.current_settings['light_lvl']
+                     * (1 - self.devices_settings['curtains_lvl'])
+                     + self.devices_settings['light_lvl']
                      * self.max_led_illuminance) / self.max_led_illuminance
 
             data['light'] = truncate(light)
 
-    def _calculate_temperature(self, actual_temp):
-        # as long as we implement only one heater, the inside temperature
-        # is average temperature from all inside sensors
-        temperatures = [d['temperature'] for d in self.inside_sensors.values()]
-        inside_temp = sum(temperatures) / len(temperatures)
-
-        temp_delta = (actual_temp - inside_temp) \
-                     * (1 - self.house_isolation_factor)
-
-        # should be changed for some more complex formula
+    def _calculate_temperature(self, outside_temp):
+        """Calculates new temperature inside"""
         for data in self.inside_sensors.values():
-            temperature = inside_temp + (temp_delta * self.timeframe / 50) + \
-                          + (self.timeframe
-                             * self.current_settings['heating_lvl'] / 10) \
-                          - (self.timeframe
-                             * self.current_settings['cooling_lvl'] / 10)
+            last_inside_temp = data['temperature']
+            temp_delta = (outside_temp - last_inside_temp) \
+                * (1 - self.house_isolation_factor)
 
-            # print("Inside: ", temperature, "  | Outside: ", actual_temp)
-            data['temperature'] = temperature
+            new_inside_temp = last_inside_temp \
+                + (temp_delta * self.timeframe) + \
+                + (self.timeframe
+                   * self.devices_settings['heating_lvl'] / 10) \
+                - (self.timeframe
+                   * self.devices_settings['cooling_lvl'] / 10)
+
+            data['temperature_delta'] = new_inside_temp - last_inside_temp
+            data['temperature'] = new_inside_temp
 
     def _calculate_accumulated_energy(self, outside_light):
-         # outside_light is normalized light from world [0, 1]
-        # acc is value describes battery power growth in one full step where
-        # it can rise pv_absorption per minute maximum
-
-        acc = outside_light * self.pv_absorption \
-              * self.timeframe
-
-        self.battery['current'] = truncate(
-            arg=(acc + self.battery['current']),
-            upper=self.battery['max'])
+        """Calculates new value of energy accumulated in the battery"""
+        acc = outside_light * self.pv_absorption * self.timeframe
+        self.battery['delta'] = acc
+        self.battery['current'] = truncate(arg=(acc + self.battery['current']),
+                                           upper=self.battery['max'])
 
     def update(self, sensor_out_info):
         """Updates house parameters
 
         Args:
-            sensor_out_info (dict) - weather and time informations from
+            sensor_out_info (dict) - weather and time information from
                                      outside sensor
-
         """
 
         self.daytime = sensor_out_info['daytime']
@@ -155,26 +150,30 @@ class House:
         self._calculate_light(sensor_out_info['illumination'])
 
     def get_inside_params(self):
-        """All important house informations, together
+        """Returns all important information about the state of the house
 
         Returns:
-            inside_params (dict): A dictionary with house info, with additional
-                                  noise.
+            inside_params (dict): A dictionary with *unnormalized*
+            house info and noise.
 
         Structure of returned dict consist of:
             'inside_sensors' - dict of inside sensors info
             'desired' - dict of settings requested by user
-            'grid_cost' - a cost of energy
+            (currently not included) 'grid_cost' - a cost of energy
             'battery_level' - current battery level
-
+            'battery_delta' - accumulation tempo of the battery
         """
 
-        # NOTE: when making changes, make sure every nested dict is Ordered!
         inside_params = OrderedDict({
             'inside_sensors': self.inside_sensors,
-            'desired': self.user_requests,
-            'grid_cost': self.grid_cost,
-            'battery_level': self.battery['current']
+            'desired': self._get_current_user_requests(),
+
+            # FIXME change grid cost to be dependent on daytime
+            # FIXME no point in returning something that is always constant
+            # 'grid_cost': self.grid_cost,
+            'devices_settings': self.devices_settings,
+            'battery_level': self.battery['current'],
+            'battery_delta': self.battery['delta']
         })
 
         for sensor in inside_params['inside_sensors'].values():
@@ -188,26 +187,33 @@ class House:
 
         return inside_params
 
-    def _calculate_device_cost(self, device_power, device_settings):
-        # 1000 means kilo, like in kiloWatt hours, and 60 is for mins in hour
-        return device_power / 1000 / 60 * device_settings * self.timeframe \
-               * self.grid_cost
+    def _calculate_device_cost(self, device_full_power, device_setting):
+        """
+        Calculates cost of last time-frame's energy usage of given device
+
+        Args:
+            device_full_power(numeric): full potential power in kWh
+            device_setting(numeric): value from 0 to 1
+        """
+
+        return device_full_power / 1000 / 60 \
+            * device_setting * self.timeframe * self.grid_cost
 
     def _calculate_energy_cost(self):
-        if self.current_settings['energy_src'] == 'pv':
+        if self.devices_settings['energy_src'] == 'pv':
             return 0
 
         cost = self._calculate_device_cost(
             self.devices_power['air_conditioner'],
-            self.current_settings['cooling_lvl']
+            self.devices_settings['cooling_lvl']
         )
         cost += self._calculate_device_cost(
             self.devices_power['heater'],
-            self.current_settings['heating_lvl']
+            self.devices_settings['heating_lvl']
         )
         cost += self._calculate_device_cost(
             self.devices_power['light'],
-            self.current_settings['light_lvl']
+            self.devices_settings['light_lvl']
         )
 
         return cost
@@ -277,53 +283,53 @@ class House:
 
     def action_source_grid(self):
         """Action to be taken by RL-agent - change power source"""
-        self.current_settings['energy_src'] = 'grid'
+        self.devices_settings['energy_src'] = 'grid'
 
     def action_source_battery(self):
         """Action to be taken by RL-agent - change power source"""
         # only if battery is more than 40%
         if self.battery['current'] >= 0.4 * self.battery['max']:
-            self.current_settings['energy_src'] = 'battery'
+            self.devices_settings['energy_src'] = 'battery'
 
     def action_more_cooling(self):
         """Action to be taken by RL-agent"""
-        self.current_settings['cooling_lvl'] = \
-            truncate(self.current_settings['cooling_lvl'] + self.influence)
+        self.devices_settings['cooling_lvl'] = \
+            truncate(self.devices_settings['cooling_lvl'] + self.influence)
 
     def action_less_cooling(self):
         """Action to be taken by RL-agent"""
-        self.current_settings['cooling_lvl'] = \
-            truncate(self.current_settings['cooling_lvl'] - self.influence)
+        self.devices_settings['cooling_lvl'] = \
+            truncate(self.devices_settings['cooling_lvl'] - self.influence)
 
     def action_more_heating(self):
         """Action to be taken by RL-agent"""
-        self.current_settings['heating_lvl'] = \
-            truncate(self.current_settings['heating_lvl'] + self.influence)
+        self.devices_settings['heating_lvl'] = \
+            truncate(self.devices_settings['heating_lvl'] + self.influence)
 
     def action_less_heating(self):
         """Action to be taken by RL-agent"""
-        self.current_settings['heating_lvl'] = \
-            truncate(self.current_settings['heating_lvl'] - self.influence)
+        self.devices_settings['heating_lvl'] = \
+            truncate(self.devices_settings['heating_lvl'] - self.influence)
 
     def action_more_light(self):
         """Action to be taken by RL-agent"""
-        self.current_settings['light_lvl'] = \
-            truncate(self.current_settings['light_lvl'] + self.influence)
+        self.devices_settings['light_lvl'] = \
+            truncate(self.devices_settings['light_lvl'] + self.influence)
 
     def action_less_light(self):
         """Action to be taken by RL-agent"""
-        self.current_settings['light_lvl'] = \
-            truncate(self.current_settings['light_lvl'] - self.influence)
+        self.devices_settings['light_lvl'] = \
+            truncate(self.devices_settings['light_lvl'] - self.influence)
 
     def action_curtains_down(self):
         """Action to be taken by RL-agent"""
-        self.current_settings['curtains_lvl'] = \
-            truncate(self.current_settings['curtains_lvl'] + self.influence)
+        self.devices_settings['curtains_lvl'] = \
+            truncate(self.devices_settings['curtains_lvl'] + self.influence)
 
     def action_curtains_up(self):
         """Action to be taken by RL-agent"""
-        self.current_settings['curtains_lvl'] = \
-            truncate(self.current_settings['curtains_lvl'] - self.influence)
+        self.devices_settings['curtains_lvl'] = \
+            truncate(self.devices_settings['curtains_lvl'] - self.influence)
 
     def action_nop(self):
         """Action to be taken by RL-agent - do nothing"""
