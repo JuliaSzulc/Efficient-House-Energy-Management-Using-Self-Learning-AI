@@ -64,16 +64,16 @@ class Agent:
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
         input_size = len(self.initial_state)
-        hidden1_size = 10
-        hidden2_size = 10
+        hidden1_size = 50
+        hidden2_size = 20
         output_size = len(self.actions)
         self.network = Net(input_size, hidden1_size, hidden2_size, output_size)
-        self.gamma = 0.90
-        self.epsilon = 0.1
-        self.epsilon_decay = 0.995
-        self.epsilon_min = 0.01
+        self.gamma = 0.9
+        self.epsilon = 0.9
+        self.epsilon_decay = 0.99
+        self.epsilon_min = 0.1
         self.batch_size = 16
-        self.l_rate = 0.005
+        self.l_rate = 0.01
         self.optimizer = optim.Adagrad(self.network.parameters(),
                                        lr=self.l_rate)
 
@@ -99,6 +99,7 @@ class Agent:
             self.current_state = next_state
             total_reward += reward
             self._train()
+            self.epsilon_min *= self.epsilon_decay
 
         return total_reward
 
