@@ -13,6 +13,11 @@ from torch import autograd, optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
+# CUDA variables
+USE_CUDA = torch.cuda.is_available()
+dtype = torch.cuda.FloatTensor if USE_CUDA else torch.FloatTensor
+dlongtype = torch.cuda.LongTensor if USE_CUDA else torch.LongTensor
+
 
 class Net(torch.nn.Module):
     """
@@ -47,7 +52,8 @@ class Agent:
         self.actions = None
         self.network = None
         self.current_state = None
-        self.memory = deque(maxlen=5000)  # TODO - change to limited size structure
+        self.memory = deque(
+            maxlen=5000)  # TODO - change to limited size structure
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
@@ -68,6 +74,11 @@ class Agent:
         hidden2_size = 10
         output_size = len(self.actions)
         self.network = Net(input_size, hidden1_size, hidden2_size, output_size)
+        if USE_CUDA:
+            self.network = Net(input_size, hidden1_size, hidden2_size,
+                               output_size).cuda()
+            self.network.cuda()
+
         self.gamma = 0.90
         self.epsilon = 0.1
         self.epsilon_decay = 0.995
@@ -120,12 +131,20 @@ class Agent:
             next_state_batch = exp_batch[3]
             terminal_mask_batch = exp_batch[4]
 
+            if USE_CUDA:
+                input_state_batch = input_state_batch.cuda()
+                action_batch = action_batch.cuda()
+                reward_batch = reward_batch.cuda()
+                next_state_batch = next_state_batch.cuda()
+                terminal_mask_batch = terminal_mask_batch.cuda()
+
             # As q learning states, we want to calculate the error:
             # Q(s,a) - (r + max{a}{Q(s_next,a)})
 
             # 1. Calculate Q(s,a) for each input state
             all_q_values = self.network(input_state_batch)
-
+            if USE_CUDA:
+                all_q_values = all_q_values.cuda()
             # 2. Retrieve q_values only for actions that were taken
             # This use of gather function works the same as:
             # for i in range(len(all_q_values)):
@@ -134,7 +153,7 @@ class Agent:
             # so they don't have 'append' function etc.
             # squeezing magic needed for size mismatches, debug
             # yourself if you wonder why the're necessary
-            q_values = all_q_values.\
+            q_values = all_q_values. \
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
             # q_next_max = max{a}{Q(s_next,a)}
@@ -145,6 +164,8 @@ class Agent:
             # 'cuts' this part of computational graph - prevents it.
             q_next_max = self.network(next_state_batch)
             q_next_max = Variable(q_next_max.data)
+            if USE_CUDA:
+                q_next_max.cuda()
             q_next_max, _ = q_next_max.max(dim=1)
 
             # If the next state was terminal, we don't calculate the q value -
@@ -176,9 +197,10 @@ class Agent:
             return random.randint(0, len(self.actions) - 1)
 
         outputs = self.network.forward(
-            autograd.Variable(torch.FloatTensor(self.current_state)))
+            autograd.Variable(
+                torch.FloatTensor(self.current_state).cuda()))
 
-        return np.argmax(outputs.data.numpy())
+        return np.argmax(outputs.data.cpu().numpy())
 
     def return_model_info(self):
         """
@@ -212,11 +234,13 @@ class Agent:
         # TODO: can/should we make this code cleaner?
         # Float Tensors
         for i in [0, 2, 3, 4]:
-            exp_batch[i] = Variable(torch.Tensor(
-                [x[i] for x in transition_batch]))
+            exp_batch[i] = Variable(dtype(
+                [x[i] for x in transition_batch])).cuda() if USE_CUDA else \
+                Variable(dtype([x[i] for x in transition_batch]))
 
         # Long Tensor for actions
-        exp_batch[1] = Variable(
-            torch.LongTensor([int(x[1]) for x in transition_batch]))
+        exp_batch[1] = Variable(dlongtype(
+            [int(x[1]) for x in transition_batch])).cuda() if USE_CUDA \
+            else Variable(dlongtype([int(x[1]) for x in transition_batch]))
 
         return exp_batch
