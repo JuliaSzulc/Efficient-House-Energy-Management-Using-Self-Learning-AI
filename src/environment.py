@@ -48,14 +48,9 @@ class HouseEnergyEnvironment:
 
         """
 
-        # make an action in the house
         getattr(self.house, action_name)()
-
-        # make the step in the world.
         done = self.world.step()
-
-        # get new environment state, calculate reward
-        observation = self._get_current_state()
+        observation = self._serialize_state(self._get_current_state())
         reward = self.house.reward()
         return observation, reward, done
 
@@ -77,7 +72,7 @@ class HouseEnergyEnvironment:
         # transfer initial informations to listeners
         self.world.update_listeners()
 
-        return self._get_current_state()
+        return self._serialize_state(self._get_current_state())
 
     def render(self):
         """Outputs the state of environment in a human-readable format
@@ -85,6 +80,7 @@ class HouseEnergyEnvironment:
         Method takes numpy array returned by _get_current_astate() method.
 
         Args:
+
             dataset (numpy array) - its collection of values such as daytime,
             temperature, light etc. and aso reward
 
@@ -92,68 +88,49 @@ class HouseEnergyEnvironment:
             labels_names(list) - names of specified values in dataSet
             dataSet (numpy array) - values of daytime, light etc.
         """
+        # FIXME Args in docs are parameters the function receives,
+        # FIXME not declares inside it
         # FIXME - render unnormalized values!
-        # - gui in the future?
-        # - maybe but in main, here just formatted text
 
-        dataSet = self._get_current_state()
-
+        dataset = self._serialize_state(self._get_current_state())
         reward = self.house.reward()
-
-        dataSet = np.append(dataSet, reward)
+        dataset = np.append(dataset, reward)
 
         labels_names = ['Daytime //OUTSIDE: ',
                         'Temperature_outside: ',
                         'Light OUT: ',
-                        'Illumination: ',
                         'Clouds: ',
                         'Rain: ',
                         'Wind: ',
                         'Temperature //INSIDE: ',
+                        'Temperature_delta: ',
                         'Light IN: ',
-                        'Temp_desired /current: ',
+                        'Temp_desired: ',
                         'Temp_epsilon: ',
                         'Light_desired: ',
                         'Light_epsilon: ',
-                        'Grid_cost: ',
-                        'Battery_level: ',
+                        'Energy_src: ',
+                        'Cooling_lvl: ',
+                        'Heating_lvl: ',
+                        'Light_lvl: ',
+                        'Curtains_lvl: ',
+                        'Battery_lvl: ',
+                        'Battery_delta: ',
                         'TOTAL REWARD: '
                         ]
 
-        # # ------------------ Removing tutorial ------------------
-        # # to remove just comment the line, and remove its value from dataSet
-        # labels_names = [#'Daytime //OUTSIDE: ',
-        #                 'Temperature_outside: ',
-        #                 'Light: ',
-        #                 'Illumination: ',
-        #                 #'Clouds: ',
-        #                 #'Rain: ',
-        #                 #'Wind: ',
-        #                 'Temperature //INSIDE: ',
-        #                 'Light: ',
-        #                 'Temp_desired /current: ',
-        #                 #'Temp_epsilon: ',
-        #                 'Light_desired: ',
-        #                 #'Light_epsilon: ',
-        #                 'Grid_cost: ',
-        #                 'Battery_level: ']
-        #
-        # # care for dynamic indexes change, if you remove element others
-        # # indexes will change !!!
+        # ------------------ Removing ------------------
+        # To remove a parameter, comment it out of the dict.
+        # Then remove its value from dataSet using
         # dataSet = np.delete(dataSet, 0)
-        # dataSet = np.delete(dataSet, 3)
-        # dataSet = np.delete(dataSet, 3)
-        # dataSet = np.delete(dataSet, 3)
-        # dataSet = np.delete(dataSet, 6)
-        # dataSet = np.delete(dataSet, 7)
-        #
-        # # it will be error if dataSet length and labels_names length r not eq.
-        # # --------------------------------------------------------------------
+        # Be careful with indexes if you delete more than one parameter:
+        # dataSet = np.delete(dataSet, 0)
+        # dataSet = np.delete(dataSet, 3) # 4 is now 3
 
-        return labels_names, dataSet
+        return labels_names, dataset
 
     def get_actions(self):
-        """Names of actions for RL-agent
+        """Returns list of method names of possible actions
 
         Returns:
             actions (list of strings): A list of method names
@@ -178,76 +155,86 @@ class HouseEnergyEnvironment:
             'outside': outside_params,
             'inside': inside_params
         })
-        return self._serialize_state(observation)
+        return observation
 
     @staticmethod
     def _serialize_state(state):
-        """Returns 1-dim ndarray of state parameters from dict
+        """Returns 1-dim ndarray of normalized state parameters from dict
 
-        Current array structure:
+        Args:
+            state(dict) - the exact product of _get_current_state method.
+            Note: Method assumes all temperature indicators are from range
+            (-20, 40) C
 
-        [0] daytime //OUTSIDE
+        Returns(ndarray):
+            Current array structure:
+
+        [0] daytime // from Outside Sensor
         [1] temperature_outside
         [2] light
-        [.] illumination
         [.] clouds
         [.] rain
         [ ] wind
-        [ ] temperature //INSIDE
+        [ ] temperature // from House
+        [ ] temperature_delta
         [ ] light
-        [ ] temp_desired / current
+        [ ] temp_desired
         [ ] temp_epsilon
         [ ] light_desired
         [ ] light_epsilon
-        [ ] grid_cost
+        [ ] energy_src
+        [ ] cooling_lvl
+        [ ] heating_lvl
+        [ ] light_lvl
+        [ ] curtains_lvl
         [ ] battery_level
-
+        [ ] battery_delta
         """
 
         observation = []
-        time_of_day = 'night'  # to choose appropiate current desired temp
         for sensor in state['outside']:
             for key, value in sensor.items():
                 if key == 'actual_temp':
-                    # temperature in range (-20, +40)'C
                     value = (value + 20) / 60
                 elif key == 'daytime':
-                    if 300 <= value <= 1140:
-                        time_of_day = 'day'
                     # time in range (0, 1440) min
                     value /= 1440
                 elif key == 'illumination':
-                    # illumination in range (0, 25000)
-                    value /= 25000
+                    continue
                 observation.append(value)
-
-        # NOTE: inconsistency - we have LIST of outside sensors and DICT of
-        # inside sensors.
 
         for d_key, d_value in state['inside'].items():
             if d_key == 'inside_sensors':
                 for sensor in d_value.values():
                     for key, value in sensor.items():
                         if re.match('temp.*', key):
-                            # temperature in range (-20, +40)'C
                             value = (value + 20) / 60
                         observation.append(value)
+
             elif d_key == 'desired':
-                for daytime, params in d_value.items():
-                    if daytime != time_of_day:
-                        continue
-                    for key, value in params.items():
-                        if re.match('temp.*', key):
-                            # temperature in range (-20, +40)'C
-                            value = (value + 20) / 60
-                        observation.append(value)
+                for key, value in d_value.items():
+                    if re.match('temp.*', key):
+                        value = (value + 20) / 60
+                    observation.append(value)
+
+            elif d_key == 'devices_settings':
+                for setting_key, setting_value in d_value.items():
+                    if setting_key == 'energy_src':
+                        setting_value = 1 if setting_value is 'grid' else 0
+                    observation.append(setting_value)
+
             elif d_key == 'battery_level':
-                # battery in range (0, 14000) W
+                d_value /= 14000
+                observation.append(d_value)
+
+            elif d_key == 'battery_delta':
+                # FIXME better normalization of delta
                 d_value /= 14000
                 observation.append(d_value)
             else:
                 observation.append(d_value)
 
+        # FIXME move the assert below to tests?
         # make sure that vector is normalized. no safety zone - it has to work!
         assert all([x is not None and (0 <= x <= 1) for x in observation]), \
             "Whoa, some of observation values are not" + \
