@@ -88,8 +88,8 @@ class Agent:
                 self.env.step(self.actions[action_index])
 
             # clip the reward
-            # if reward < -1:
-            #    reward = -1
+            if reward < -2:
+               reward = -2
 
             # TODO limit memory size
             self.memory.append((self.current_state, action_index, reward,
@@ -99,7 +99,9 @@ class Agent:
             self.current_state = next_state
             total_reward += reward
             self._train()
-            self.epsilon_min *= self.epsilon_decay
+
+        self.epsilon_min *= self.epsilon_decay
+        self.epsilon_min = max(0.01, self.epsilon_min)
 
         return total_reward
 

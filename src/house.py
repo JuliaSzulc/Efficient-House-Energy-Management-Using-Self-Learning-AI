@@ -236,8 +236,8 @@ class House:
              reward(float): weighted sum of penalties
         """
 
-        w_temp, w_light, w_cost = 1.5, 5.0, 0.2
-        temp_exponent, light_exponent = 1.1, 2
+        w_temp, w_light, w_cost = 1.5, 10.0, 0.2
+        temp_exponent, light_exponent = 2, 2
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
@@ -257,7 +257,7 @@ class House:
                        + (temp_penalty * w_temp)
                        + (light_penalty * w_light))
 
-        return reward / 50
+        return reward / 500
 
     def _get_current_user_requests(self):
         """

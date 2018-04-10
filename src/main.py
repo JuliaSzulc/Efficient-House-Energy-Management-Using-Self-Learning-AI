@@ -30,7 +30,7 @@ def main():
 
     rewards = []
     num_episodes = 1000
-    for i in range(num_episodes):
+    for i in range(0, num_episodes):
         t_reward = agent.run()
         rewards.append(t_reward)
         print("episode {} / {} | Reward: {}".format(i, num_episodes, t_reward))
