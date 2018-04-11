@@ -13,10 +13,6 @@ class OutsideSensor:
     def __init__(self, house_listener):
         self.daytime = None
 
-        # 25k lux is maximum illumination of the ambient daylight
-        # NOTE: this is a global, consider moving it to some config JSON / XML
-        self.max_illumination = 25000
-
         self.weather = {
             'temp': None,
             'sun': None,
@@ -48,7 +44,6 @@ class OutsideSensor:
                 0.045 * (5.27**0.5 + 10.45 - 0.28 * self.weather['wind'])
                 * (self.weather['temperature'] - 33) + 33,
             'light': self.weather['light'],
-            'illumination': self.weather['light'] * self.max_illumination,
             'clouds': self.weather['clouds'],
             'rain': self.weather['rain'],
             'wind': self.weather['wind']

@@ -1,24 +1,22 @@
 """This module provides the clue of the project - RL agent.
 
 It works with environment by taking actions and gaining observations and
-reward, and his objective is to minimalize cost function in a continuous
+reward, and its objective is to maximalize cost function in a continuous
 environment.
 
 """
-import numpy as np
 import random
-import torch
 from collections import deque
+import numpy as np
+import torch
 from torch import autograd, optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
 
 class Net(torch.nn.Module):
-    """
-        Neural Network with variable layer sizes and 2 hidden layers.
+    """Neural Network with variable layer sizes and 2 hidden layers."""
 
-    """
     def __init__(self, input_size, hidden1_size, hidden2_size, output_size):
         super().__init__()
         self.fc1 = torch.nn.Linear(input_size, hidden1_size)
@@ -34,20 +32,30 @@ class Net(torch.nn.Module):
         return x
 
 
+class Memory(deque):
+    """Subclass of deque, storing transitions batches for Agent"""
+    # TODO: Prioritized Experience Replay
+
+    def __init__(self, maxlen):
+        super().__init__(maxlen=maxlen)
+
+
 class Agent:
     """Reinforcement Learning agent.
 
     Agent interacts with the environment, gathering
     information about the reward for his previous actions,
     and observation of state transitions.
+
     """
 
     def __init__(self, env):
         self.env = env
         self.actions = None
         self.network = None
+        self.initial_state = None
         self.current_state = None
-        self.memory = deque(maxlen=5000)  # TODO - change to limited size structure
+        self.memory = Memory(maxlen=5000)
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
@@ -55,7 +63,6 @@ class Agent:
         self.batch_size = 0
         self.l_rate = 0
         self.optimizer = None
-        self.initial_state = None
 
         self.reset()
 
@@ -63,10 +70,12 @@ class Agent:
         """Initialize the networks and other parameters"""
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
+
         input_size = len(self.initial_state)
         hidden1_size = 50
         hidden2_size = 20
         output_size = len(self.actions)
+
         self.network = Net(input_size, hidden1_size, hidden2_size, output_size)
         self.gamma = 0.9
         self.epsilon = 0.9
@@ -89,9 +98,8 @@ class Agent:
 
             # clip the reward
             if reward < -2:
-               reward = -2
+                reward = -2
 
-            # TODO limit memory size
             self.memory.append((self.current_state, action_index, reward,
                                 next_state, terminal_state))
 
@@ -106,9 +114,10 @@ class Agent:
         return total_reward
 
     def _train(self):
-        """
-        Trains the underlying network with use of experience memory
+        """Trains the underlying network with use of experience memory
+
         Note: this method does a training *step*, not whole training
+
         """
         # TODO make notebook (and maintain it) explaining this function
         # TODO then move the current comments there
@@ -165,14 +174,16 @@ class Agent:
             loss.backward()
             self.optimizer.step()
 
-            # might be useful for debugging
+            # NOTE: might be useful for debugging
             # print("Loss = ", loss.data.numpy()[0])
 
     def _get_next_action(self):
-        """
-        Returns next action given a state with use of the network
+        """Returns next action given a state with use of the network
+
         Note: this should be epsilon-greedy
+
         """
+
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon_min, self.epsilon)
         if np.random.random() < self.epsilon:
@@ -212,7 +223,6 @@ class Agent:
         exp_batch = [0, 0, 0, 0, 0]
         transition_batch = random.sample(self.memory, self.batch_size)
 
-        # TODO: can/should we make this code cleaner?
         # Float Tensors
         for i in [0, 2, 3, 4]:
             exp_batch[i] = Variable(torch.Tensor(

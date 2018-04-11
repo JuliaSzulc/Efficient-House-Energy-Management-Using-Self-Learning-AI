@@ -105,6 +105,8 @@ ENV/
 setup.cfg
 *~
 *.swp
+*.log
 # texowe smieci
 *.aux
 *.synctex.gz
+
