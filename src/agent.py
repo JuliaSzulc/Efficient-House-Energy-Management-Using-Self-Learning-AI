@@ -52,7 +52,8 @@ class Agent:
     def __init__(self, env):
         self.env = env
         self.actions = None
-        self.network = None
+        self.q_network = None
+        self.target_network = None  # this one has "fixed" weights
         self.initial_state = None
         self.current_state = None
         self.memory = Memory(maxlen=5000)
@@ -76,14 +77,25 @@ class Agent:
         hidden2_size = 20
         output_size = len(self.actions)
 
-        self.network = Net(input_size, hidden1_size, hidden2_size, output_size)
+        self.q_network = Net(
+            input_size,
+            hidden1_size,
+            hidden2_size,
+            output_size
+        )
+        self.target_network = Net(
+            input_size,
+            hidden1_size,
+            hidden2_size,
+            output_size
+        )
         self.gamma = 0.9
         self.epsilon = 0.9
         self.epsilon_decay = 0.99
         self.epsilon_min = 0.1
         self.batch_size = 16
         self.l_rate = 0.01
-        self.optimizer = optim.Adagrad(self.network.parameters(),
+        self.optimizer = optim.Adagrad(self.q_network.parameters(),
                                        lr=self.l_rate)
 
     def run(self):
@@ -108,13 +120,20 @@ class Agent:
             total_reward += reward
             self._train()
 
+            # Update the target network:
+            qt = 0.1  # q to target ratio
+            for target_param, q_param in zip(self.target_network.parameters(),
+                                             self.q_network.parameters()):
+                target_param.data.copy_(q_param.data * qt
+                                        + target_param.data * (1.0 - qt))
+
         self.epsilon_min *= self.epsilon_decay
         self.epsilon_min = max(0.01, self.epsilon_min)
 
         return total_reward
 
     def _train(self):
-        """Trains the underlying network with use of experience memory
+        """Trains the underlying q_network with use of experience memory
 
         Note: this method does a training *step*, not whole training
 
@@ -136,7 +155,7 @@ class Agent:
             # Q(s,a) - (r + max{a}{Q(s_next,a)})
 
             # 1. Calculate Q(s,a) for each input state
-            all_q_values = self.network(input_state_batch)
+            all_q_values = self.q_network(input_state_batch)
 
             # 2. Retrieve q_values only for actions that were taken
             # This use of gather function works the same as:
@@ -155,7 +174,7 @@ class Agent:
             # q_next_max, but we don't want the backward() function to
             # propagate twice into these parameters. Creating new Variable
             # 'cuts' this part of computational graph - prevents it.
-            q_next_max = self.network(next_state_batch)
+            q_next_max = self.q_network(next_state_batch)
             q_next_max = Variable(q_next_max.data)
             q_next_max, _ = q_next_max.max(dim=1)
 
@@ -189,7 +208,7 @@ class Agent:
         if np.random.random() < self.epsilon:
             return random.randint(0, len(self.actions) - 1)
 
-        outputs = self.network.forward(
+        outputs = self.target_network.forward(
             autograd.Variable(torch.FloatTensor(self.current_state)))
 
         return np.argmax(outputs.data.numpy())
