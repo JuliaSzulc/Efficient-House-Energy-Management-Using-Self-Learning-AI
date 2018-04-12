@@ -199,7 +199,8 @@ class Agent:
 
         outputs = self.network.forward(
             autograd.Variable(
-                torch.FloatTensor(self.current_state).cuda()))
+                dtype(self.current_state).cuda()) if USE_CUDA else
+            autograd.Variable(dtype(self.current_state)))
 
         return np.argmax(outputs.data.cpu().numpy())
 
