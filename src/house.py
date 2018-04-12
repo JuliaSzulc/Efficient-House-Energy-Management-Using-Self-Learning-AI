@@ -11,7 +11,6 @@ directly from outside.
 
 """
 from random import uniform
-from random import randint
 from collections import OrderedDict
 
 
@@ -25,7 +24,6 @@ def truncate(arg, lower=0, upper=1):
 
     Returns:
         arg (number) - truncated function argument
-
     """
 
     if arg > upper:
@@ -84,8 +82,8 @@ class House:
         #  --- Sensors ---
         self.inside_sensors = OrderedDict({
             'first': OrderedDict({
+                'temperature': 18,
                 'temperature_delta': 0,
-                'temperature': randint(12, 29),
                 'light': 0
             })
         })
@@ -120,11 +118,9 @@ class House:
                 * (1 - self.house_isolation_factor)
 
             new_inside_temp = last_inside_temp \
-                + (temp_delta * self.timeframe) + \
-                + (self.timeframe
-                   * self.devices_settings['heating_lvl'] / 10) \
-                - (self.timeframe
-                   * self.devices_settings['cooling_lvl'] / 10)
+                + self.timeframe \
+                * (temp_delta + self.devices_settings['heating_lvl']
+                    - self.devices_settings['cooling_lvl']) / 5
 
             data['temperature_delta'] = new_inside_temp - last_inside_temp
             data['temperature'] = new_inside_temp
@@ -187,36 +183,44 @@ class House:
 
         return inside_params
 
-    def _calculate_device_cost(self, device_full_power, device_setting):
+    def _calculate_device_energy_usage(self, device_full_power, device_setting):
         """
         Calculates cost of last time-frame's energy usage of given device
 
         Args:
             device_full_power(numeric): full potential power in kWh
             device_setting(numeric): value from 0 to 1
+        Returns:
+            energy usage of last timeframe expressed in kWh
         """
 
-        return device_full_power / 1000 / 60 \
-            * device_setting * self.timeframe * self.grid_cost
+        return device_full_power * device_setting * (self.timeframe / 60)
 
     def _calculate_energy_cost(self):
-        if self.devices_settings['energy_src'] == 'pv':
-            return 0
 
-        cost = self._calculate_device_cost(
+        usage = self._calculate_device_energy_usage(
             self.devices_power['air_conditioner'],
             self.devices_settings['cooling_lvl']
         )
-        cost += self._calculate_device_cost(
+        usage += self._calculate_device_energy_usage(
             self.devices_power['heater'],
             self.devices_settings['heating_lvl']
         )
-        cost += self._calculate_device_cost(
+        usage += self._calculate_device_energy_usage(
             self.devices_power['light'],
             self.devices_settings['light_lvl']
         )
 
-        return cost
+        if self.devices_settings['energy_src'] == 'battery':
+            self.battery['current'] = \
+                truncate(self.battery['current'] - usage,
+                         0, self.battery['max'])
+
+            if self.battery['current'] <= 0.4 * self.battery['max']:
+                self.devices_settings['energy_src'] = 'grid'
+            return 0
+
+        return usage * self.grid_cost
 
     def reward(self):
         """
@@ -232,8 +236,8 @@ class House:
              reward(float): weighted sum of penalties
         """
 
-        w_temp, w_light, w_cost = 1.0, 5.0, 50.0
-        temp_exponent, light_exponent = 1.1, 2
+        w_temp, w_light, w_cost = 1.5, 10.0, 0.2
+        temp_exponent, light_exponent = 2, 2
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
@@ -253,7 +257,7 @@ class House:
                        + (temp_penalty * w_temp)
                        + (light_penalty * w_light))
 
-        return reward / 30
+        return reward / 500
 
     def _get_current_user_requests(self):
         """
@@ -279,7 +283,7 @@ class House:
         return 0
 
     # from this point, define house actions.
-    # IMPORTANT! All action names (and only them ) have to start with "action"!
+    # IMPORTANT! All action names (and only them) have to start with "action"!
 
     def action_source_grid(self):
         """Action to be taken by RL-agent - change power source"""

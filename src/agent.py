@@ -52,8 +52,7 @@ class Agent:
         self.actions = None
         self.network = None
         self.current_state = None
-        self.memory = deque(
-            maxlen=5000)  # TODO - change to limited size structure
+        self.memory = deque(maxlen=5000)  # TODO - change to limited size structure
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
@@ -70,21 +69,20 @@ class Agent:
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
         input_size = len(self.initial_state)
-        hidden1_size = 10
-        hidden2_size = 10
+        hidden1_size = 50
+        hidden2_size = 20
         output_size = len(self.actions)
         self.network = Net(input_size, hidden1_size, hidden2_size, output_size)
         if USE_CUDA:
             self.network = Net(input_size, hidden1_size, hidden2_size,
                                output_size).cuda()
             self.network.cuda()
-
-        self.gamma = 0.90
-        self.epsilon = 0.1
-        self.epsilon_decay = 0.995
-        self.epsilon_min = 0.01
+        self.gamma = 0.9
+        self.epsilon = 0.9
+        self.epsilon_decay = 0.99
+        self.epsilon_min = 0.1
         self.batch_size = 16
-        self.l_rate = 0.005
+        self.l_rate = 0.01
         self.optimizer = optim.Adagrad(self.network.parameters(),
                                        lr=self.l_rate)
 
@@ -99,8 +97,8 @@ class Agent:
                 self.env.step(self.actions[action_index])
 
             # clip the reward
-            # if reward < -1:
-            #    reward = -1
+            if reward < -2:
+               reward = -2
 
             # TODO limit memory size
             self.memory.append((self.current_state, action_index, reward,
@@ -110,6 +108,9 @@ class Agent:
             self.current_state = next_state
             total_reward += reward
             self._train()
+
+        self.epsilon_min *= self.epsilon_decay
+        self.epsilon_min = max(0.01, self.epsilon_min)
 
         return total_reward
 
@@ -153,7 +154,7 @@ class Agent:
             # so they don't have 'append' function etc.
             # squeezing magic needed for size mismatches, debug
             # yourself if you wonder why the're necessary
-            q_values = all_q_values. \
+            q_values = all_q_values.\
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
             # q_next_max = max{a}{Q(s_next,a)}

@@ -30,14 +30,15 @@ def main():
 
     rewards = []
     num_episodes = 1000
-    for i in range(num_episodes):
+    for i in range(0, num_episodes):
         t_reward = agent.run()
         rewards.append(t_reward)
         print("episode {} / {} | Reward: {}".format(i, num_episodes, t_reward))
 
     avg_rewards = []
-    for i in range(100):
-        avg_rewards.append(np.mean(rewards[10 * i: 10 * (i+1)]))
+    avg = 10  # has to be a divisor of num_episodes!
+    for i in range(int(num_episodes/avg)):
+        avg_rewards.append(np.mean(rewards[avg * i: avg * (i+1)]))
 
     plt.plot(avg_rewards)
     plt.show()
