@@ -5,8 +5,9 @@
 \usepackage{lmodern}
 \usepackage{fullpage}
 \usepackage{longtable}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning}
 \selectlanguage{polish}
-
 
 
 \begin{document}
@@ -16,7 +17,7 @@
 
 \paragraph{Plan komunikacji w projekcie}\mbox{}\\
 
-Praca przy projekcie odbywa się z wykorzystaniem systemu Kanban. W każdym tygodniu pracy odbywa się spotkanie zespołu, na którym omawiane są postępy, rozwiązywane problemy jak i przygotowywane następny zadania. Raz w tygodniu odbywa się również wideokonferencja zespołu z opiekunem projektu z ramienia firmy Samsung, na którym omawiane są postępy w~tworzeniu systemu jak i konsultowane są problemy techniczne, które występują w czasie wytwarzania oprogramowania. 
+Praca przy projekcie odbywa się z wykorzystaniem systemu Kanban. W każdym tygodniu pracy odbywa się spotkanie zespołu, na którym omawiane są postępy, rozwiązywane problemy jak i przygotowywane następny zadania. Raz w tygodniu odbywa się również wideokonferencja zespołu z opiekunem projektu z~ramienia firmy Samsung, na którym omawiane są postępy w~tworzeniu systemu jak i konsultowane są problemy techniczne, które występują w czasie wytwarzania oprogramowania. 
 Na każdym ze spotkań tworzone są notatki, które następnie wykorzystywane są jako protokół ze spotkania, aby wszyscy członkowie zespołu mieli wgląd i jasność co do ustaleń wynikających ze spotkania. 
 
 Do zarządzania zadaniami \nobreak używane jest narzędzie Trello (do zarządzania tablicą zadań), gdzie dla każdego etapu pracy przygotowana jest \nobreak odpowiednia kolumna. Każde większe zadanie lub funkcjonalność na początku jest planowana, następnie zostaje zdekomponowana na jak najmniejsze zadania w celu umożliwienia podziału ich na członków zespołu. \nobreak Następnie zadania te wpisywane są do narzędzia Trello, i przypisywane są do niego wybrane osoby. Następnie osoby te pracują nad zadaniami (przenosząc je odpowiednio na odpowiednie kolumny na tablicy Kanban, kiedy zadanie to spełnia założenia Definition of Done). Gdy praca nad zadaniem zostanie zakończona przenoszone jest ono do kolumny “Review”, po spełnieniu DoD, które w tym przypadku polega na stworzeniu konkretnego efektu pracy w postaci kodu, diagramu lub opisu słownego. Jeżeli efektem pracy jest kod, muszą być stworzone do tego kodu testy jednostkowe. Następnie po przejrzeniu i zaakceptowaniu efektów pracy przez wszystkich członków zespołu, zadanie to zostaje przeniesione do kolumny “Zrobione”, gdzie jest ono uznawane za oficjalnie zakończone. Część z zadań oznaczana jest jako “zależne od”, co oznacza, że aby rozpocząć wybrane zadanie należy najpierw ukończyć zadanie poprzednie, od którego to zadanie jest zależne. 
@@ -39,6 +40,45 @@ Podczas pracy przyjęliśmy ogólny podział obowiązków między osoby w zespol
 \end{itemize}
 Lecz obowiązki wynikające z aktualnych zadań przydzielane są co tydzień. Jako, że jako cały zespół chcemy dobrze znać tworzony system, dzielimy się obowiązkami w~taki sposób, aby każdy miał swój udział w~pisaniu  kluczowych modułów systemu oraz w~stworzeniu do nich testów.
 Dokumentacja w projekcie jest przygotowywana wspólnie przez cały zespół.
+
+% Define block styles
+\tikzstyle{block} = [rectangle, draw, fill=blue!20, 
+    text width=10em, text centered, rounded corners, minimum height=4em]
+\tikzstyle{line} = [draw, -latex']
+    
+\newpage
+\paragraph{Diagram organizacyjny}
+\begin{center}
+\begin{tikzpicture}[node distance = 2.5cm, auto]
+    % Place nodes
+    \node [block, fill=none] (leader) {Lider zespołu};
+    \node [draw=none, fill=none, below of=leader] (hidden) {};     
+    \node [block, right of=hidden, node distance = 6cm, fill=none] (opiekun) {Opiekun z firmy Samsung}; 
+    \node [block, below of=hidden, fill=none] (tester) {Tester systemu};
+    \node [block, left of=tester, node distance = 6cm, fill=none] (project_manager) {Menadżer projektu};
+    \node [block, below of=project_manager, fill=none] (repository_manager) {Menadżer repozytorium kodu};
+    \node [block, below of=repository_manager, fill=none] (programmer) {Programista};
+    \node [block, right of=tester, node distance = 6cm, fill=none] (doc_creator) {Twórca dokumentacji};
+
+	% Coordinates to draw lines
+	\node [coordinate, below = 1cm of hidden] (C1){};
+    \node [coordinate, right = 6cm of C1] (R1){};
+    \node [coordinate, below = 0.7cm of R1] (B1){};
+    \node [coordinate, left = 6cm of C1] (L1){}; 
+    \node [coordinate, below = 0.7cm of C1] (B2){};  
+    \node [coordinate, below = 0.7cm of L1] (B3){};    
+    
+    % Draw edges
+    \path [line] (opiekun) -- (hidden);
+    \path [line] (leader) -- (B2);
+    \path [line] (C1) -| (B1);
+    \path [line] (C1) -| (B3);
+    \path [line] (project_manager) -- (repository_manager);
+    \path [line] (repository_manager) -- (programmer);
+
+
+\end{tikzpicture}
+\end{center}
 
 
 \end{document}
