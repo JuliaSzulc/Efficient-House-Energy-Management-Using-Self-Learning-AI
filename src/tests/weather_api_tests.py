@@ -15,7 +15,7 @@ class WeatherOnTimeTestCase(unittest.TestCase):
 
         timesteps = [0.5, 1, 5, 15, 30]
         #should work on random timesteps
-        # timesteps += [random.randrange(1, 30) for _ in range(10)]
+        timesteps += [random.randrange(1, 30) for _ in range(10)]
         for timestep in timesteps:
             self.worlds.append(World(timestep))
 

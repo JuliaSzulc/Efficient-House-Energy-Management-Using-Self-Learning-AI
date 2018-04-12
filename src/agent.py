@@ -121,11 +121,13 @@ class Agent:
             self._train()
 
             # Update the target network:
-            qt = 0.1  # q to target ratio
+            qt = 0.2  # q to target ratio
             for target_param, q_param in zip(self.target_network.parameters(),
                                              self.q_network.parameters()):
                 target_param.data.copy_(q_param.data * qt
                                         + target_param.data * (1.0 - qt))
+            #debug
+            print(list(self.target_network.parameters())[0].data)
 
         self.epsilon_min *= self.epsilon_decay
         self.epsilon_min = max(0.01, self.epsilon_min)
@@ -208,8 +210,9 @@ class Agent:
         if np.random.random() < self.epsilon:
             return random.randint(0, len(self.actions) - 1)
 
+        # NOTE: is autograd disabled here? is it important?
         outputs = self.target_network.forward(
-            autograd.Variable(torch.FloatTensor(self.current_state)))
+            Variable(torch.FloatTensor(self.current_state)))
 
         return np.argmax(outputs.data.numpy())
 
