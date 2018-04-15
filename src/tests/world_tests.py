@@ -78,12 +78,6 @@ class StepEdgeTestCase(unittest.TestCase):
             base_date = self.world_morning.base_date
             self.assertTrue(current_date <= base_date)
 
-    def test_short(self):
-        """Should not change weather, too little time"""
-        weather = dict(self.world_short.weather)
-        while not self.world_short.step():
-            self.assertEqual(self.world_short.weather, weather)
-
     def test_no_action_after_stop_date(self):
         """There should be no action after stop date"""
         while not self.world_short.step():
