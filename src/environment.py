@@ -104,7 +104,7 @@ class HouseEnergyEnvironment:
                 for key, value in d_value.items():
                     unnormalized_dataset.append(value)
             else:
-                unnormalized_dataset.append(value)
+                unnormalized_dataset.append(d_value)
         unnormalized_dataset.append(reward)
 
         # --- normalized ---

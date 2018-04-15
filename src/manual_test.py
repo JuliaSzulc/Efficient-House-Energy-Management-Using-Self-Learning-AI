@@ -125,7 +125,7 @@ class ManualTestTerminal:
                     else:
                         mark = '='
 
-                    render_menu += '| {0:25} | {1:10.5f} | {2} | {3:10.5f} |\n'. \
+                    render_menu += '| {0:25} | {1:10.4f} | {2} | {3:10.4f} |\n'. \
                         format(last_render[0][i], last_render[1][i], mark,
                                curr_render[1][i])
                 else:
