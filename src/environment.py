@@ -84,10 +84,6 @@ class HouseEnergyEnvironment:
             labels(list) - names for each value in data
             data(numpy array) - values of environment parameters
         """
-<<<<<<< HEAD
-        # FIXME not declares inside it
-        # FIXME - render unnormalized values!
-=======
 
         reward = self.house.reward()
 
@@ -98,7 +94,6 @@ class HouseEnergyEnvironment:
         for sensor in dict['outside']:
             for key, value in sensor.items():
                 unnormalized_dataset.append(value)
->>>>>>> manual_tests
 
         for d_key, d_value in dict['inside'].items():
             if d_key == 'inside_sensors':
@@ -116,10 +111,7 @@ class HouseEnergyEnvironment:
         dataset = self._serialize_state(self._get_current_state())
         dataset = np.append(dataset, reward)
 
-<<<<<<< HEAD
-=======
         # --- tags ---
->>>>>>> manual_tests
         labels_names = [
             'Daytime //OUTSIDE: ',
             'Temperature_outside: ',
@@ -144,11 +136,7 @@ class HouseEnergyEnvironment:
             'TOTAL REWARD: '
         ]
 
-<<<<<<< HEAD
-        return labels_names, dataset
-=======
         return labels_names, unnormalized_dataset, dataset
->>>>>>> manual_tests
 
     def get_actions(self):
         """Returns list of method names (possible actions)
