@@ -84,8 +84,6 @@ class HouseEnergyEnvironment:
             labels(list) - names for each value in data
             data(numpy array) - values of environment parameters
         """
-        # FIXME not declares inside it
-        # FIXME - render unnormalized values!
 
         reward = self.house.reward()
 
