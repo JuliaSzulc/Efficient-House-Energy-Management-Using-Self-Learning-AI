@@ -41,7 +41,7 @@ def main():
     # --- initialization ---
     env = HouseEnergyEnvironment()
     agent = Agent(env=env)
-    num_episodes = 1000
+    num_episodes = 10000
     # clear the contents of log file
     open('rewards.log', 'w').close()
 
@@ -61,8 +61,8 @@ def main():
 
     avg_rewards = []
     avg = 10  # should be a divisor of num_episodes
-    for i in range(num_episodes//avg):
-        avg_rewards.append(np.mean(rewards[avg * i: avg * (i+1)]))
+    for i in range(num_episodes // avg):
+        avg_rewards.append(np.mean(rewards[avg * i: avg * (i + 1)]))
 
     plt.plot(avg_rewards)
     plt.show()

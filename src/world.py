@@ -48,6 +48,7 @@ class World:
             'rain': 0,
             'wind': 0
         }
+        self.old_weather = dict(self.weather)
         self.int_weather = dict(self.weather)  # interpolated weather
 
         self.base_temperature = random.randrange(-10, 30)
@@ -90,7 +91,9 @@ class World:
         ).seconds / (self.base_step_in_minutes * 60)
 
         for key, value in self.weather.items():
-            self.int_weather[key] = value * linear_factor
+            base = self.old_weather[key]
+            delta = value - base
+            self.int_weather[key] = base + (delta * linear_factor)
 
     def step(self):
         """Proceed one step in time, collect info and update listeners
@@ -129,6 +132,9 @@ class World:
         self.basetime = (base_now - base_midnight).seconds // 60
 
     def _update_weather(self):
+        for key, value in self.weather.items():
+            self.old_weather[key] = value
+
         # order of methods is important!
         self._calculate_sun()
         self._calculate_wind()
@@ -309,14 +315,14 @@ def plot_weather():
     """Plot normalized weather graph in a single episode"""
     temp, sun, light, clouds, rain, wind = [], [], [], [], [], []
 
-    world = World(duration_days=20)
+    world = World(duration_days=10)
     while not world.step():
-        temp.append((world.weather['temperature']))
-        sun.append(world.weather['sun'])
-        wind.append(world.weather['wind'])
-        light.append(world.weather['light'])
-        clouds.append(world.weather['clouds'])
-        rain.append(world.weather['rain'])
+        temp.append((world.int_weather['temperature']))
+        sun.append(world.int_weather['sun'])
+        wind.append(world.int_weather['wind'])
+        light.append(world.int_weather['light'])
+        clouds.append(world.int_weather['clouds'])
+        rain.append(world.int_weather['rain'])
 
     plt.subplot(411)
     plt.plot(temp, label='temperature')
@@ -336,20 +342,6 @@ def plot_weather():
     plt.plot(rain, label='rain')
     plt.legend()
     plt.show()
-
-
-class BaseListener:
-    def update(self, **kwargs):
-        self.__dict__.update(kwargs)
-
-
-def test_base_mechanism():
-    world = World(5)
-    listener = BaseListener()
-    world.register(listener)
-    for step in range(5):
-        world.step()
-        print("sun in listener {}".format(listener.weather['sun']))
 
 
 if __name__ == '__main__':

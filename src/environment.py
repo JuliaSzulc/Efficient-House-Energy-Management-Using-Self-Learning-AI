@@ -89,13 +89,13 @@ class HouseEnergyEnvironment:
 
         # --- unnormalized ---
         unnormalized_dataset = []
-        dict = self._get_current_state()
+        d = self._get_current_state()
 
-        for sensor in dict['outside']:
+        for sensor in d['outside']:
             for key, value in sensor.items():
                 unnormalized_dataset.append(value)
 
-        for d_key, d_value in dict['inside'].items():
+        for d_key, d_value in d['inside'].items():
             if d_key == 'inside_sensors':
                 for sensor in d_value.values():
                     for key, value in sensor.items():
