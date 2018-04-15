@@ -126,8 +126,6 @@ class Agent:
                                              self.q_network.parameters()):
                 target_param.data.copy_(q_param.data * qt
                                         + target_param.data * (1.0 - qt))
-            #debug
-            print(list(self.target_network.parameters())[0].data)
 
         self.epsilon_min *= self.epsilon_decay
         self.epsilon_min = max(0.01, self.epsilon_min)

@@ -48,7 +48,7 @@ class BasicSubjectListenerTestCase(unittest.TestCase):
             for sensor_out in self.sensors_out:
                 for key in sensor_out.weather.keys():
                     self.assertEqual(
-                        self.world.weather[key],
+                        self.world.int_weather[key],
                         sensor_out.weather[key],
                         "sensor out failed - wrong weather"
                     )
