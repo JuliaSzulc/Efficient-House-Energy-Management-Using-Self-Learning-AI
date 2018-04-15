@@ -220,7 +220,7 @@ class HouseEnergyEnvironment:
             else:
                 observation.append(d_value)
 
-        # NOTE move the assert below to tests?
+        # NOTE move the assert below to tests, (in the future)
         # make sure that vector is normalized. no safety zone - it has to work!
         assert all([x is not None and (0 <= x <= 1) for x in observation]), \
             "Whoa, some of observation values are not" + \
