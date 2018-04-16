@@ -12,6 +12,6 @@
 sources="src"
 docs="dokumentacja"
 
-pyreverse -s 0 -A -f ALL  --ignore=tests -o png $sources -p diagram
+pyreverse -s 0 -f ALL  --ignore=tests -o png $sources -p diagram
 mv packages_diagram.png $docs/packages_diagram.png
 mv classes_diagram.png $docs/classes_diagram.png
