@@ -161,11 +161,11 @@ class Agent:
             next_state, reward, terminal_state = \
                 self.env.step(self.actions[action_index])
 
-            self._update_stats(action_index, reward)
-
             # clip the reward
             if reward < -2:
                 reward = -2
+
+            self._update_stats(action_index, reward)
 
             self.memory.append((self.current_state, action_index, reward,
                                 next_state, terminal_state))
