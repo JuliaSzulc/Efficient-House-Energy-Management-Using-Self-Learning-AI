@@ -29,7 +29,6 @@ class HouseEnergyEnvironment:
 
         """
 
-        # Remember to put all the declarations of class fields here!
         self.world = None
         self.outside_sensors = None
         self.house = None
@@ -236,9 +235,9 @@ class HouseEnergyEnvironment:
 
             elif d_key == 'battery_delta':
                 # NOTE better normalization of delta. This is usually a small
-                # value, so it would be nice to change it
-                # a) logarythmically, or
-                # b) considering maximum possible delta for that moment.
+                # value, so it would be nice to change it by
+                # a) scaling logarithmically, or
+                # b) considering maximum possible delta for that moment
                 d_value /= 14000
                 observation.append(d_value)
             else:

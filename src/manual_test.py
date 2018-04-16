@@ -178,11 +178,11 @@ class ManualTestTerminal:
                             i.clear()
                 elif int(option) == len(self.actions) + 2:
                     # what to skipp on plot
-                    skipp_list = [int(x) for x in input(
+                    skip_list = [int(x) for x in input(
                         'Enter indexes seperated by space '
                         'which should be skipped on plot:\n').split()]
                     for i in range(len(curr_render[0])):
-                        if i not in skipp_list:
+                        if i not in skip_list:
                             plt.plot(values_for_plt[i], label=curr_render[0][i])
                     plt.legend()
                     plt.show()

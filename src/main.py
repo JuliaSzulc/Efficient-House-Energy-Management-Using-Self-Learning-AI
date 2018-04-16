@@ -40,20 +40,26 @@ def main():
     # --- configuration ---
     save_experiment = False
     run_manual_tests = False
+    print_stats = False
+    make_total_reward_plot = True
 
     if 'manual' in sys.argv:
         run_manual_tests = True
+    if 'stats' in sys.argv:
+        print_stats = True
     if 'save' in sys.argv:
         save_experiment = True
 
     if run_manual_tests:
         tests = ManualTestTerminal()
         tests.manual_testing()
+        return
 
     # --- initialization ---
     env = HouseEnergyEnvironment()
     agent = Agent(env=env)
     num_episodes = 10000
+
     # clear the contents of log file
     open('rewards.log', 'w').close()
 
@@ -62,26 +68,26 @@ def main():
     for i in range(num_episodes):
         t_reward = agent.run()
 
-        # save results in log file, for safety reasons. We don't want to lose
-        # all results becouse of misclick or laptop power loss ;)
-        # this logfile is added to .gitignore
         with open("rewards.log", "a") as logfile:
             logfile.write("{}\n".format(t_reward))
 
         rewards.append(t_reward)
         print("episode {} / {} | Reward: {}".format(i, num_episodes, t_reward))
-        print_episode_stats(agent.get_episode_stats())
+        if print_stats:
+            print_episode_stats(agent.get_episode_stats())
 
-    avg_rewards = []
-    avg = 10  # should be a divisor of num_episodes
-    for i in range(num_episodes // avg):
-        avg_rewards.append(np.mean(rewards[avg * i: avg * (i + 1)]))
+    # --- plotting ---
+    if make_total_reward_plot:
+        avg_rewards = []
+        avg = 10  # has to be a divisor of num_episodes
+        for i in range(num_episodes // avg):
+            avg_rewards.append(np.mean(rewards[avg * i: avg * (i + 1)]))
 
-    plt.plot(avg_rewards)
-    plt.show()
+        plt.plot(avg_rewards)
+        plt.show()
 
     # --- saving results ---
-    # TODO: recover any important info about env, agent etc.
+    # TODO: database module
     info = None
     if save_experiment:
         # save to database
