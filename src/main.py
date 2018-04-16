@@ -22,6 +22,18 @@ def save_to_database(info):
     print(info)
 
 
+def print_episode_stats(dictionary):
+    print("-------------------------------------------------------------------")
+    for k, v in dictionary.items():
+        try:
+            name = v[0]
+            value = v[1]
+            print("{:30} = {:20} ({:.3f})".format(k, name, value))
+        except TypeError:
+            print("{:30} = {:.3f}".format(k, v))
+    print("===================================================================")
+
+
 def main():
     """Run the experiment and save the results if needed"""
 
@@ -58,6 +70,7 @@ def main():
 
         rewards.append(t_reward)
         print("episode {} / {} | Reward: {}".format(i, num_episodes, t_reward))
+        print_episode_stats(agent.get_episode_stats())
 
     avg_rewards = []
     avg = 10  # should be a divisor of num_episodes

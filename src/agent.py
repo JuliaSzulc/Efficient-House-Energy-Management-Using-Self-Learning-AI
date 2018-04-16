@@ -52,10 +52,13 @@ class Agent:
     def __init__(self, env):
         self.env = env
         self.actions = None
+
         self.q_network = None
         self.target_network = None  # this one has "fixed" weights
+
         self.initial_state = None
         self.current_state = None
+
         self.memory = Memory(maxlen=5000)
         self.gamma = 0
         self.epsilon = 0
@@ -65,12 +68,19 @@ class Agent:
         self.l_rate = 0
         self.optimizer = None
 
+        self.stats = dict()
+
         self.reset()
 
     def reset(self):
         """Initialize the networks and other parameters"""
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
+
+        # initialize stats dictionary
+        for a in self.actions:
+            self.stats[a] = {'count': 0,
+                             'total_reward': 0}
 
         input_size = len(self.initial_state)
         hidden1_size = 50
@@ -98,6 +108,49 @@ class Agent:
         self.optimizer = optim.Adagrad(self.q_network.parameters(),
                                        lr=self.l_rate)
 
+    def _update_stats(self, action_index, reward):
+        action = self.actions[action_index]
+        self.stats[action]['count'] += 1
+        self.stats[action]['total_reward'] += reward
+
+    def get_episode_stats(self):
+        most_common = max(self.stats.items(), key=lambda item:
+                          item[1]['count'])
+
+        least_common = min(self.stats.items(), key=lambda item:
+                           item[1]['count'])
+
+        best_mean_reward = max(self.stats.items(), key=lambda item:
+                               item[1]['total_reward'] / item[1]['count'])
+
+        best_total_reward = max(self.stats.items(), key=lambda item:
+                                item[1]['total_reward'])
+
+        aggregated = {
+            'most common action': (
+                most_common[0],
+                most_common[1]['count']
+            ),
+            'least common action': (
+                least_common[0],
+                least_common[1]['count']
+            ),
+            'action with best avg reward': (
+                best_mean_reward[0],
+                best_mean_reward[1]['total_reward']
+                / best_mean_reward[1]['count']
+            ),
+            'action with best total reward': (
+                best_total_reward[0],
+                best_total_reward[1]['total_reward']
+            ),
+            'avg total reward': sum(
+                [i['total_reward'] for k, i in self.stats.items()]
+            ) / len(self.actions)
+        }
+
+        return aggregated
+
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
         self.current_state = self.env.reset()
@@ -107,6 +160,8 @@ class Agent:
             action_index = self._get_next_action()
             next_state, reward, terminal_state = \
                 self.env.step(self.actions[action_index])
+
+            self._update_stats(action_index, reward)
 
             # clip the reward
             if reward < -2:
