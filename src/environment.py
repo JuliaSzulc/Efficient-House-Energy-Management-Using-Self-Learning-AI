@@ -23,14 +23,17 @@ class HouseEnergyEnvironment:
     """
 
     def __init__(self):
-        # Remember to put all the declarations of class fields here!
+        """Actual initialization is moved to reset() method
 
+        to be able to re-initialize the whole environment.
+
+        """
+
+        # Remember to put all the declarations of class fields here!
         self.world = None
         self.outside_sensors = None
         self.house = None
 
-        # Actual initialization is moved to reset() method,
-        # to be able to re-initialize the whole environment.
         self.reset()
 
     def step(self, action_name):
@@ -77,60 +80,66 @@ class HouseEnergyEnvironment:
     def render(self):
         """Outputs the state of environment in a human-readable format
 
-        Method takes numpy array returned by _get_current_astate() method.
-
-        Args:
-
-            dataset (numpy array) - its collection of values such as daytime,
-            temperature, light etc. and aso reward
-
         Returns:
-            labels_names(list) - names of specified values in dataSet
-            dataSet (numpy array) - values of daytime, light etc.
+            labels(list) - names for each value in data
+            data(numpy array) - values of environment parameters
         """
-        # FIXME Args in docs are parameters the function receives,
-        # FIXME not declares inside it
-        # FIXME - render unnormalized values!
 
-        dataset = self._serialize_state(self._get_current_state())
         reward = self.house.reward()
+
+        # --- unnormalized ---
+        unnormalized_dataset = []
+        d = self._get_current_state()
+
+        for sensor in d['outside']:
+            for key, value in sensor.items():
+                unnormalized_dataset.append(value)
+
+        for d_key, d_value in d['inside'].items():
+            if d_key == 'inside_sensors':
+                for sensor in d_value.values():
+                    for key, value in sensor.items():
+                        unnormalized_dataset.append(value)
+            elif d_key == 'desired' or d_key == 'devices_settings':
+                for key, value in d_value.items():
+                    unnormalized_dataset.append(value)
+            else:
+                unnormalized_dataset.append(d_value)
+        unnormalized_dataset.append(reward)
+
+        # --- normalized ---
+        dataset = self._serialize_state(self._get_current_state())
         dataset = np.append(dataset, reward)
 
-        labels_names = ['Daytime //OUTSIDE: ',
-                        'Temperature_outside: ',
-                        'Light OUT: ',
-                        'Clouds: ',
-                        'Rain: ',
-                        'Wind: ',
-                        'Temperature //INSIDE: ',
-                        'Temperature_delta: ',
-                        'Light IN: ',
-                        'Temp_desired: ',
-                        'Temp_epsilon: ',
-                        'Light_desired: ',
-                        'Light_epsilon: ',
-                        'Energy_src: ',
-                        'Cooling_lvl: ',
-                        'Heating_lvl: ',
-                        'Light_lvl: ',
-                        'Curtains_lvl: ',
-                        'Battery_lvl: ',
-                        'Battery_delta: ',
-                        'TOTAL REWARD: '
-                        ]
+        # --- tags ---
+        labels_names = [
+            'Daytime //OUTSIDE: ',
+            'Temperature_outside: ',
+            'Light OUT: ',
+            'Clouds: ',
+            'Rain: ',
+            'Wind: ',
+            'Temperature //INSIDE: ',
+            'Temperature_delta: ',
+            'Light IN: ',
+            'Temp_desired: ',
+            'Temp_epsilon: ',
+            'Light_desired: ',
+            'Light_epsilon: ',
+            'Energy_src: ',
+            'Cooling_lvl: ',
+            'Heating_lvl: ',
+            'Light_lvl: ',
+            'Curtains_lvl: ',
+            'Battery_lvl: ',
+            'Battery_delta: ',
+            'TOTAL REWARD: '
+        ]
 
-        # ------------------ Removing ------------------
-        # To remove a parameter, comment it out of the dict.
-        # Then remove its value from dataSet using
-        # dataSet = np.delete(dataSet, 0)
-        # Be careful with indexes if you delete more than one parameter:
-        # dataSet = np.delete(dataSet, 0)
-        # dataSet = np.delete(dataSet, 3) # 4 is now 3
-
-        return labels_names, dataset
+        return labels_names, unnormalized_dataset, dataset
 
     def get_actions(self):
-        """Returns list of method names of possible actions
+        """Returns list of method names (possible actions)
 
         Returns:
             actions (list of strings): A list of method names
@@ -199,8 +208,6 @@ class HouseEnergyEnvironment:
                 elif key == 'daytime':
                     # time in range (0, 1440) min
                     value /= 1440
-                elif key == 'illumination':
-                    continue
                 observation.append(value)
 
         for d_key, d_value in state['inside'].items():
@@ -234,7 +241,7 @@ class HouseEnergyEnvironment:
             else:
                 observation.append(d_value)
 
-        # FIXME move the assert below to tests?
+        # NOTE move the assert below to tests, (in the future)
         # make sure that vector is normalized. no safety zone - it has to work!
         assert all([x is not None and (0 <= x <= 1) for x in observation]), \
             "Whoa, some of observation values are not" + \

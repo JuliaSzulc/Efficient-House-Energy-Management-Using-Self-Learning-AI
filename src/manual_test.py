@@ -35,15 +35,6 @@ class ManualTestTerminal:
         managing chosen actions by yourself. Its allows user to check
         system correct behaviour through making logs into console/file.
 
-        Args:
-            env (HouseEnergyEnvironment) - object to operate
-            actions (list) - available actions to make
-            file_auto_log (bool) - true/false,
-                says if logs should be saved to file
-            stage (number) - count of passed steps in env
-            last_render (tuple) - names ans values of env parameters
-            log_file (file) - output for logs
-
         """
 
         curr_render = last_render = self.env.render()
@@ -117,28 +108,34 @@ class ManualTestTerminal:
 
             render_menu = 'Rendered values:\n'
             render_menu += \
-                '+---------------------------+-----------+---+-----------+\n'
-            render_menu += '| {0:25} | {1:10}| {2} |  {3:8} |\n'. \
+                '+---------------------------+------------+---+------------+\n'
+            render_menu += '| {0:25} |  {1:9} | {2} |  {3:9} |\n'. \
                 format('Value:',
                        'Previous:',
                        '?',
-                       'Current')
+                       'Current:')
             render_menu += \
-                '+---------------------------+-----------+---+-----------+\n'
+                '+---------------------------+------------+---+------------+\n'
             for i in range(len(last_render[0])):
-                if float(last_render[1][i]) < float(curr_render[1][i]):
-                    mark = '<'
-                elif float(last_render[1][i]) > float(curr_render[1][i]):
-                    mark = '>'
-                else:
-                    mark = '='
+                if not isinstance(last_render[1][i], str):
+                    if float(last_render[1][i]) < float(curr_render[1][i]):
+                        mark = '<'
+                    elif float(last_render[1][i]) > float(curr_render[1][i]):
+                        mark = '>'
+                    else:
+                        mark = '='
 
-                render_menu += '| {0:25} |{1:10.5f} | {2} | {3:9.5f} |\n'. \
-                    format(last_render[0][i], last_render[1][i], mark,
-                           curr_render[1][i])
+                    render_menu += '| {0:25} | {1:10.4f} | {2} | {3:10.4f} |\n'. \
+                        format(last_render[0][i], last_render[1][i], mark,
+                               curr_render[1][i])
+                else:
+                    mark = '?'
+                    render_menu += '| {0:25} |    {1:7} | {2} |    {3:7} |\n'. \
+                        format(last_render[0][i], last_render[1][i], mark,
+                               curr_render[1][i])
 
             render_menu += \
-                '+---------------------------+-----------+---+-----------+\n'
+                '+---------------------------+------------+---+------------+\n'
 
             menu += render_menu
 
@@ -146,8 +143,8 @@ class ManualTestTerminal:
             print(menu)
 
             # update lists for plots
-            for i in range(len(curr_render[1])):
-                values_for_plt[i].append(curr_render[1][i])
+            for i in range(len(curr_render[2])):
+                values_for_plt[i].append(curr_render[2][i])
 
             if file_auto_log:
                 log_file.write(render_menu)
@@ -197,8 +194,8 @@ class ManualTestTerminal:
                         step += 1
 
                         # update lists for plots
-                        for i in range(len(curr_render[1])):
-                            values_for_plt[i].append(curr_render[1][i])
+                        for i in range(len(curr_render[2])):
+                            values_for_plt[i].append(curr_render[2][i])
 
                         time -= self.env.world.time_step_in_minutes / 60
 

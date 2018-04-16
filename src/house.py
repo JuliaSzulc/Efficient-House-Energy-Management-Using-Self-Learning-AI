@@ -12,25 +12,7 @@ directly from outside.
 """
 from random import uniform
 from collections import OrderedDict
-
-
-def truncate(arg, lower=0, upper=1):
-    """This function returns value truncated within range <lower, upper>
-
-    Args:
-        arg (number) - value to be truncated
-        lower (number) - lower truncating bound, default to 0
-        upper (number) - upper truncating bound, default to 1
-
-    Returns:
-        arg (number) - truncated function argument
-    """
-
-    if arg > upper:
-        return upper
-    if arg < lower:
-        return lower
-    return arg
+from tools import truncate
 
 
 class House:
@@ -38,7 +20,7 @@ class House:
 
     def __init__(self, timeframe):
         #  --- Time ---
-        # fields are expressed in minutes
+        # values are expressed in minutes
         self.timeframe = timeframe
         self.day_start = 7 * 60
         self.day_end = 18 * 60
@@ -50,6 +32,7 @@ class House:
         self.house_isolation_factor = 0.998
         self.house_light_factor = 0.01
         self.max_led_illuminance = 200  # lux
+        self.max_outside_illumination = 25000  # lux - max. in ambient daylight
         self.battery = {
             'current': 0,
             'delta': 0,
@@ -63,8 +46,9 @@ class House:
 
         #  --- Requests ---
         # calculation of 'light_desired':
-        # 200 / (25000 * self.house_light_factor + self.max_led_illuminance)
-        self.user_requests = OrderedDict({
+        # 200 / (max_outside_illumination * house_light_factor
+        #        + max_led_illuminance)
+        self.user_requests = {
             'day': OrderedDict({
                 'temp_desired': 21,
                 'temp_epsilon': 0.5,
@@ -77,7 +61,7 @@ class House:
                 'light_desired': 0.0,
                 'light_epsilon': 0.05
             })
-        })
+        }
 
         #  --- Sensors ---
         self.inside_sensors = OrderedDict({
@@ -143,7 +127,8 @@ class House:
         self.daytime = sensor_out_info['daytime']
         self._calculate_accumulated_energy(sensor_out_info['light'])
         self._calculate_temperature(sensor_out_info['actual_temp'])
-        self._calculate_light(sensor_out_info['illumination'])
+        self._calculate_light(sensor_out_info['light']
+                              * self.max_outside_illumination)
 
     def get_inside_params(self):
         """Returns all important information about the state of the house
@@ -183,7 +168,8 @@ class House:
 
         return inside_params
 
-    def _calculate_device_energy_usage(self, device_full_power, device_setting):
+    def _calculate_device_energy_usage(self, device_full_power,
+                                       device_setting):
         """
         Calculates cost of last time-frame's energy usage of given device
 
@@ -212,13 +198,17 @@ class House:
         )
 
         if self.devices_settings['energy_src'] == 'battery':
-            self.battery['current'] = \
-                truncate(self.battery['current'] - usage,
-                         0, self.battery['max'])
-
-            if self.battery['current'] <= 0.4 * self.battery['max']:
+            if self.battery['current'] > usage:
+                self.battery['current'] = \
+                    truncate(self.battery['current'] - usage,
+                             0, self.battery['max'])
+                return 0
+            else:
+                # if we have used MORE energy than we had in battery, THEN we
+                # switch energy_source, but we still return the cost of extra
+                # amount, not 0!
+                usage -= self.battery['current']
                 self.devices_settings['energy_src'] = 'grid'
-            return 0
 
         return usage * self.grid_cost
 
@@ -292,6 +282,7 @@ class House:
     def action_source_battery(self):
         """Action to be taken by RL-agent - change power source"""
         # only if battery is more than 40%
+        # NOTE: 0.4 is a constant. Consider moving it to come config XML / JSON
         if self.battery['current'] >= 0.4 * self.battery['max']:
             self.devices_settings['energy_src'] = 'battery'
 

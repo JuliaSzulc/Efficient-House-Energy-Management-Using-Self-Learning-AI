@@ -102,9 +102,10 @@ ENV/
 
 # nasze wlasne projektowe wykluczenia:
 .idea/
-setup.cfg
 *~
 *.swp
+*.log
 # texowe smieci
 *.aux
 *.synctex.gz
+
