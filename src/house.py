@@ -27,7 +27,7 @@ class House:
         self.daytime = 0
 
         #  --- Energy / Light settings ---
-        self.pv_absorption = 125  # Watt on max sun intensity (growth on 1 min)
+        self.pv_absorption = 50#125  # Watt on max sun intensity (growth on 1 min)
         self.grid_cost = 0.5  # PLN for 1kWh
         self.house_isolation_factor = 0.998
         self.house_light_factor = 0.01
