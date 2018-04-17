@@ -108,49 +108,6 @@ class Agent:
         self.optimizer = optim.Adagrad(self.q_network.parameters(),
                                        lr=self.l_rate)
 
-    def _update_stats(self, action_index, reward):
-        action = self.actions[action_index]
-        self.stats[action]['count'] += 1
-        self.stats[action]['total_reward'] += reward
-
-    def get_episode_stats(self):
-        most_common = max(self.stats.items(), key=lambda item:
-                          item[1]['count'])
-
-        least_common = min(self.stats.items(), key=lambda item:
-                           item[1]['count'])
-
-        best_mean_reward = max(self.stats.items(), key=lambda item:
-                               item[1]['total_reward'] / item[1]['count'])
-
-        best_total_reward = max(self.stats.items(), key=lambda item:
-                                item[1]['total_reward'])
-
-        aggregated = {
-            'most common action': (
-                most_common[0],
-                most_common[1]['count']
-            ),
-            'least common action': (
-                least_common[0],
-                least_common[1]['count']
-            ),
-            'action with best avg reward': (
-                best_mean_reward[0],
-                best_mean_reward[1]['total_reward']
-                / best_mean_reward[1]['count']
-            ),
-            'action with best total reward': (
-                best_total_reward[0],
-                best_total_reward[1]['total_reward']
-            ),
-            'avg total reward': sum(
-                [i['total_reward'] for k, i in self.stats.items()]
-            ) / len(self.actions)
-        }
-
-        return aggregated
-
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
         self.current_state = self.env.reset()
@@ -248,9 +205,6 @@ class Agent:
             loss.backward()
             self.optimizer.step()
 
-            # NOTE: might be useful for debugging
-            # print("Loss = ", loss.data.numpy()[0])
-
     def _get_next_action(self):
         """Returns next action given a state with use of the network
 
@@ -263,7 +217,6 @@ class Agent:
         if np.random.random() < self.epsilon:
             return random.randint(0, len(self.actions) - 1)
 
-        # NOTE: is autograd disabled here? is it important?
         outputs = self.target_network.forward(
             Variable(torch.FloatTensor(self.current_state)))
 
@@ -308,3 +261,46 @@ class Agent:
             torch.LongTensor([int(x[1]) for x in transition_batch]))
 
         return exp_batch
+
+    def _update_stats(self, action_index, reward):
+        action = self.actions[action_index]
+        self.stats[action]['count'] += 1
+        self.stats[action]['total_reward'] += reward
+
+    def get_episode_stats(self):
+        most_common = max(self.stats.items(), key=lambda item:
+                          item[1]['count'])
+
+        least_common = min(self.stats.items(), key=lambda item:
+                           item[1]['count'])
+
+        best_mean_reward = max(self.stats.items(), key=lambda item:
+                               item[1]['total_reward'] / item[1]['count'])
+
+        best_total_reward = max(self.stats.items(), key=lambda item:
+                                item[1]['total_reward'])
+
+        aggregated = {
+            'most common action': (
+                most_common[0],
+                most_common[1]['count']
+            ),
+            'least common action': (
+                least_common[0],
+                least_common[1]['count']
+            ),
+            'action with best avg reward': (
+                best_mean_reward[0],
+                best_mean_reward[1]['total_reward']
+                / best_mean_reward[1]['count']
+            ),
+            'action with best total reward': (
+                best_total_reward[0],
+                best_total_reward[1]['total_reward']
+            ),
+            'avg total reward': sum(
+                [i['total_reward'] for k, i in self.stats.items()]
+            ) / len(self.actions)
+        }
+
+        return aggregated
