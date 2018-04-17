@@ -100,9 +100,9 @@ class Agent:
             output_size
         )
         self.gamma = 0.9
-        self.epsilon = 0.9
+        self.epsilon = 0.1
         self.epsilon_decay = 0.99
-        self.epsilon_min = 0.1
+        self.epsilon_min = 0.001
         self.batch_size = 16
         self.l_rate = 0.01
         self.optimizer = optim.Adagrad(self.q_network.parameters(),
@@ -143,8 +143,8 @@ class Agent:
                 target_param.data.copy_(q_param.data * qt
                                         + target_param.data * (1.0 - qt))
 
-        self.epsilon_min *= self.epsilon_decay
-        self.epsilon_min = max(0.01, self.epsilon_min)
+        self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon, self.epsilon_min)
 
         return total_reward
 
@@ -216,8 +216,6 @@ class Agent:
 
         """
 
-        self.epsilon *= self.epsilon_decay
-        self.epsilon = max(self.epsilon_min, self.epsilon)
         if np.random.random() < self.epsilon:
             return random.randint(0, len(self.actions) - 1)
 
@@ -279,7 +277,8 @@ class Agent:
                            item[1]['count'])
 
         best_mean_reward = max(self.stats.items(), key=lambda item:
-                               item[1]['total_reward'] / item[1]['count'])
+                               item[1]['total_reward'] /
+                               (item[1]['count'] or 1))
 
         best_total_reward = max(self.stats.items(), key=lambda item:
                                 item[1]['total_reward'])
@@ -296,7 +295,7 @@ class Agent:
             'action with best avg reward': (
                 best_mean_reward[0],
                 best_mean_reward[1]['total_reward']
-                / best_mean_reward[1]['count']
+                / (best_mean_reward[1]['count'] or 1)
             ),
             'action with best total reward': (
                 best_total_reward[0],
@@ -304,7 +303,7 @@ class Agent:
             ),
             'avg total reward': sum(
                 [i['total_reward'] for k, i in self.stats.items()]
-            ) / len(self.actions)
+            ) / (len(self.actions) or 1)
         }
 
         return aggregated
