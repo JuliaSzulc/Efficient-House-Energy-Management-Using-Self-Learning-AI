@@ -113,6 +113,10 @@ class Agent:
         self.current_state = self.env.reset()
         total_reward = 0
         terminal_state = False
+        for a in self.actions:
+            self.stats[a] = {'count': 0,
+                             'total_reward': 0}
+
         while not terminal_state:
             action_index = self._get_next_action()
             next_state, reward, terminal_state = \
