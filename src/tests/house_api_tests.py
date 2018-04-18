@@ -334,7 +334,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
             "Wrong air conditioner energy calculation.")
 
     # FIXME write new/updated tests for the method - the value returned
-    # FIXME was wrong and now it was changed.
+    # was wrong and now it was changed.
 
     # def test_calculate_heater_cost(self):
     #     self.assertEqual(

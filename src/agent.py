@@ -12,6 +12,7 @@ import torch
 from torch import autograd, optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+import os
 
 # CUDA variables
 USE_CUDA = torch.cuda.is_available()
@@ -39,6 +40,7 @@ class Net(torch.nn.Module):
 
 class Memory(deque):
     """Subclass of deque, storing transitions batches for Agent"""
+
     # TODO: Prioritized Experience Replay
 
     def __init__(self, maxlen):
@@ -57,10 +59,13 @@ class Agent:
     def __init__(self, env):
         self.env = env
         self.actions = None
+
         self.q_network = None
         self.target_network = None  # this one has "fixed" weights
+
         self.initial_state = None
         self.current_state = None
+
         self.memory = Memory(maxlen=5000)
         self.gamma = 0
         self.epsilon = 0
@@ -70,12 +75,19 @@ class Agent:
         self.l_rate = 0
         self.optimizer = None
 
+        self.stats = dict()
+
         self.reset()
 
     def reset(self):
         """Initialize the networks and other parameters"""
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
+
+        # initialize stats dictionary
+        for a in self.actions:
+            self.stats[a] = {'count': 0,
+                             'total_reward': 0}
 
         input_size = len(self.initial_state)
         hidden1_size = 50
@@ -111,10 +123,10 @@ class Agent:
             self.target_network.cuda()
 
         self.gamma = 0.9
-        self.epsilon = 0.9
+        self.epsilon = 0.1
         self.epsilon_decay = 0.99
-        self.epsilon_min = 0.1
-        self.batch_size = 16
+        self.epsilon_min = 0.001
+        self.batch_size = 512
         self.l_rate = 0.01
         self.optimizer = optim.Adagrad(self.q_network.parameters(),
                                        lr=self.l_rate)
@@ -124,6 +136,10 @@ class Agent:
         self.current_state = self.env.reset()
         total_reward = 0
         terminal_state = False
+        for a in self.actions:
+            self.stats[a] = {'count': 0,
+                             'total_reward': 0}
+
         while not terminal_state:
             action_index = self._get_next_action()
             next_state, reward, terminal_state = \
@@ -133,7 +149,7 @@ class Agent:
             if reward < -2:
                 reward = -2
 
-            # TODO limit memory size
+            self._update_stats(action_index, reward)
             self.memory.append((self.current_state, action_index, reward,
                                 next_state, terminal_state))
 
@@ -149,8 +165,8 @@ class Agent:
                 target_param.data.copy_(q_param.data * qt
                                         + target_param.data * (1.0 - qt))
 
-        self.epsilon_min *= self.epsilon_decay
-        self.epsilon_min = max(0.01, self.epsilon_min)
+        self.epsilon *= self.epsilon_decay
+        self.epsilon = max(self.epsilon, self.epsilon_min)
 
         return total_reward
 
@@ -196,7 +212,7 @@ class Agent:
             # so they don't have 'append' function etc.
             # squeezing magic needed for size mismatches, debug
             # yourself if you wonder why the're necessary
-            q_values = all_q_values.\
+            q_values = all_q_values. \
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
             # q_next_max = max{a}{Q(s_next,a)}
@@ -226,9 +242,6 @@ class Agent:
             loss.backward()
             self.optimizer.step()
 
-            # NOTE: might be useful for debugging
-            # print("Loss = ", loss.data.numpy()[0])
-
     def _get_next_action(self):
         """Returns next action given a state with use of the network
 
@@ -236,12 +249,9 @@ class Agent:
 
         """
 
-        self.epsilon *= self.epsilon_decay
-        self.epsilon = max(self.epsilon_min, self.epsilon)
         if np.random.random() < self.epsilon:
             return random.randint(0, len(self.actions) - 1)
 
-        # NOTE: is autograd disabled here? is it important?
         outputs = self.target_network.forward(
             autograd.Variable(
                 dtype(self.current_state).cuda()) if USE_CUDA else
@@ -251,13 +261,50 @@ class Agent:
 
     def return_model_info(self):
         """
-        Not sure what with this one for now.
-        Depends on what pytorch uses to save the network models.
-        Method should return the network params and all other params
-        that we can reproduce the exact configuration later/save it to the db
+        Method saves all networks models info to a specific files in
+        saved_models directory.
+
         """
-        # TODO implement me!
-        pass
+        # TODO: In future save to database
+
+        if not os.path.exists('saved_models'):
+            os.makedirs('saved_models')
+
+        new_index = 0
+        while True:
+            if not os.path.isfile(
+                    'saved_models/q_network_{}.pt'.format(new_index)):
+                break
+            new_index += 1
+
+        torch.save(self.q_network.state_dict(),
+                   'saved_models/q_network_{}.pt'.format(new_index))
+        torch.save(self.target_network.state_dict(),
+                   'saved_models/target_network_{}.pt'.format(new_index))
+
+    def load_model_info(self, model_number):
+        """
+        Load all torches networks to agent.
+
+        :param model_number: specifies model index which user wants to load.
+
+        """
+        # TODO: In future load from database
+
+        # FIXME: Add support for error
+        # when we want to load network with different size.
+
+        if os.path.isfile(
+                'saved_models/q_network_{}.pt'.format(model_number)):
+            self.q_network. \
+                load_state_dict(torch.load('saved_models/q_network_{}.pt'.
+                                           format(model_number)))
+            self.target_network. \
+                load_state_dict(torch.load('saved_models/target_network_{}.pt'.
+                                           format(model_number)))
+        else:
+            print('[Warning] No model with entered index.\n'
+                  '[Warning] Any models have been loaded.')
 
     def get_experience_batch(self):
         """
@@ -290,3 +337,47 @@ class Agent:
             else Variable(dlongtype([int(x[1]) for x in transition_batch]))
 
         return exp_batch
+
+    def _update_stats(self, action_index, reward):
+        action = self.actions[action_index]
+        self.stats[action]['count'] += 1
+        self.stats[action]['total_reward'] += reward
+
+    def get_episode_stats(self):
+        most_common = max(self.stats.items(), key=lambda item:
+        item[1]['count'])
+
+        least_common = min(self.stats.items(), key=lambda item:
+        item[1]['count'])
+
+        best_mean_reward = max(self.stats.items(), key=lambda item:
+        item[1]['total_reward'] /
+        (item[1]['count'] or 1))
+
+        best_total_reward = max(self.stats.items(), key=lambda item:
+        item[1]['total_reward'])
+
+        aggregated = {
+            'most common action': (
+                most_common[0],
+                most_common[1]['count']
+            ),
+            'least common action': (
+                least_common[0],
+                least_common[1]['count']
+            ),
+            'action with best avg reward': (
+                best_mean_reward[0],
+                best_mean_reward[1]['total_reward']
+                / (best_mean_reward[1]['count'] or 1)
+            ),
+            'action with best total reward': (
+                best_total_reward[0],
+                best_total_reward[1]['total_reward']
+            ),
+            'avg total reward': sum(
+                [i['total_reward'] for k, i in self.stats.items()]
+            ) / (len(self.actions) or 1)
+        }
+
+        return aggregated

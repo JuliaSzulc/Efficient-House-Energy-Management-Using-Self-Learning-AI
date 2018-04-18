@@ -22,26 +22,52 @@ def save_to_database(info):
     print(info)
 
 
+def print_episode_stats(dictionary):
+    print("-------------------------------------------------------------------")
+    for k, v in dictionary.items():
+        try:
+            name = v[0]
+            value = v[1]
+            print("{:30} = {:20} ({:.3f})".format(k, name, value))
+        except TypeError:
+            print("{:30} = {:.3f}".format(k, v))
+    print("===================================================================")
+
+
 def main():
     """Run the experiment and save the results if needed"""
 
     # --- configuration ---
     save_experiment = False
     run_manual_tests = False
+    print_stats = False
+    make_total_reward_plot = True
+    load_agent_network = False
 
     if 'manual' in sys.argv:
         run_manual_tests = True
+    if 'stats' in sys.argv:
+        print_stats = True
     if 'save' in sys.argv:
         save_experiment = True
+    if 'load' in sys.argv:
+        load_agent_network = True
 
     if run_manual_tests:
         tests = ManualTestTerminal()
         tests.manual_testing()
+        return
 
     # --- initialization ---
     env = HouseEnergyEnvironment()
     agent = Agent(env=env)
-    num_episodes = 10000
+    if load_agent_network:
+        model_number = input('Enter model number to load\n'
+                             '(e.g. to load network_0 enter 0 etc.)\n')
+        agent.load_model_info(model_number)
+
+    num_episodes = 1000
+
     # clear the contents of log file
     open('rewards.log', 'w').close()
 
@@ -50,29 +76,32 @@ def main():
     for i in range(num_episodes):
         t_reward = agent.run()
 
-        # save results in log file, for safety reasons. We don't want to lose
-        # all results becouse of misclick or laptop power loss ;)
-        # this logfile is added to .gitignore
         with open("rewards.log", "a") as logfile:
             logfile.write("{}\n".format(t_reward))
 
         rewards.append(t_reward)
         print("episode {} / {} | Reward: {}".format(i, num_episodes, t_reward))
+        if print_stats:
+            print_episode_stats(agent.get_episode_stats())
 
-    avg_rewards = []
-    avg = 10  # should be a divisor of num_episodes
-    for i in range(num_episodes // avg):
-        avg_rewards.append(np.mean(rewards[avg * i: avg * (i + 1)]))
+    # --- plotting ---
+    if make_total_reward_plot:
+        avg_rewards = []
+        avg = 10  # has to be a divisor of num_episodes
+        for i in range(num_episodes // avg):
+            avg_rewards.append(np.mean(rewards[avg * i: avg * (i + 1)]))
 
-    plt.plot(avg_rewards)
-    plt.show()
+        plt.plot(avg_rewards)
+        plt.show()
 
     # --- saving results ---
-    # TODO: recover any important info about env, agent etc.
+    # TODO: database module
     info = None
     if save_experiment:
         # save to database
         save_to_database(info)
+        # for that moment save to file with method below
+        agent.return_model_info()
 
 
 if __name__ == "__main__":
