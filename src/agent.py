@@ -12,6 +12,7 @@ import torch
 from torch import autograd, optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+import os
 
 
 class Net(torch.nn.Module):
@@ -34,6 +35,7 @@ class Net(torch.nn.Module):
 
 class Memory(deque):
     """Subclass of deque, storing transitions batches for Agent"""
+
     # TODO: Prioritized Experience Replay
 
     def __init__(self, maxlen):
@@ -181,7 +183,7 @@ class Agent:
             # so they don't have 'append' function etc.
             # squeezing magic needed for size mismatches, debug
             # yourself if you wonder why the're necessary
-            q_values = all_q_values.\
+            q_values = all_q_values. \
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
             # q_next_max = max{a}{Q(s_next,a)}
@@ -226,13 +228,50 @@ class Agent:
 
     def return_model_info(self):
         """
-        Not sure what with this one for now.
-        Depends on what pytorch uses to save the network models.
-        Method should return the network params and all other params
-        that we can reproduce the exact configuration later/save it to the db
+        Method saves all networks models info to a specific files in
+        saved_models directory.
+
         """
-        # TODO implement me!
-        pass
+        # TODO: In future save to database
+
+        if not os.path.exists('saved_models'):
+            os.makedirs('saved_models')
+
+        new_index = 0
+        while True:
+            if not os.path.isfile(
+                    'saved_models/q_network_{}.pt'.format(new_index)):
+                break
+            new_index += 1
+
+        torch.save(self.q_network.state_dict(),
+                   'saved_models/q_network_{}.pt'.format(new_index))
+        torch.save(self.target_network.state_dict(),
+                   'saved_models/target_network_{}.pt'.format(new_index))
+
+    def load_model_info(self, model_number):
+        """
+        Load all torches networks to agent.
+
+        :param model_number: specifies model index which user wants to load.
+
+        """
+        # TODO: In future load from database
+
+        # FIXME: Add support for error
+        # when we want to load network with different size.
+
+        if os.path.isfile(
+                'saved_models/q_network_{}.pt'.format(model_number)):
+            self.q_network. \
+                load_state_dict(torch.load('saved_models/q_network_{}.pt'.
+                                           format(model_number)))
+            self.target_network. \
+                load_state_dict(torch.load('saved_models/target_network_{}.pt'.
+                                           format(model_number)))
+        else:
+            print('[Warning] No model with entered index.\n'
+                  '[Warning] Any models have been loaded.')
 
     def get_experience_batch(self):
         """
@@ -271,17 +310,17 @@ class Agent:
 
     def get_episode_stats(self):
         most_common = max(self.stats.items(), key=lambda item:
-                          item[1]['count'])
+        item[1]['count'])
 
         least_common = min(self.stats.items(), key=lambda item:
-                           item[1]['count'])
+        item[1]['count'])
 
         best_mean_reward = max(self.stats.items(), key=lambda item:
-                               item[1]['total_reward'] /
-                               (item[1]['count'] or 1))
+        item[1]['total_reward'] /
+        (item[1]['count'] or 1))
 
         best_total_reward = max(self.stats.items(), key=lambda item:
-                                item[1]['total_reward'])
+        item[1]['total_reward'])
 
         aggregated = {
             'most common action': (

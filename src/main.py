@@ -42,6 +42,7 @@ def main():
     run_manual_tests = False
     print_stats = False
     make_total_reward_plot = True
+    load_agent_network = False
 
     if 'manual' in sys.argv:
         run_manual_tests = True
@@ -49,6 +50,8 @@ def main():
         print_stats = True
     if 'save' in sys.argv:
         save_experiment = True
+    if 'load' in sys.argv:
+        load_agent_network = True
 
     if run_manual_tests:
         tests = ManualTestTerminal()
@@ -58,7 +61,12 @@ def main():
     # --- initialization ---
     env = HouseEnergyEnvironment()
     agent = Agent(env=env)
-    num_episodes = 10000
+    if load_agent_network:
+        model_number = input('Enter model number to load\n'
+                             '(e.g. to load network_0 enter 0 etc.)\n')
+        agent.load_model_info(model_number)
+
+    num_episodes = 1000
 
     # clear the contents of log file
     open('rewards.log', 'w').close()
@@ -92,6 +100,8 @@ def main():
     if save_experiment:
         # save to database
         save_to_database(info)
+        # for that moment save to file with method below
+        agent.return_model_info()
 
 
 if __name__ == "__main__":
