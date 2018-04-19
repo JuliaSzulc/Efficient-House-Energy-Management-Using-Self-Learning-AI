@@ -155,11 +155,8 @@ class Agent:
         Note: this method does a training *step*, not whole training
 
         """
-        # TODO make notebook (and maintain it) explaining this function
-        # TODO then move the current comments there
+
         if len(self.memory) > self.batch_size:
-            # Sample random transition batch and transform it into separate
-            # batches (of autograd.Variable type)
             exp_batch = self.get_experience_batch()
 
             input_state_batch = exp_batch[0]
@@ -168,43 +165,19 @@ class Agent:
             next_state_batch = exp_batch[3]
             terminal_mask_batch = exp_batch[4]
 
-            # As q learning states, we want to calculate the error:
-            # Q(s,a) - (r + max{a}{Q(s_next,a)})
-
-            # 1. Calculate Q(s,a) for each input state
             all_q_values = self.q_network(input_state_batch)
 
-            # 2. Retrieve q_values only for actions that were taken
-            # This use of gather function works the same as:
-            # for i in range(len(all_q_values)):
-            #   q_values.append(all_q_values[i][action_batch[i]])
-            # but we cannot use such loop, because Variables are immutable,
-            # so they don't have 'append' function etc.
-            # squeezing magic needed for size mismatches, debug
-            # yourself if you wonder why the're necessary
             q_values = all_q_values. \
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
-            # q_next_max = max{a}{Q(s_next,a)}
-            # Note: We create new Variable after the first line. Why?
-            # We used the network parameters to calculate
-            # q_next_max, but we don't want the backward() function to
-            # propagate twice into these parameters. Creating new Variable
-            # 'cuts' this part of computational graph - prevents it.
             q_next_max = self.q_network(next_state_batch)
             q_next_max = Variable(q_next_max.data)
             q_next_max, _ = q_next_max.max(dim=1)
 
-            # If the next state was terminal, we don't calculate the q value -
-            # the target should be just = r
             q_t1_max_with_terminal = q_next_max.mul(1 - terminal_mask_batch)
 
-            # Calculate the target = r + max{a}{Q(s_next,a)}
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 
-            # calculate the loss (nll -> negative log likelihood/cross entropy)
-            # TODO mse -> nll_loss.
-            # and optimize the parameters
             self.optimizer.zero_grad()
             loss = nn.modules.SmoothL1Loss()(q_values, targets)
             loss.backward()
