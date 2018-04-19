@@ -229,14 +229,12 @@ class Agent:
         new_index = 0
         while True:
             if not os.path.isfile(
-                    'saved_models/q_network_{}.pt'.format(new_index)):
+                    'saved_models/agent_model_{}.pt'.format(new_index)):
                 break
             new_index += 1
 
         torch.save(self.q_network.state_dict(),
-                   'saved_models/q_network_{}.pt'.format(new_index))
-        torch.save(self.target_network.state_dict(),
-                   'saved_models/target_network_{}.pt'.format(new_index))
+                   'saved_models/agent_model_{}.pt'.format(new_index))
 
     def load_model_info(self, model_id):
         """
@@ -252,13 +250,11 @@ class Agent:
         # when we want to load network with different size.
 
         if os.path.isfile(
-                'saved_models/q_network_{}.pt'.format(model_id)):
+                'saved_models/agent_model_{}.pt'.format(model_id)):
             self.q_network. \
-                load_state_dict(torch.load('saved_models/q_network_{}.pt'.
+                load_state_dict(torch.load('saved_models/agent_model_{}.pt'.
                                            format(model_id)))
-            self.target_network. \
-                load_state_dict(torch.load('saved_models/target_network_{}.pt'.
-                                           format(model_id)))
+            self.target_network = self.q_network
         else:
             # FIXME throw an Error
             print('[Warning] No model with entered index.\n'
