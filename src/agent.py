@@ -59,7 +59,7 @@ class Agent:
         self.target_network = None  # this one has "fixed" weights
 
         self.initial_state = None
-        self.current_state = None
+        self.current_state = self.env.reset()
 
         self.memory = Memory(maxlen=5000)
         self.gamma = 0
@@ -120,7 +120,10 @@ class Agent:
 
         """
 
-        self.current_state = self.env.reset()
+        # reset only if we want to start new full training
+        if full_training:
+            self.current_state = self.env.reset()
+
         total_reward = 0
         terminal_state = False
         for a in self.actions:
