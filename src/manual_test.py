@@ -223,8 +223,6 @@ class ManualTestTerminal:
                     # let agent decide here for one action
                     action_index = self.agent.run(False)
 
-                    # pass the action with the step
-                    self.env.step(self.actions[action_index])
                     curr_render = self.env.render()
                     step += 1
 
