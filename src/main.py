@@ -74,7 +74,7 @@ def main():
     # --- learning ---
     rewards = []
     for i in range(num_episodes):
-        t_reward = agent.run(True)  # true cuz we want full training
+        t_reward = agent.run()
 
         with open("rewards.log", "a") as logfile:
             logfile.write("{}\n".format(t_reward))
@@ -96,12 +96,11 @@ def main():
 
     # --- saving results ---
     # TODO: database module
-    info = None
     if save_experiment:
         # save to database
-        save_to_database(info)
+        # save_to_database(info)
         # for that moment save to file with method below
-        agent.return_model_info()
+        agent.save_model_info()
 
 
 if __name__ == "__main__":

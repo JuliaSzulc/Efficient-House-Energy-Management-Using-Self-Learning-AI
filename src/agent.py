@@ -110,20 +110,9 @@ class Agent:
         self.optimizer = optim.Adagrad(self.q_network.parameters(),
                                        lr=self.l_rate)
 
-    def run(self, full_training):
-        """Main agent's function. Performs the deep q-learning algorithm
-
-        Args:
-            full_training(bool): says if we want to train up to terminal state,
-            or we just want to use agents choice for one action
-            if true - run full training, otherwise run for one action.
-
-        """
-
-        # reset only if we want to start new full training
-        if full_training:
-            self.current_state = self.env.reset()
-
+    def run(self):
+        """Main agent's function. Performs the deep q-learning algorithm"""
+        self.current_state = self.env.reset()
         total_reward = 0
         terminal_state = False
         for a in self.actions:
@@ -131,20 +120,19 @@ class Agent:
                              'total_reward': 0}
 
         while not terminal_state:
-            action_index = self._get_next_action()
+            action_index = \
+                self._get_next_action_epsilon_greedy(self.current_state)
+
             next_state, reward, terminal_state = \
                 self.env.step(self.actions[action_index])
 
-            # clip the reward
             if reward < -2:
                 reward = -2
 
             self._update_stats(action_index, reward)
-
             self.memory.append((self.current_state, action_index, reward,
                                 next_state, terminal_state))
 
-            # print("Reward = ", reward)
             self.current_state = next_state
             total_reward += reward
             self._train()
@@ -155,10 +143,6 @@ class Agent:
                                              self.q_network.parameters()):
                 target_param.data.copy_(q_param.data * qt
                                         + target_param.data * (1.0 - qt))
-
-            # if we want just for one action break here
-            if not full_training:
-                return action_index
 
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon, self.epsilon_min)
@@ -226,22 +210,39 @@ class Agent:
             loss.backward()
             self.optimizer.step()
 
-    def _get_next_action(self):
-        """Returns next action given a state with use of the network
+    def get_next_action_greedy(self, state):
+        """
+        Returns next action given a state with use of the target network
+        using a greedy policy. This function should be used if an outside
+        object wants to know the agent's action for the state - not the
+        _get_next_action_epsilon_greedy function!
 
-        Note: this should be epsilon-greedy
+        Args:
+            state(dict): state information used as an input for the network
+
+        """
+
+        outputs = self.target_network.forward(
+            Variable(torch.FloatTensor(state)))
+        return np.argmax(outputs.data.numpy())
+
+    def _get_next_action_epsilon_greedy(self, state):
+        """
+        Returns next action given a state with use of the target network
+        using an epsilon greedy policy. Epsilon is the probability of choosing
+        a random action.
+
+        Args:
+            state(dict): state information used as an input for the network
 
         """
 
         if np.random.random() < self.epsilon:
             return random.randint(0, len(self.actions) - 1)
+        else:
+            return self.get_next_action_greedy(state)
 
-        outputs = self.target_network.forward(
-            Variable(torch.FloatTensor(self.current_state)))
-
-        return np.argmax(outputs.data.numpy())
-
-    def return_model_info(self):
+    def save_model_info(self):
         """
         Method saves all networks models info to a specific files in
         saved_models directory.
@@ -264,11 +265,12 @@ class Agent:
         torch.save(self.target_network.state_dict(),
                    'saved_models/target_network_{}.pt'.format(new_index))
 
-    def load_model_info(self, model_number):
+    def load_model_info(self, model_id):
         """
-        Load all torches networks to agent.
+        Loads the given model to the Agent's network fields.
 
-        :param model_number: specifies model index which user wants to load.
+        Args:
+            model_id(number): model's number used to find the corresponding file
 
         """
         # TODO: In future load from database
@@ -277,14 +279,15 @@ class Agent:
         # when we want to load network with different size.
 
         if os.path.isfile(
-                'saved_models/q_network_{}.pt'.format(model_number)):
+                'saved_models/q_network_{}.pt'.format(model_id)):
             self.q_network. \
                 load_state_dict(torch.load('saved_models/q_network_{}.pt'.
-                                           format(model_number)))
+                                           format(model_id)))
             self.target_network. \
                 load_state_dict(torch.load('saved_models/target_network_{}.pt'.
-                                           format(model_number)))
+                                           format(model_id)))
         else:
+            # FIXME throw an Error
             print('[Warning] No model with entered index.\n'
                   '[Warning] Any models have been loaded.')
 
@@ -325,17 +328,17 @@ class Agent:
 
     def get_episode_stats(self):
         most_common = max(self.stats.items(), key=lambda item:
-        item[1]['count'])
+                          item[1]['count'])
 
         least_common = min(self.stats.items(), key=lambda item:
-        item[1]['count'])
+                           item[1]['count'])
 
         best_mean_reward = max(self.stats.items(), key=lambda item:
-        item[1]['total_reward'] /
-        (item[1]['count'] or 1))
+                               item[1]['total_reward'] /
+                               (item[1]['count'] or 1))
 
         best_total_reward = max(self.stats.items(), key=lambda item:
-        item[1]['total_reward'])
+                                item[1]['total_reward'])
 
         aggregated = {
             'most common action': (

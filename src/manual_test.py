@@ -213,15 +213,17 @@ class ManualTestTerminal:
                         time -= self.env.world.time_step_in_minutes / 60
 
                 elif int(option) == len(self.actions) + 4:
-                    model_number = input('Enter model number to load\n'
-                                         '(e.g. to load network_0 enter 0 etc.)\n')
+                    model_number = input('Enter model number to load\n')
                     self.agent.load_model_info(model_number)
 
                 elif int(option) == len(self.actions) + 5:
                     last_render = curr_render
 
                     # let agent decide here for one action
-                    action_index = self.agent.run(False)
+                    action_index = \
+                        self.agent.get_next_action_greedy(curr_render[2])
+
+                    self.env.step(self.actions[action_index])
 
                     curr_render = self.env.render()
                     step += 1
