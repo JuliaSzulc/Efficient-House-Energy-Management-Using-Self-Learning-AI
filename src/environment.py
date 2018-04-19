@@ -190,6 +190,7 @@ class HouseEnergyEnvironment:
         [ ] temp_epsilon
         [ ] light_desired
         [ ] light_epsilon
+        [ ] grid_cost
         [ ] energy_src
         [ ] cooling_lvl
         [ ] heating_lvl

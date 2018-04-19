@@ -3,9 +3,11 @@ from unittest.mock import MagicMock
 import os, sys
 from collections import OrderedDict
 import math
+import random
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from house import House
+
 
 
 
@@ -287,86 +289,72 @@ class HouseUpdateTestCase(unittest.TestCase):
 
     def test_compare_daytime(self):
         self.assertEqual(self.house.daytime, self.sensor_out_info['daytime'],
-                         "Daytime is not correct.")
+                         "Daytime is different in house and outside sensor!")
 
-    def test_check_accumulated_energy(self):
-        self.assertEqual(self.house.battery['current'], 4000,
-                         "Battery state is not correct")
+    # TODO write proper tests here! We don't really know the true values and we
+    # We will change some inside params a lot.
+    # We should rather expect things like non-negative numbers, or values
+    # from a given
 
-    # TODO write proper test for temp function
+    # def test_check_accumulated_energy(self):
+    #     self.assertEqual(self.house.battery['current'], 4000,
+    #                      "Battery state is not correct")
+    #
     # def test_check_inside_temperature(self):
     #     for sensor, data in self.house.inside_sensors.items():
     #        self.assertEqual(data['temperature'], 21.25,
     #                         "Inside temperature is not correct.")
-
-    def test_check_inside_brightness(self):
-        for sensor, data in self.house.inside_sensors.items():
-            self.assertEqual(data['light'], 0.75,
-                             "Inside brightness is not correct.")
+    #
+    # def test_check_inside_brightness(self):
+    #     for sensor, data in self.house.inside_sensors.items():
+    #         self.assertEqual(data['light'], 0.75,
+    #                          "Inside brightness is not correct.")
 
 
 class HouseEnergyCostTestCase(unittest.TestCase):
     """Testing energy cost calculation method"""
 
     def setUp(self):
-        self.house = House(4)
+        self.house = House(1)
 
-        self.house.grid_cost = 0.5
-        self.house.devices_settings = {
+        self.house.devices_settings = OrderedDict({
+            'energy_src': 'battery',
+            'cooling_lvl': 1.0,
+            'heating_lvl': 1.0,
+            'light_lvl': 1.0,
+            'curtains_lvl': 1.0
+        })
+
+        self.house.battery['current'] = 0.001
+
+    def test_change_source_if_not_enough_energy_in_battery(self):
+        self.house._calculate_energy_cost()
+        self.assertTrue(self.house.devices_settings['energy_src'] == 'grid')
+
+    def test_energy_cost_not_negative(self):
+        self.house.devices_settings = OrderedDict({
             'energy_src': 'grid',
             'cooling_lvl': 0,
-            'heating_lvl': 0.6,
-            'light_lvl': 0.4,
-            'curtains_lvl': 0.8
-        }
-        self.house.devices_power = {
-            'air_conditioner': 1500,
-            'heater': 3000,
-            'light': 20
-        }
+            'heating_lvl': 0,
+            'light_lvl': 0,
+            'curtains_lvl': 0
+        })
 
-    def test_calculate_air_conditioner_cost(self):
-        self.assertEqual(
-            self.house._calculate_device_energy_usage(
-                self.house.devices_power['air_conditioner'],
-                self.house.devices_settings['cooling_lvl']),
-            0,
-            "Wrong air conditioner energy calculation.")
+        self.assertTrue(self.house._calculate_energy_cost() >= 0,
+                        "Energy cost should not be a negative number!\n"
+                        "Settings: \n{}".format(self.house.devices_settings))
 
-    # FIXME write new/updated tests for the method - the value returned
-    # was wrong and now it was changed.
-
-    # def test_calculate_heater_cost(self):
-    #     self.assertEqual(
-    #         float(format(self.house._calculate_device_energy_usage(
-    #             self.house.devices_power['heater'],
-    #             self.house.devices_settings['heating_lvl']), '.2f')),
-    #         0.06,
-    #         "Wrong heater energy calculation.")
-    #
-    # def test_calculate_light_cost(self):
-    #     self.assertEqual(
-    #         float(format(self.house._calculate_device_energy_usage(
-    #             self.house.devices_power['light'],
-    #             self.house.devices_settings['light_lvl']), '.4f')),
-    #         0.0003,
-    #         "Wrong light energy calculation.")
-    #
-    # def test_calculate_energy_cost_for_active_grid(self):
-    #     self.assertEqual(
-    #         float(format(self.house._calculate_energy_cost(), '.4f')),
-    #         0.0603,
-    #         "Wrong total energy cost calculation.")
-
-    def test_calculate_energy_cost_for_active_pv(self):
-        self.house.devices_settings['energy_src'] = 'battery'
-
-        # self.assertEqual(self.house._calculate_energy_cost(), 0,
-                         # "While using photovoltaic energy source,"
-                         # " cost should be 0.")
-        # FIXME: i strongly disagree. When we have used more energy than it was
-        # in the battery, we still have to calculate the cost of the EXTRA
-        # amount, and it is not 0, because we have powered it from the grid!
+        for i in range(100):
+            self.house.devices_settings = OrderedDict({
+                'energy_src': 'grid',
+                'cooling_lvl': random.random(),
+                'heating_lvl': random.random(),
+                'light_lvl': random.random(),
+                'curtains_lvl': random.random()
+            })
+            self.assertTrue(self.house._calculate_energy_cost() >= 0,
+                            "Energy cost should not be a negative number!\n"
+                            "Settings:\n{}".format(self.house.devices_settings))
 
 
 class BasicHouseTestCase(unittest.TestCase):

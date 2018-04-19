@@ -27,8 +27,8 @@ class House:
         self.daytime = 0
 
         #  --- Energy / Light settings ---
-        self.pv_absorption = 50#125  # Watt on max sun intensity (growth on 1 min)
-        self.grid_cost = 0.5  # PLN for 1kWh
+        self.pv_absorption = 50  # Watt/min on max sun intensity
+        self.grid_cost = 0.5
         self.house_isolation_factor = 0.998
         self.house_light_factor = 0.01
         self.max_led_illuminance = 200  # lux
@@ -45,14 +45,13 @@ class House:
         }
 
         #  --- Requests ---
-        # calculation of 'light_desired':
-        # 200 / (max_outside_illumination * house_light_factor
-        #        + max_led_illuminance)
         self.user_requests = {
             'day': OrderedDict({
                 'temp_desired': 21,
                 'temp_epsilon': 0.5,
-                'light_desired': 0.4,
+                'light_desired': 0.4,  # 200 / (max_outside_illumination
+                                       # * house_light_factor
+                                       # + max_led_illuminance)
                 'light_epsilon': 0.05
             }),
             'night': OrderedDict({
@@ -84,8 +83,15 @@ class House:
         # actions influence on current settings - default to 0.2 / min
         self.influence = 0.2 * timeframe
 
+    def _update_grid_cost(self):
+        """Updates the grid cost based on daytime. Expressed in PLN for 1kWh"""
+        if (0 < self.daytime < self.day_start) \
+                or (self.day_end < self.daytime < 1440):
+            self.grid_cost = 0.3
+        else:
+            self.grid_cost = 0.5
+
     def _calculate_light(self, outside_illumination):
-        # probably should include daytime (angle of the sunlight)
         for data in self.inside_sensors.values():
             light = ((outside_illumination * self.house_light_factor)
                      * (1 - self.devices_settings['curtains_lvl'])
@@ -95,7 +101,6 @@ class House:
             data['light'] = truncate(light)
 
     def _calculate_temperature(self, outside_temp):
-        """Calculates new temperature inside"""
         for data in self.inside_sensors.values():
             last_inside_temp = data['temperature']
             temp_delta = (outside_temp - last_inside_temp) \
@@ -125,6 +130,7 @@ class House:
         """
 
         self.daytime = sensor_out_info['daytime']
+        self._update_grid_cost()
         self._calculate_accumulated_energy(sensor_out_info['light'])
         self._calculate_temperature(sensor_out_info['actual_temp'])
         self._calculate_light(sensor_out_info['light']
@@ -148,10 +154,7 @@ class House:
         inside_params = OrderedDict({
             'inside_sensors': self.inside_sensors,
             'desired': self._get_current_user_requests(),
-
-            # FIXME change grid cost to be dependent on daytime
-            # FIXME no point in returning something that is always constant
-            # 'grid_cost': self.grid_cost,
+            'grid_cost': self.grid_cost,
             'devices_settings': self.devices_settings,
             'battery_level': self.battery['current'],
             'battery_delta': self.battery['delta']
@@ -204,9 +207,7 @@ class House:
                              0, self.battery['max'])
                 return 0
             else:
-                # if we have used MORE energy than we had in battery, THEN we
-                # switch energy_source, but we still return the cost of extra
-                # amount, not 0!
+                # Used more energy than we had in battery
                 usage -= self.battery['current']
                 self.devices_settings['energy_src'] = 'grid'
 
