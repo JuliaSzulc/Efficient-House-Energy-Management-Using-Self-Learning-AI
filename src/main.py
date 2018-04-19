@@ -74,7 +74,7 @@ def main():
     # --- learning ---
     rewards = []
     for i in range(num_episodes):
-        t_reward = agent.run()
+        t_reward = agent.run(True)  # true cuz we want full training
 
         with open("rewards.log", "a") as logfile:
             logfile.write("{}\n".format(t_reward))

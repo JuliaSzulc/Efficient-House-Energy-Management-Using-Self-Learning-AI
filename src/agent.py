@@ -110,8 +110,16 @@ class Agent:
         self.optimizer = optim.Adagrad(self.q_network.parameters(),
                                        lr=self.l_rate)
 
-    def run(self):
-        """Main agent's function. Performs the deep q-learning algorithm"""
+    def run(self, full_training):
+        """Main agent's function. Performs the deep q-learning algorithm
+
+        Args:
+            full_training(bool): says if we want to train up to terminal state,
+            or we just want to use agents choice for one action
+            if true - run full training, otherwise run for one action.
+
+        """
+
         self.current_state = self.env.reset()
         total_reward = 0
         terminal_state = False
@@ -144,6 +152,10 @@ class Agent:
                                              self.q_network.parameters()):
                 target_param.data.copy_(q_param.data * qt
                                         + target_param.data * (1.0 - qt))
+
+            # if we want just for one action break here
+            if not full_training:
+                return action_index
 
         self.epsilon *= self.epsilon_decay
         self.epsilon = max(self.epsilon, self.epsilon_min)
