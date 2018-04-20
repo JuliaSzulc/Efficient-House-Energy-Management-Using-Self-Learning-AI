@@ -262,7 +262,7 @@ class Agent:
         except RuntimeError:
             print('[Error] Oops! RuntimeError occurred while loading model.\n'
                   'Check if your saved model data is up to date.\n'
-                  'Maybe it fetches different network size?\n'
+                  'Maybe it fits different network size?\n'
                   'Exiting...')
             raise SystemExit
 
