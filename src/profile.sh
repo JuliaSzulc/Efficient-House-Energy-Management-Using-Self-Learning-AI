@@ -1,7 +1,7 @@
 #!/bin/bash
 var=$(pip list | grep "snakeviz" | wc -l )
 if [[ $var -eq 0 ]]; then
-    pip install snakeviz
+    pip install --user snakeviz
   fi
 
 if [ -z $1 ]; then
