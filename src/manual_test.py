@@ -33,7 +33,7 @@ class ManualTestTerminal:
 
         """
 
-        curr_render = last_render = self.env.render()
+        curr_render = last_render = self.env.render
 
         # create len(curr_render[0]) lists for plots
         values_for_plt = [[] for y in range(len(curr_render[0]))]
@@ -170,7 +170,7 @@ class ManualTestTerminal:
 
                     # pass the action with the step
                     self.env.step(self.actions[int(option) - 1])
-                    curr_render = self.env.render()
+                    curr_render = self.env.render
                     step += 1
 
                 elif int(option) == len(self.actions) + 1:
@@ -179,7 +179,7 @@ class ManualTestTerminal:
                         log_file.write('\n----- New Test ----\n\n')
                         step = 0
                         self.env.reset()
-                        last_render = curr_render = self.env.render()
+                        last_render = curr_render = self.env.render
                         for i in values_for_plt:
                             i.clear()
 
@@ -203,7 +203,7 @@ class ManualTestTerminal:
                         # pass the action with the step
                         self.env.step('action_nop')
 
-                        curr_render = self.env.render()
+                        curr_render = self.env.render
                         step += 1
 
                         # update lists for plots
@@ -225,7 +225,7 @@ class ManualTestTerminal:
 
                     self.env.step(self.actions[action_index])
 
-                    curr_render = self.env.render()
+                    curr_render = self.env.render
                     step += 1
 
                     print('Agent decided to do: {}'.format(
