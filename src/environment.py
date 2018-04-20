@@ -125,6 +125,7 @@ class HouseEnergyEnvironment:
             'Temp_epsilon: ',
             'Light_desired: ',
             'Light_epsilon: ',
+            'Grid_cost: ',
             'Energy_src: ',
             'Cooling_lvl: ',
             'Heating_lvl: ',
