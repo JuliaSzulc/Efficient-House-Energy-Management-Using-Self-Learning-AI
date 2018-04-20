@@ -221,7 +221,7 @@ class ManualTestTerminal:
 
                     # let agent decide here for one action
                     action_index = \
-                        self.agent.get_next_action_greedy(curr_render[2])
+                        self.agent.get_next_action_greedy(curr_render[2][:-1])
 
                     self.env.step(self.actions[action_index])
 
@@ -238,7 +238,7 @@ class ManualTestTerminal:
                     raise ValueError()
 
             except ValueError:
-                print("Invalid option!")
+                print("Oops!   Invalid option!")
 
         # while end, close file and save logs
         log_file.close()

@@ -246,19 +246,25 @@ class Agent:
         """
         # TODO: In future load from database
 
-        # FIXME: Add support for error
-        # when we want to load network with different size.
+        try:
+            if os.path.isfile(
+                    'saved_models/agent_model_{}.pt'.format(model_id)):
+                self.q_network. \
+                    load_state_dict(torch.load('saved_models/agent_model_{}.pt'.
+                                               format(model_id)))
+                self.target_network = self.q_network
+            else:
+                print('[Error] No model with entered index.\n'
+                      'Any models have been loaded.\n'
+                      'Exiting...')
+                raise SystemExit
 
-        if os.path.isfile(
-                'saved_models/agent_model_{}.pt'.format(model_id)):
-            self.q_network. \
-                load_state_dict(torch.load('saved_models/agent_model_{}.pt'.
-                                           format(model_id)))
-            self.target_network = self.q_network
-        else:
-            # FIXME throw an Error
-            print('[Warning] No model with entered index.\n'
-                  '[Warning] Any models have been loaded.')
+        except RuntimeError:
+            print('[Error] Oops! RuntimeError occurred while loading model.\n'
+                  'Check if your saved model data is up to date.\n'
+                  'Maybe it has different size?\n'
+                  'Exiting...')
+            raise SystemExit
 
     def get_experience_batch(self):
         """
@@ -297,17 +303,17 @@ class Agent:
 
     def get_episode_stats(self):
         most_common = max(self.stats.items(), key=lambda item:
-                          item[1]['count'])
+        item[1]['count'])
 
         least_common = min(self.stats.items(), key=lambda item:
-                           item[1]['count'])
+        item[1]['count'])
 
         best_mean_reward = max(self.stats.items(), key=lambda item:
-                               item[1]['total_reward'] /
-                               (item[1]['count'] or 1))
+        item[1]['total_reward'] /
+        (item[1]['count'] or 1))
 
         best_total_reward = max(self.stats.items(), key=lambda item:
-                                item[1]['total_reward'])
+        item[1]['total_reward'])
 
         aggregated = {
             'most common action': (
