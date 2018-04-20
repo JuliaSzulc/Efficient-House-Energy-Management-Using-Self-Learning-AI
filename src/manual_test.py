@@ -6,6 +6,7 @@ changes in environment, and also visualize them on a plot.
 
 """
 
+from agent import Agent
 from environment import HouseEnergyEnvironment
 import matplotlib.pyplot as plt
 
@@ -19,14 +20,9 @@ class ManualTestTerminal:
     """
 
     def __init__(self):
-        """
-        Args:
-            env (HouseEnergyEnvironment) - object to operate
-            actions (list) - available actions to make
-
-        """
 
         self.env = HouseEnergyEnvironment()
+        self.agent = Agent(env=self.env)
         self.actions = self.env.get_actions()
 
     def manual_testing(self):
@@ -37,7 +33,7 @@ class ManualTestTerminal:
 
         """
 
-        curr_render = last_render = self.env.render()
+        curr_render = last_render = self.env.render
 
         # create len(curr_render[0]) lists for plots
         values_for_plt = [[] for y in range(len(curr_render[0]))]
@@ -73,22 +69,31 @@ class ManualTestTerminal:
                     j += 1
                 elif i == 4:
                     sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Exit tests {3:10} |\n' \
-                            .format(i, action, j, ' ')
+                        '| {0:2}) {1:25} | {2:2}) Load agents model     |\n' \
+                            .format(i, action, j)
                     j += 1
                 elif i == 5:
                     sub_menu_actions += \
+                        '| {0:2}) {1:25} | {2:2}) Let agent decide      |\n' \
+                            .format(i, action, j)
+                    j += 1
+                elif i == 6:
+                    sub_menu_actions += \
+                        '| {0:2}) {1:25} | {2:2}) Exit tests {3:10} |\n' \
+                            .format(i, action, j, ' ')
+                elif i == 7:
+                    sub_menu_actions += \
                         '| {0:2}) {1:25} |---------------------------|\n' \
                             .format(i, action)
-                elif i == 6:
+                elif i == 8:
                     sub_menu_actions += \
                         '| {0:2}) {1:25} | Current step: {2:10}  |\n' \
                             .format(i, action, step)
-                elif i == 7:
+                elif i == 9:
                     sub_menu_actions += \
                         '| {0:2}) {1:25} | Current time: {2:10}  |\n' \
                             .format(i, action, ' ')
-                elif i == 8:
+                elif i == 10:
                     sub_menu_actions += \
                         '| {0:2}) {1:25} | {2}       |\n' \
                             .format(i, action, self.env.world.current_date)
@@ -165,17 +170,19 @@ class ManualTestTerminal:
 
                     # pass the action with the step
                     self.env.step(self.actions[int(option) - 1])
-                    curr_render = self.env.render()
+                    curr_render = self.env.render
                     step += 1
+
                 elif int(option) == len(self.actions) + 1:
                     file_auto_log = not file_auto_log
                     if file_auto_log:
                         log_file.write('\n----- New Test ----\n\n')
                         step = 0
                         self.env.reset()
-                        last_render = curr_render = self.env.render()
+                        last_render = curr_render = self.env.render
                         for i in values_for_plt:
                             i.clear()
+
                 elif int(option) == len(self.actions) + 2:
                     # what to skipp on plot
                     skip_list = [int(x) for x in input(
@@ -186,6 +193,7 @@ class ManualTestTerminal:
                             plt.plot(values_for_plt[i], label=curr_render[0][i])
                     plt.legend()
                     plt.show()
+
                 elif int(option) == len(self.actions) + 3:
                     time = float(input('Pass time in hour:\n'))
                     while time - self.env.world.time_step_in_minutes / 60 >= 0:
@@ -195,7 +203,7 @@ class ManualTestTerminal:
                         # pass the action with the step
                         self.env.step('action_nop')
 
-                        curr_render = self.env.render()
+                        curr_render = self.env.render
                         step += 1
 
                         # update lists for plots
@@ -205,11 +213,32 @@ class ManualTestTerminal:
                         time -= self.env.world.time_step_in_minutes / 60
 
                 elif int(option) == len(self.actions) + 4:
+                    model_number = input('Enter model number to load\n')
+                    self.agent.load_model_info(model_number)
+
+                elif int(option) == len(self.actions) + 5:
+                    last_render = curr_render
+
+                    # let agent decide here for one action
+                    action_index = \
+                        self.agent.get_next_action_greedy(curr_render[2][:-1])
+
+                    self.env.step(self.actions[action_index])
+
+                    curr_render = self.env.render
+                    step += 1
+
+                    print('Agent decided to do: {}'.format(
+                        self.actions[action_index]))
+
+                elif int(option) == len(self.actions) + 6:
                     break
+
                 else:
                     raise ValueError()
+
             except ValueError:
-                print("Invalid option!")
+                print("Oops!   Invalid option!")
 
         # while end, close file and save logs
         log_file.close()

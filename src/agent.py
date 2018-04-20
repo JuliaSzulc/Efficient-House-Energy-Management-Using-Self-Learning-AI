@@ -64,7 +64,7 @@ class Agent:
         self.target_network = None  # this one has "fixed" weights
 
         self.initial_state = None
-        self.current_state = None
+        self.current_state = self.env.reset()
 
         self.memory = Memory(maxlen=5000)
         self.gamma = 0
@@ -108,25 +108,14 @@ class Agent:
         )
 
         if USE_CUDA:
-            self.q_network = Net(
-                input_size,
-                hidden1_size,
-                hidden2_size,
-                output_size).cuda()
             self.q_network.cuda()
-
-            self.target_network = Net(
-                input_size,
-                hidden1_size,
-                hidden2_size,
-                output_size).cuda()
             self.target_network.cuda()
 
         self.gamma = 0.9
         self.epsilon = 0.1
         self.epsilon_decay = 0.99
         self.epsilon_min = 0.001
-        self.batch_size = 512
+        self.batch_size = 16
         self.l_rate = 0.01
         self.optimizer = optim.Adagrad(self.q_network.parameters(),
                                        lr=self.l_rate)
@@ -141,11 +130,12 @@ class Agent:
                              'total_reward': 0}
 
         while not terminal_state:
-            action_index = self._get_next_action()
+            action_index = \
+                self._get_next_action_epsilon_greedy(self.current_state)
+
             next_state, reward, terminal_state = \
                 self.env.step(self.actions[action_index])
 
-            # clip the reward
             if reward < -2:
                 reward = -2
 
@@ -153,7 +143,6 @@ class Agent:
             self.memory.append((self.current_state, action_index, reward,
                                 next_state, terminal_state))
 
-            # print("Reward = ", reward)
             self.current_state = next_state
             total_reward += reward
             self._train()
@@ -176,11 +165,8 @@ class Agent:
         Note: this method does a training *step*, not whole training
 
         """
-        # TODO make notebook (and maintain it) explaining this function
-        # TODO then move the current comments there
+
         if len(self.memory) > self.batch_size:
-            # Sample random transition batch and transform it into separate
-            # batches (of autograd.Variable type)
             exp_batch = self.get_experience_batch()
 
             input_state_batch = exp_batch[0]
@@ -196,61 +182,40 @@ class Agent:
                 next_state_batch = next_state_batch.cuda()
                 terminal_mask_batch = terminal_mask_batch.cuda()
 
-            # As q learning states, we want to calculate the error:
-            # Q(s,a) - (r + max{a}{Q(s_next,a)})
-
-            # 1. Calculate Q(s,a) for each input state
             all_q_values = self.q_network(input_state_batch)
 
             if USE_CUDA:
                 all_q_values = all_q_values.cuda()
-            # 2. Retrieve q_values only for actions that were taken
-            # This use of gather function works the same as:
-            # for i in range(len(all_q_values)):
-            #   q_values.append(all_q_values[i][action_batch[i]])
-            # but we cannot use such loop, because Variables are immutable,
-            # so they don't have 'append' function etc.
-            # squeezing magic needed for size mismatches, debug
-            # yourself if you wonder why the're necessary
+
             q_values = all_q_values. \
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
-            # q_next_max = max{a}{Q(s_next,a)}
-            # Note: We create new Variable after the first line. Why?
-            # We used the network parameters to calculate
-            # q_next_max, but we don't want the backward() function to
-            # propagate twice into these parameters. Creating new Variable
-            # 'cuts' this part of computational graph - prevents it.
             q_next_max = self.q_network(next_state_batch)
             q_next_max = Variable(q_next_max.data)
             if USE_CUDA:
                 q_next_max.cuda()
             q_next_max, _ = q_next_max.max(dim=1)
 
-            # If the next state was terminal, we don't calculate the q value -
-            # the target should be just = r
             q_t1_max_with_terminal = q_next_max.mul(1 - terminal_mask_batch)
 
-            # Calculate the target = r + max{a}{Q(s_next,a)}
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 
-            # calculate the loss (nll -> negative log likelihood/cross entropy)
-            # TODO mse -> nll_loss.
-            # and optimize the parameters
             self.optimizer.zero_grad()
             loss = nn.modules.SmoothL1Loss()(q_values, targets)
             loss.backward()
             self.optimizer.step()
 
-    def _get_next_action(self):
-        """Returns next action given a state with use of the network
+    def get_next_action_greedy(self, state):
+        """
+        Returns next action given a state with use of the target network
+        using a greedy policy. This function should be used if an outside
+        object wants to know the agent's action for the state - not the
+        _get_next_action_epsilon_greedy function!
 
-        Note: this should be epsilon-greedy
+        Args:
+            state(dict): state information used as an input for the network
 
         """
-
-        if np.random.random() < self.epsilon:
-            return random.randint(0, len(self.actions) - 1)
 
         outputs = self.target_network.forward(
             autograd.Variable(
@@ -259,7 +224,23 @@ class Agent:
 
         return np.argmax(outputs.data.cpu().numpy())
 
-    def return_model_info(self):
+    def _get_next_action_epsilon_greedy(self, state):
+        """
+        Returns next action given a state with use of the target network
+        using an epsilon greedy policy. Epsilon is the probability of choosing
+        a random action.
+
+        Args:
+            state(dict): state information used as an input for the network
+
+        """
+
+        if np.random.random() < self.epsilon:
+            return random.randint(0, len(self.actions) - 1)
+        else:
+            return self.get_next_action_greedy(state)
+
+    def save_model_info(self):
         """
         Method saves all networks models info to a specific files in
         saved_models directory.
@@ -273,38 +254,42 @@ class Agent:
         new_index = 0
         while True:
             if not os.path.isfile(
-                    'saved_models/q_network_{}.pt'.format(new_index)):
+                    'saved_models/agent_model_{}.pt'.format(new_index)):
                 break
             new_index += 1
 
         torch.save(self.q_network.state_dict(),
-                   'saved_models/q_network_{}.pt'.format(new_index))
-        torch.save(self.target_network.state_dict(),
-                   'saved_models/target_network_{}.pt'.format(new_index))
+                   'saved_models/agent_model_{}.pt'.format(new_index))
 
-    def load_model_info(self, model_number):
+    def load_model_info(self, model_id):
         """
-        Load all torches networks to agent.
+        Loads the given model to the Agent's network fields.
 
-        :param model_number: specifies model index which user wants to load.
+        Args:
+            model_id(number): model's number used to find the corresponding file
 
         """
         # TODO: In future load from database
 
-        # FIXME: Add support for error
-        # when we want to load network with different size.
+        try:
+            if os.path.isfile(
+                    'saved_models/agent_model_{}.pt'.format(model_id)):
+                self.q_network. \
+                    load_state_dict(torch.load('saved_models/agent_model_{}.pt'.
+                                               format(model_id)))
+                self.target_network = self.q_network
+            else:
+                print('[Error] No model with entered index.\n'
+                      'Any models have been loaded.\n'
+                      'Exiting...')
+                raise SystemExit
 
-        if os.path.isfile(
-                'saved_models/q_network_{}.pt'.format(model_number)):
-            self.q_network. \
-                load_state_dict(torch.load('saved_models/q_network_{}.pt'.
-                                           format(model_number)))
-            self.target_network. \
-                load_state_dict(torch.load('saved_models/target_network_{}.pt'.
-                                           format(model_number)))
-        else:
-            print('[Warning] No model with entered index.\n'
-                  '[Warning] Any models have been loaded.')
+        except RuntimeError:
+            print('[Error] Oops! RuntimeError occurred while loading model.\n'
+                  'Check if your saved model data is up to date.\n'
+                  'Maybe it fits different network size?\n'
+                  'Exiting...')
+            raise SystemExit
 
     def get_experience_batch(self):
         """
@@ -328,13 +313,11 @@ class Agent:
         # Float Tensors
         for i in [0, 2, 3, 4]:
             exp_batch[i] = Variable(dtype(
-                [x[i] for x in transition_batch])).cuda() if USE_CUDA else \
-                Variable(dtype([x[i] for x in transition_batch]))
+                [x[i] for x in transition_batch]))
 
         # Long Tensor for actions
         exp_batch[1] = Variable(dlongtype(
-            [int(x[1]) for x in transition_batch])).cuda() if USE_CUDA \
-            else Variable(dlongtype([int(x[1]) for x in transition_batch]))
+            [int(x[1]) for x in transition_batch]))
 
         return exp_batch
 

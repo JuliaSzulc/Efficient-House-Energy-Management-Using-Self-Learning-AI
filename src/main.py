@@ -8,12 +8,12 @@ You can run this file with additional arguments:
     save    - saves experiment results
 
 """
-from agent import Agent
-from environment import HouseEnergyEnvironment
+import sys
+import numpy as np
 import matplotlib.pyplot as plt
 from manual_test import ManualTestTerminal
-import numpy as np
-import sys
+from environment import HouseEnergyEnvironment
+from agent import Agent
 
 
 def save_to_database(info):
@@ -43,6 +43,8 @@ def main():
     print_stats = False
     make_total_reward_plot = True
     load_agent_network = False
+    safemode = False
+    quiet = False
 
     if 'manual' in sys.argv:
         run_manual_tests = True
@@ -52,6 +54,14 @@ def main():
         save_experiment = True
     if 'load' in sys.argv:
         load_agent_network = True
+    if 'plot=False' in sys.argv:
+        make_total_reward_plot = False
+    if 'plot=True' in sys.argv:
+        make_total_reward_plot = True
+    if 'safemode' in sys.argv:
+        safemode = True
+    if 'quiet' in sys.argv:
+        quiet = True
 
     if run_manual_tests:
         tests = ManualTestTerminal()
@@ -66,20 +76,25 @@ def main():
                              '(e.g. to load network_0 enter 0 etc.)\n')
         agent.load_model_info(model_number)
 
-    num_episodes = 1000
+    num_episodes = 20
 
     # clear the contents of log file
     open('rewards.log', 'w').close()
 
     # --- learning ---
     rewards = []
+    print("running...")
     for i in range(num_episodes):
         t_reward = agent.run()
-
-        with open("rewards.log", "a") as logfile:
-            logfile.write("{}\n".format(t_reward))
-
         rewards.append(t_reward)
+
+        if safemode:
+            with open("rewards.log", "a") as logfile:
+                logfile.write("{}\n".format(t_reward))
+
+        if quiet:
+            continue
+
         print("episode {} / {} | Reward: {}".format(i, num_episodes, t_reward))
         if print_stats:
             print_episode_stats(agent.get_episode_stats())
@@ -88,7 +103,7 @@ def main():
     if make_total_reward_plot:
         avg_rewards = []
         avg = 10  # has to be a divisor of num_episodes
-        for i in range(num_episodes // avg):
+        for i in range(num_episodes // (avg or 1)):
             avg_rewards.append(np.mean(rewards[avg * i: avg * (i + 1)]))
 
         plt.plot(avg_rewards)
@@ -96,12 +111,11 @@ def main():
 
     # --- saving results ---
     # TODO: database module
-    info = None
     if save_experiment:
         # save to database
-        save_to_database(info)
+        # save_to_database(info)
         # for that moment save to file with method below
-        agent.return_model_info()
+        agent.save_model_info()
 
 
 if __name__ == "__main__":

@@ -33,6 +33,8 @@ class HouseEnergyEnvironment:
         self.outside_sensors = None
         self.house = None
 
+        self.last_reward = 0
+
         self.reset()
 
     def step(self, action_name):
@@ -53,8 +55,8 @@ class HouseEnergyEnvironment:
         getattr(self.house, action_name)()
         done = self.world.step()
         observation = self._serialize_state(self._get_current_state())
-        reward = self.house.reward()
-        return observation, reward, done
+        self.last_reward = self.house.reward()
+        return observation, self.last_reward, done
 
     def reset(self):
         """(Re)initializes the environment
@@ -76,6 +78,7 @@ class HouseEnergyEnvironment:
 
         return self._serialize_state(self._get_current_state())
 
+    @property
     def render(self):
         """Outputs the state of environment in a human-readable format
 
@@ -84,7 +87,7 @@ class HouseEnergyEnvironment:
             data(numpy array) - values of environment parameters
         """
 
-        reward = self.house.reward()
+        reward = self.last_reward
 
         # --- unnormalized ---
         unnormalized_dataset = []
@@ -125,6 +128,7 @@ class HouseEnergyEnvironment:
             'Temp_epsilon: ',
             'Light_desired: ',
             'Light_epsilon: ',
+            'Grid_cost: ',
             'Energy_src: ',
             'Cooling_lvl: ',
             'Heating_lvl: ',
@@ -190,6 +194,7 @@ class HouseEnergyEnvironment:
         [ ] temp_epsilon
         [ ] light_desired
         [ ] light_epsilon
+        [ ] grid_cost
         [ ] energy_src
         [ ] cooling_lvl
         [ ] heating_lvl
