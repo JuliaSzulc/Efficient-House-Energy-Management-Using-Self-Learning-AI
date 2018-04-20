@@ -107,4 +107,5 @@ ENV/
 # texowe smieci
 *.aux
 *.synctex.gz
+*.profile
 
