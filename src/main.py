@@ -39,7 +39,7 @@ def main():
 
     # --- configuration ---
     save_experiment = False
-    run_manual_tests = True1
+    run_manual_tests = False
     print_stats = False
     make_total_reward_plot = True
     load_agent_network = False
