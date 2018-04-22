@@ -170,11 +170,28 @@ class Agent:
             q_values = all_q_values. \
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
-            q_next_max = self.q_network(next_state_batch)
-            q_next_max = Variable(q_next_max.data)
-            q_next_max, _ = q_next_max.max(dim=1)
+            # DO TEGO MIEJSCA BYŁO TAK SAMO. TERAZ:
 
-            q_t1_max_with_terminal = q_next_max.mul(1 - terminal_mask_batch)
+            # Ydouble =
+            # = r + Q(s_next, argmax{a}{Q(s_next,a; q_network)}; target_network)
+
+            # PO KAWAŁKU:
+            # Q2 = Q(s_next, a; q_network)
+            # AKCJE = argmax{a}{Q2}
+            # Q1 = Q(s_next, AKCJE; target_network)
+            # Ydouble = r + Q1
+
+            Q2 = self.q_network(next_state_batch)
+            Q2 = Variable(Q2.data)
+            _, AKCJE = Q2.max(dim=1)
+
+            Q1 = self.target_network(next_state_batch)
+            Q1 = Q1. \
+                gather(1, AKCJE.unsqueeze(1)).squeeze()
+
+            q_t1_max_with_terminal = Q1.mul(1 - terminal_mask_batch)
+
+            # KONIEC ZMIAN
 
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 
