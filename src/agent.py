@@ -69,6 +69,7 @@ class Agent:
         self.batch_size = 0
         self.l_rate = 0
         self.optimizer = None
+        self.state_counter = 0
 
         self.stats = dict()
 
@@ -76,6 +77,7 @@ class Agent:
 
     def reset(self):
         """Initialize the networks and other parameters"""
+        self.state_counter = 0
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
 
@@ -120,6 +122,7 @@ class Agent:
                              'total_reward': 0}
 
         while not terminal_state:
+            self.state_counter = (self.state_counter + 1) % 100
             action_index = \
                 self._get_next_action_epsilon_greedy(self.current_state)
 
@@ -138,7 +141,9 @@ class Agent:
             self._train()
 
             # Update the target network:
-            qt = 0.2  # q to target ratio
+            qt = 0.1  # q to target ratio
+            if self.state_counter == 0:
+                qt = 1.0
             for target_param, q_param in zip(self.target_network.parameters(),
                                              self.q_network.parameters()):
                 target_param.data.copy_(q_param.data * qt
@@ -177,8 +182,8 @@ class Agent:
 
             # PO KAWAŁKU:
             # Q2 = Q(s_next, a; q_network)
-            # AKCJE = argmax{a}{Q2}
-            # Q1 = Q(s_next, AKCJE; target_network)
+            # AKCJA = argmax{a}{Q2}
+            # Q1 = Q(s_next, AKCJA; target_network)
             # Ydouble = r + Q1
 
             Q2 = self.q_network(next_state_batch)
@@ -186,6 +191,7 @@ class Agent:
             _, AKCJE = Q2.max(dim=1)
 
             Q1 = self.target_network(next_state_batch)
+            Q1 = Variable(Q1.data)
             Q1 = Q1. \
                 gather(1, AKCJE.unsqueeze(1)).squeeze()
 
