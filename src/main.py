@@ -76,7 +76,7 @@ def main():
                              '(e.g. to load network_0 enter 0 etc.)\n')
         agent.load_model_info(model_number)
 
-    num_episodes = 1000
+    num_episodes = 10000
 
     # clear the contents of log file
     open('rewards.log', 'w').close()
