@@ -103,9 +103,12 @@ ENV/
 .idea/
 *~
 *.swp
+*.swo
 # *.log (already defined higher)
 # texowe smieci
 *.aux
 *.synctex.gz
 *.profile
+# modele
+src/saved_models/*
 
