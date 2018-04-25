@@ -55,10 +55,12 @@ def save_model_info(agent, loaded_model_id, data_to_save):
     # ==========================================================================
     # check if any model was loaded before and recover its data
 
-    if loaded_model_id != -1 and os.path.isfile(
-            'saved_models/model_{}/rewards.log'.format(loaded_model_id)):
-        copyfile('saved_models/model_{}/rewards.log'.format(loaded_model_id),
-                 'saved_models/model_{}/rewards.log'.format(new_index))
+    if loaded_model_id != -1:
+        if os.path.isfile(
+                'saved_models/model_{}/rewards.log'.format(loaded_model_id)):
+            copyfile(
+                'saved_models/model_{}/rewards.log'.format(loaded_model_id),
+                'saved_models/model_{}/rewards.log'.format(new_index))
 
     # ==========================================================================
     # save new data part
@@ -69,6 +71,12 @@ def save_model_info(agent, loaded_model_id, data_to_save):
     logfile = open("saved_models/model_{}/rewards.log".format(new_index), "a")
     for reward in data_to_save[0]:
         logfile.write("{}\n".format(reward))
+    logfile.close()
+
+    other_model_data = agent.get_model_info()
+    logfile = open("saved_models/model_{}/values.cfg".format(new_index), "w")
+    for key, value in other_model_data[0]:
+        logfile.write("{:25} {}\n".format(key, value))
     logfile.close()
 
 

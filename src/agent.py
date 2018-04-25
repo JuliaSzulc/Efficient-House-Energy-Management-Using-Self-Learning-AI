@@ -253,10 +253,18 @@ class Agent:
         Method returns all networks models.
 
         Returns:
-            q_network.state_dict() - all values of q_network
+            model_params() - all values of q_network
         """
 
-        return self.q_network.state_dict()
+        model_params = {
+            'Gamma': self.gamma,
+            'Epsilon': self.epsilon,
+            'Epsilon_decay': self.epsilon_decay,
+            'Epsilon_min': self.epsilon_min,
+            'Batch_size': self.batch_size,
+            'Learning_rate': self.l_rate,
+        }
+        return model_params.items(), self.q_network.state_dict()
 
     def set_model_info(self, path):
         """
