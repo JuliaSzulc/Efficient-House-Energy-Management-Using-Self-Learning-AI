@@ -12,7 +12,6 @@ import torch
 from torch import autograd, optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-import os
 
 
 class Net(torch.nn.Module):
@@ -238,56 +237,39 @@ class Agent:
         else:
             return self.get_next_action_greedy(state)
 
-    def save_model_info(self):
+    def save_network_model(self, path):
         """
-        Method saves all networks models info to a specific files in
-        saved_models directory.
-
-        """
-        # TODO: In future save to database
-
-        if not os.path.exists('saved_models'):
-            os.makedirs('saved_models')
-
-        new_index = 0
-        while True:
-            if not os.path.isfile(
-                    'saved_models/agent_model_{}.pt'.format(new_index)):
-                break
-            new_index += 1
-
-        torch.save(self.q_network.state_dict(),
-                   'saved_models/agent_model_{}.pt'.format(new_index))
-
-    def load_model_info(self, model_id):
-        """
-        Loads the given model to the Agent's network fields.
+        Saves Agents networks state to file with specified path.
 
         Args:
-            model_id(number): model's number used to find the corresponding file
+            path(str): says where save Agents networks states
 
         """
-        # TODO: In future load from database
 
-        try:
-            if os.path.isfile(
-                    'saved_models/agent_model_{}.pt'.format(model_id)):
-                self.q_network. \
-                    load_state_dict(torch.load('saved_models/agent_model_{}.pt'.
-                                               format(model_id)))
-                self.target_network = self.q_network
-            else:
-                print('[Error] No model with entered index.\n'
-                      'Any models have been loaded.\n'
-                      'Exiting...')
-                raise SystemExit
+        torch.save(self.q_network.state_dict(), path)
 
-        except RuntimeError:
-            print('[Error] Oops! RuntimeError occurred while loading model.\n'
-                  'Check if your saved model data is up to date.\n'
-                  'Maybe it fits different network size?\n'
-                  'Exiting...')
-            raise SystemExit
+    def get_model_info(self):
+        """
+        Method returns all networks models.
+
+        Returns:
+            q_network.state_dict() - all values of q_network
+        """
+
+        return self.q_network.state_dict()
+
+    def set_model_info(self, path):
+        """
+        Sets the given model to the Agent's network fields.
+
+        Args:
+            path(str): says from where load model
+
+        """
+
+        self.q_network. \
+            load_state_dict(torch.load(path))
+        self.target_network = self.q_network
 
     def get_experience_batch(self):
         """
