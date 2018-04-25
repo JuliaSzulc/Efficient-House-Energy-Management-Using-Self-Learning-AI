@@ -9,7 +9,6 @@ changes in environment, and also visualize them on a plot.
 from agent import Agent
 from environment import HouseEnergyEnvironment
 import matplotlib.pyplot as plt
-import os
 
 
 class ManualTestTerminal:
@@ -25,34 +24,6 @@ class ManualTestTerminal:
         self.env = HouseEnergyEnvironment()
         self.agent = Agent(env=self.env)
         self.actions = self.env.get_actions()
-
-    def load_model_info(self, agent, model_id):
-        """
-        Loads the given model to the Agent's network fields.
-
-        Args:
-            agent(Agent): agent object which we want to load
-            model_id(number): model's number used to find the corresponding file
-
-        """
-
-        try:
-            if os.path.isfile(
-                    'saved_models/model_{}/network.pt'.format(model_id)):
-                agent.set_model_info('saved_models/model_{}/network.pt'.
-                                     format(model_id))
-            else:
-                print('[Error] No model with entered index.\n'
-                      'Any models have been loaded.\n'
-                      'Exiting...')
-                raise SystemExit
-
-        except RuntimeError:
-            print('[Error] Oops! RuntimeError occurred while loading model.\n'
-                  'Check if your saved model data is up to date.\n'
-                  'Maybe it fits different network size?\n'
-                  'Exiting...')
-            raise SystemExit
 
     def manual_testing(self):
         """Run manual testing menu to check project integrity
