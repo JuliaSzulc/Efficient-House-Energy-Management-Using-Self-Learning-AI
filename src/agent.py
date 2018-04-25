@@ -266,7 +266,7 @@ class Agent:
         }
         return model_params.items(), self.q_network.state_dict()
 
-    def set_model_info(self, path):
+    def load_network_model(self, path):
         """
         Sets the given model to the Agent's network fields.
 

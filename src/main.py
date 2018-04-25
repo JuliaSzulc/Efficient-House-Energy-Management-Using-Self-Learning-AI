@@ -93,8 +93,8 @@ def load_model_info(agent, model_id):
     try:
         if os.path.isfile(
                 'saved_models/model_{}/network.pt'.format(model_id)):
-            agent.set_model_info('saved_models/model_{}/network.pt'.
-                                 format(model_id))
+            agent.load_network_model('saved_models/model_{}/network.pt'.
+                                     format(model_id))
         else:
             print('[Error] No model with entered index.\n'
                   'Any models have been loaded.\n'
