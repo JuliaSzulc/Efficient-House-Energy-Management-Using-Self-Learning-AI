@@ -44,10 +44,11 @@ Zadaniem osoby z ramienia uczelni (w przypadku naszego projektu, prof. Michał W
 
 W projekcie w celu utrzymania wysokiej jakości systemu zostały zdefiniowane reguły akceptacji na każdym z etapów pracy projektowej. 
 
-Dla zadań związanych z tworzeniem dokumentacji, po przygotowaniu danego etapu, każdy z członków zespołu musi się z nim zapoznać, oraz zgłosić ewentualne uwagi. Następnie zadanie to jest przekazywane do prof. Woźniaka w celu weryfikacji, następnie, gdy zostaną zgłoszone uwagi, zadanie to trafia do poprawy i po poprawie, zadanie jest wysyłane i uznawane za zakończone. 
+Dla zadań związanych z tworzeniem dokumentacji, po przygotowaniu danego etapu, każdy z członków zespołu musi się z nim zapoznać, oraz zgłosić ewentualne uwagi. Następnie zadanie to jest przekazywane do prof. Woźniaka w celu weryfikacji, następnie, gdy zostaną zgłoszone uwagi, zadanie to trafia do poprawy i~po poprawie, zadanie jest wysyłane i uznawane za zakończone. 
 Każde zadanie związane z tworzeniem kodu systemu również posiada kryteria jakości, takie jak testy jednostkowe oraz manualne sprawdzenie działania stworzonej w ramach tego zadania funkcjonalności. Następnie taki kod przechodzi przez etap Code Review przez pozostałych członków zespołu, nieuczestniczących bezpośrednio przy danym zadaniu.
 Regularnie odbywają się również testy integracyjne całego systemu, aby mieć pewność, że działa on bez zarzutów.
 \mbox{}\\\mbox{}\\\mbox{}\\
+
 W projekcie został stworzony również dokument odpowiedzialny za kod źródłowy systemu. Opisane są w~nim szczegółowo konwencje na temat
 \begin{itemize}
 \item formatowania kodu
@@ -57,5 +58,81 @@ W projekcie został stworzony również dokument odpowiedzialny za kod źródło
 \item nazewnictwa zmiennych i metod
 \item pracy z systemem kontroli wersji (nazewnictwo commitów i branchy)
 \end{itemize}
+
+
+\paragraph{Wymagania estetyczne}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być atrakcyjny dla całej grupy odbiorców
+\item \textbf{Kryterium spełnienia:} Reprezentatywna próbka odbiorców ma sama z siebie rozpocząć korzystanie z~systemu.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma wyglądać kompetentnie
+\item \textbf{Kryterium spełnienia:} Po pierwszym kontakcie z systemem, 70\% reprezentatywnych potencjalnych nabywców ma się zgodzić ze stwierdzeniem „Czuję, że zaufałbym temu systemowi”.
+\end{itemize}
+
+\paragraph{Wymagania dotyczące ergonomii i wygody}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być łatwy w użyciu dla całej grupy odbiorców 
+\item \textbf{Kryterium spełnienia:} Grupa zaangażowana w testowanie systemu musi być w stanie ukończyć proces uruchomienia i testowania.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być wykorzystany dla ludzi bez przeszkolenia
+\item \textbf{Kryterium spełnienia:} Grupa zaangażowana w testowanie systemu musi być w stanie obsłużyć system, bez wcześniejszego przeszkolenia.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma mieć możliwość regulacji parametrów
+\item \textbf{Kryterium spełnienia:} Grupa docelowa musi mieć możliwość regulacji parametrów pracy systemu.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma używać symboli i słów które są naturalnie zrozumiałe dla grupy docelowej użytkowników.
+\end{itemize}
+
+\paragraph{Wymagania wydajnościowe}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien być dostępny do użytku przez 24 godziny na dobę przez 365 dni w roku.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien obsługiwać maksymalnie 10 czujników zewnętrznych oraz 10 wewnętrznych.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien być skalowalny
+\item \textbf{Kryterium spełnienia:} Istnieje możliwość dodania dodatkowych czujniuków w każdym momencie działania systemu.\\ 
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien pracować przez minimum 5 lat bez przekroczenia maksymalnego budżetu zaplanowanego na jego utrzymanie i serwisowanie.\\
+\end{itemize}
+
+\paragraph{Wymagania dotyczące warunków oraz środowiska pracy}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt ma być używany przez osoby przebywające w domu, przy temperaturze pokojowej.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt ma umożliwić korzystanie z niego w warunkach słabego oświetlania.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt nie może emitować dźwięków.
+\end{itemize}
+
+\paragraph{Wymagania dotyczące utrzymania i wsparcia}
+\begin{itemize}
+\item \textbf{Wymaganie:} Nowe czujniki powinny zostać oddane do systemu w ciągu maksymalnie jednego dnia pracy.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien zapewniać wsparcie dla klienta w razie problemów z jego użytkowaniem.\\
+\end{itemize}
+
+\paragraph{Wymagania bezpieczeństwa}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być zabezpieczony przed wprowadzeniem niewłaściwych danych.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma się sam bronić przed zamierzonym wykorzystaniem niezgodnie z przeznaczeniem.\\
+\end{itemize}
+
+\paragraph{Wymagania kulturowe i polityczne}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt powinien zapewniać możliwość używania danych jednostek temperatury w zależności od lokalizacji w jakiej jest używany.\\
+\end{itemize}
+
 
 \end{document}
