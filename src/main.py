@@ -26,11 +26,11 @@ from shutil import copyfile
 
 
 def main():
-    save_experiment = True
+    save_experiment = False
     run_manual_tests = False
     print_stats = False
     make_total_reward_plot = False
-    load_agent_model = True
+    load_agent_model = False
     safemode = False
     quiet = False
 
@@ -153,12 +153,12 @@ def save_model_info(model_id, model, rewards, agent_params):
         new_index += 1
 
     model_was_loaded = (model_id != -1) and os.path.isfile(
-                'saved_models/model_{}/rewards.log'.format(model_id))
+        'saved_models/model_{}/rewards.log'.format(model_id))
 
     if model_was_loaded:
-            copyfile(
-                'saved_models/model_{}/rewards.log'.format(model_id),
-                'saved_models/model_{}/rewards.log'.format(new_index))
+        copyfile(
+            'saved_models/model_{}/rewards.log'.format(model_id),
+            'saved_models/model_{}/rewards.log'.format(new_index))
 
     # save new data
     torch.save(model.state_dict(), 'saved_models/model_{}/network.pt'
@@ -173,6 +173,16 @@ def save_model_info(model_id, model, rewards, agent_params):
     for key, value in agent_params.items():
         logfile.write("{:20} {}\n".format(key, value))
     logfile.close()
+
+    rewards = []
+    for line in open('saved_models/model_{}/rewards.log'.format(new_index), 'r'):
+        values = [float(s) for s in line.split()]
+        rewards.append(values)
+    avg_rewards = []
+    for i in range(len(rewards) // (10 or 1)):
+        avg_rewards.append(np.mean(rewards[10 * i: 10 * (i + 1)]))
+    plt.plot(avg_rewards)
+    plt.savefig('saved_models/model_{}/learning_plot.png'.format(new_index))
 
 
 if __name__ == "__main__":

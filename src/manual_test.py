@@ -32,7 +32,7 @@ class ManualTestTerminal:
         system correct behaviour through making logs into console/file.
 
         """
-        from main import load_model_info
+        from main import load_model
 
         curr_render = last_render = self.env.render
 
@@ -215,7 +215,7 @@ class ManualTestTerminal:
 
                 elif int(option) == len(self.actions) + 4:
                     model_id = input('Enter model number to load\n')
-                    load_model_info(self.agent, model_id)
+                    load_model(self.agent, model_id)
 
                 elif int(option) == len(self.actions) + 5:
                     last_render = curr_render
