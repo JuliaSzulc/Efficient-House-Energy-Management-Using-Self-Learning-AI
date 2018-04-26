@@ -9,7 +9,7 @@ import random
 from collections import deque
 import numpy as np
 import torch
-from torch import autograd, optim, nn
+from torch import optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
@@ -19,9 +19,11 @@ class Net(torch.nn.Module):
 
     def __init__(self, input_size, hidden1_size, hidden2_size, output_size):
         super().__init__()
+        self.input_size = input_size
         self.fc1 = torch.nn.Linear(input_size, hidden1_size)
         self.fc2 = torch.nn.Linear(hidden1_size, hidden2_size)
         self.fc3 = torch.nn.Linear(hidden2_size, output_size)
+        self.output_size = output_size
 
     def forward(self, x):
         x = self.fc1(x)
@@ -55,7 +57,7 @@ class Agent:
         self.actions = None
 
         self.q_network = None
-        self.target_network = None  # this one has "fixed" weights
+        self.target_network = None
 
         self.initial_state = None
         self.current_state = self.env.reset()
@@ -103,10 +105,10 @@ class Agent:
             output_size
         )
         self.gamma = 0.9
-        self.epsilon = 0.1
+        self.epsilon = 0.3
         self.epsilon_decay = 0.99
         self.epsilon_min = 0.001
-        self.batch_size = 16
+        self.batch_size = 32
         self.l_rate = 0.01
         self.optimizer = optim.Adagrad(self.q_network.parameters(),
                                        lr=self.l_rate)
@@ -209,8 +211,7 @@ class Agent:
         """
         Returns next action given a state with use of the target network
         using a greedy policy. This function should be used if an outside
-        object wants to know the agent's action for the state - not the
-        _get_next_action_epsilon_greedy function!
+        object wants to know the agent's action for the state.
 
         Args:
             state(dict): state information used as an input for the network
@@ -236,48 +237,6 @@ class Agent:
             return random.randint(0, len(self.actions) - 1)
         else:
             return self.get_next_action_greedy(state)
-
-    def save_network_model(self, path):
-        """
-        Saves Agents networks state to file with specified path.
-
-        Args:
-            path(str): says where save Agents networks states
-
-        """
-
-        torch.save(self.q_network.state_dict(), path)
-
-    def get_model_info(self):
-        """
-        Method returns all networks models.
-
-        Returns:
-            model_params() - all values of q_network
-        """
-
-        model_params = {
-            'Gamma': self.gamma,
-            'Epsilon': self.epsilon,
-            'Epsilon_decay': self.epsilon_decay,
-            'Epsilon_min': self.epsilon_min,
-            'Batch_size': self.batch_size,
-            'Learning_rate': self.l_rate,
-        }
-        return model_params.items(), self.q_network.state_dict()
-
-    def load_network_model(self, path):
-        """
-        Sets the given model to the Agent's network fields.
-
-        Args:
-            path(str): says from where load model
-
-        """
-
-        self.q_network. \
-            load_state_dict(torch.load(path))
-        self.target_network = self.q_network
 
     def get_experience_batch(self):
         """
@@ -309,6 +268,46 @@ class Agent:
 
         return exp_batch
 
+    # --- Define utility methods below ---
+
+    def get_model_info(self):
+        """
+        Method returns current parameters such as gamma, epsilon etc.
+
+        Returns:
+            model_params(dict) - dict of parameters
+        """
+
+        model_params = {
+            'Gamma': self.gamma,
+            'Epsilon': self.epsilon,
+            'Epsilon_decay': self.epsilon_decay,
+            'Epsilon_min': self.epsilon_min,
+            'Batch_size': self.batch_size,
+            'Learning_rate': self.l_rate
+        }
+        return model_params
+
+    def load_network_model(self, path):
+        """
+        Loads network model from given file into the Agent's network fields.
+        Performs input and output layer sizes validation.
+
+        Args:
+            path(str): path to file
+
+        """
+        # TODO load params from params.cfg as well
+        self.q_network.load_state_dict(torch.load(path))
+
+        correct_sizes = (self.q_network.input_size == len(self.current_state)
+                         and self.q_network.output_size == len(self.actions))
+
+        if not correct_sizes:
+            raise ValueError("Given model has wrong input or output layer size")
+
+        self.target_network.load_state_dict(torch.load(path))
+
     def _update_stats(self, action_index, reward):
         action = self.actions[action_index]
         self.stats[action]['count'] += 1
@@ -316,17 +315,17 @@ class Agent:
 
     def get_episode_stats(self):
         most_common = max(self.stats.items(), key=lambda item:
-        item[1]['count'])
+                          item[1]['count'])
 
         least_common = min(self.stats.items(), key=lambda item:
-        item[1]['count'])
+                           item[1]['count'])
 
         best_mean_reward = max(self.stats.items(), key=lambda item:
-        item[1]['total_reward'] /
-        (item[1]['count'] or 1))
+                               item[1]['total_reward'] /
+                               (item[1]['count'] or 1))
 
         best_total_reward = max(self.stats.items(), key=lambda item:
-        item[1]['total_reward'])
+                                item[1]['total_reward'])
 
         aggregated = {
             'most common action': (
