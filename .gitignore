@@ -101,6 +101,8 @@ ENV/
 
 # nasze wlasne projektowe wykluczenia:
 .idea/
+/src/saved_models/
+src/agent_test.py
 *~
 *.swp
 *.swo
