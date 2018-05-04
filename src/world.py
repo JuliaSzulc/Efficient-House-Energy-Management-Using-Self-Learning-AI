@@ -20,7 +20,9 @@ class World:
 
     def __init__(self, time_step_in_minutes=1, duration_days=1):
         self.start_date = datetime(2020, 1, 1, 0, 0, 0)
-        self.stop_date = self.start_date + timedelta(days=duration_days)
+        self.stop_date = None
+        if duration_days:
+            self.stop_date = self.start_date + timedelta(days=duration_days)
 
         # "real", interpolated values
         self.current_date = self.start_date
@@ -105,7 +107,7 @@ class World:
             done(boolean): information if the state after the step is terminal
         """
 
-        if self.current_date >= self.stop_date:
+        if self.stop_date and self.current_date >= self.stop_date:
             return True
 
         self.current_date += self.time_step

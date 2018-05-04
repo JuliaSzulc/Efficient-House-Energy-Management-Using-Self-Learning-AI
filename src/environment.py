@@ -22,7 +22,7 @@ class HouseEnergyEnvironment:
 
     """
 
-    def __init__(self):
+    def __init__(self, world=None):
         """Actual initialization is moved to reset() method
 
         to be able to re-initialize the whole environment.
@@ -35,7 +35,7 @@ class HouseEnergyEnvironment:
 
         self.last_reward = 0
 
-        self.reset()
+        self.reset(world)
 
     def step(self, action_name):
         """Step the environment by one timestep.
@@ -58,14 +58,14 @@ class HouseEnergyEnvironment:
         self.last_reward = self.house.reward()
         return observation, self.last_reward, done
 
-    def reset(self):
+    def reset(self, world=None):
         """(Re)initializes the environment
 
         Returns:
             Initial state of the environment
         """
 
-        self.world = World()
+        self.world = world or World()
         self.house = House(self.world.time_step_in_minutes)
         self.outside_sensors = [OutsideSensor(self.house) for _ in range(1)]
 
