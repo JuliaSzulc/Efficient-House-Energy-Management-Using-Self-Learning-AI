@@ -32,6 +32,7 @@ class ManualTestTerminal:
         system correct behaviour through making logs into console/file.
 
         """
+        from main import load_model
 
         curr_render = last_render = self.env.render
 
@@ -186,7 +187,7 @@ class ManualTestTerminal:
                 elif int(option) == len(self.actions) + 2:
                     # what to skipp on plot
                     skip_list = [int(x) for x in input(
-                        'Enter indexes seperated by space '
+                        'Enter indexes separated by space '
                         'which should be skipped on plot:\n').split()]
                     for i in range(len(curr_render[0])):
                         if i not in skip_list:
@@ -213,8 +214,8 @@ class ManualTestTerminal:
                         time -= self.env.world.time_step_in_minutes / 60
 
                 elif int(option) == len(self.actions) + 4:
-                    model_number = input('Enter model number to load\n')
-                    self.agent.load_model_info(model_number)
+                    model_id = input('Enter model number to load\n')
+                    load_model(self.agent, model_id)
 
                 elif int(option) == len(self.actions) + 5:
                     last_render = curr_render

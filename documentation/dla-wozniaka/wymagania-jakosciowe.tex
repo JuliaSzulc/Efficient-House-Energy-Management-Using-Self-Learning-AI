@@ -1,0 +1,138 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{fullpage}
+\usepackage{longtable}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows,positioning}
+\selectlanguage{polish}
+
+
+\begin{document}
+\begin{center}
+\textbf{Projekt Zespołowy - Projekt zarządzania jakością – wymagania jakościowe}
+\end{center}
+\mbox{}\\
+\paragraph{Założenia teoretyczne projektu zarządzania jakością}\mbox{}\\
+
+Pojęcie jakości w projekcie postrzegane jest jako zgodność rezultatu projektu ze
+specyfikacjami, przeznaczeniem i oczekiwaniami odbiorcy.
+Zarządzanie jakością w projekcie obejmuje procesy zarządzania jakością jak i techniki których celem jest obniżenie ryzyka związanego z niedotrzymaniem wymogów przez końcowy efekt projektu. Proces zarządzania jakością w projekcie składa się z etapów:
+\begin{itemize}
+\item Planowania jakości
+\item Zapewniania jakości
+\item Kontroli jakości
+\end{itemize}
+
+\paragraph{Oczekiwania jakościowe odbiorcy projektu}\mbox{}\\
+
+Odbiorca, czyli firma Samsung oczekuje od projektu, aby był on stworzony zgodnie z najwyższą jakością oraz w pełni przetestowany (zarówno jednostkowo jak i integracyjnie). Wyznacza również terminy realizacji kolejnych wersji systemu, po których następuje faza weryfikacji i akceptacji według zdefiniowanych kryteriów.
+
+\paragraph{Wymagania jakościowe dla każdej z ról w projekcie}\mbox{}\\
+    
+Każdy członek zespołu pełni rolę odbiorcy prac od innych członków zespołu jak i dostarczyciela wysokiej jakości produktu dla współpracowników, którzy przejmują jego pracę. Na każdym z etapów tworzenia systemu, każdy z członków zespołu powinien informować o statusie wykonywania pracy oraz o ewentualnych problemach w trakcie ich wykonywania.
+
+Lider zespołu odpowiada za wdrożenie i utrzymanie zarządzania jakością w projekcie jak i raportowaniem danych związanych ze wskaźnikami jakościowymi. Jest on odpowiedzialny również za techniczną spójność dokumentów, ich zgodność ze standardami jakości oraz za zapewnienie wysokiej jakości produktów.
+
+Osoby do których skierowany jest projekt są odpowiedzialne za ustalanie kierunku prac, decyzje w sprawie ogólnych celów projektu.
+
+Zadaniem osoby z ramienia uczelni (w przypadku naszego projektu, prof. Michał Woźniak) jest odpowiedzialna za odbiór i weryfikację tworzonych dokumentów projektowych oraz przestrzeganie terminów weryfikacji i akceptacji.
+
+\paragraph{Wymagania jakościowe dla zadań w projekcie}\mbox{}\\
+
+W projekcie w celu utrzymania wysokiej jakości systemu zostały zdefiniowane reguły akceptacji na każdym z etapów pracy projektowej. 
+
+Dla zadań związanych z tworzeniem dokumentacji, po przygotowaniu danego etapu, każdy z członków zespołu musi się z nim zapoznać, oraz zgłosić ewentualne uwagi. Następnie zadanie to jest przekazywane do prof. Woźniaka w celu weryfikacji, następnie, gdy zostaną zgłoszone uwagi, zadanie to trafia do poprawy i~po poprawie, zadanie jest wysyłane i uznawane za zakończone. 
+Każde zadanie związane z tworzeniem kodu systemu również posiada kryteria jakości, takie jak testy jednostkowe oraz manualne sprawdzenie działania stworzonej w ramach tego zadania funkcjonalności. Następnie taki kod przechodzi przez etap Code Review przez pozostałych członków zespołu, nieuczestniczących bezpośrednio przy danym zadaniu.
+Regularnie odbywają się również testy integracyjne całego systemu, aby mieć pewność, że działa on bez zarzutów.
+\mbox{}\\\mbox{}\\\mbox{}\\
+
+W projekcie został stworzony również dokument odpowiedzialny za kod źródłowy systemu. Opisane są w~nim szczegółowo konwencje na temat
+\begin{itemize}
+\item formatowania kodu
+\item tworzenia komentarzy
+\item tworzenia dokumentacji
+\item projektowania i tworzenia testów
+\item nazewnictwa zmiennych i metod
+\item pracy z systemem kontroli wersji (nazewnictwo commitów i branchy)
+\end{itemize}
+
+
+\paragraph{Wymagania estetyczne}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być atrakcyjny dla całej grupy odbiorców
+\item \textbf{Kryterium spełnienia:} Reprezentatywna próbka odbiorców ma sama z siebie rozpocząć korzystanie z~systemu.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma wyglądać kompetentnie
+\item \textbf{Kryterium spełnienia:} Po pierwszym kontakcie z systemem, 70\% reprezentatywnych potencjalnych nabywców ma się zgodzić ze stwierdzeniem „Czuję, że zaufałbym temu systemowi”.
+\end{itemize}
+
+\paragraph{Wymagania dotyczące ergonomii i wygody}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być łatwy w użyciu dla całej grupy odbiorców 
+\item \textbf{Kryterium spełnienia:} Grupa zaangażowana w testowanie systemu musi być w stanie ukończyć proces uruchomienia i testowania.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być wykorzystany dla ludzi bez przeszkolenia
+\item \textbf{Kryterium spełnienia:} Grupa zaangażowana w testowanie systemu musi być w stanie obsłużyć system, bez wcześniejszego przeszkolenia.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma mieć możliwość regulacji parametrów
+\item \textbf{Kryterium spełnienia:} Grupa docelowa musi mieć możliwość regulacji parametrów pracy systemu.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma używać symboli i słów które są naturalnie zrozumiałe dla grupy docelowej użytkowników.
+\end{itemize}
+
+\paragraph{Wymagania wydajnościowe}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien być dostępny do użytku przez 24 godziny na dobę przez 365 dni w roku.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien obsługiwać maksymalnie 10 czujników zewnętrznych oraz 10 wewnętrznych.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien być skalowalny
+\item \textbf{Kryterium spełnienia:} Istnieje możliwość dodania dodatkowych czujniuków w każdym momencie działania systemu.\\ 
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien pracować przez minimum 5 lat bez przekroczenia maksymalnego budżetu zaplanowanego na jego utrzymanie i serwisowanie.\\
+\end{itemize}
+
+\paragraph{Wymagania dotyczące warunków oraz środowiska pracy}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt ma być używany przez osoby przebywające w domu, przy temperaturze pokojowej.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt ma umożliwić korzystanie z niego w warunkach słabego oświetlania.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt nie może emitować dźwięków.
+\end{itemize}
+
+\paragraph{Wymagania dotyczące utrzymania i wsparcia}
+\begin{itemize}
+\item \textbf{Wymaganie:} Nowe czujniki powinny zostać oddane do systemu w ciągu maksymalnie jednego dnia pracy.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien zapewniać wsparcie dla klienta w razie problemów z jego użytkowaniem.\\
+\end{itemize}
+
+\paragraph{Wymagania bezpieczeństwa}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być zabezpieczony przed wprowadzeniem niewłaściwych danych.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma się sam bronić przed zamierzonym wykorzystaniem niezgodnie z przeznaczeniem.\\
+\end{itemize}
+
+\paragraph{Wymagania kulturowe i polityczne}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt powinien zapewniać możliwość używania danych jednostek temperatury w zależności od lokalizacji w jakiej jest używany.\\
+\end{itemize}
+
+
+\end{document}
