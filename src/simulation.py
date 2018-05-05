@@ -3,21 +3,14 @@ import sys
 import math
 import torch
 import pygame
-import array
+import pygame.gfxdraw
+from PIL import Image, ImageDraw
+# import array
 from datetime import datetime, timedelta
 from main import load_model
 from agent import Agent
 from environment import HouseEnergyEnvironment
 from world import World
-import gi
-gi.require_version('Rsvg', '2.0')
-from gi.repository import Rsvg
-from gi.repository import cairo
-# installation NOTE:
-# sudo apt-get install libcairo2-dev
-# sudo pip3 install pycairo
-# sudo apt-get install gir1.2-rsvg-2.0
-
 
 class Simulation:
 
@@ -52,6 +45,8 @@ class Simulation:
             'devices4': pygame.Color('#ccbe81ff'),
             'devices5': pygame.Color('#c4b46cff'),
             'devices0': pygame.Color('#f9f9f9'),
+            'intense1': pygame.Color('#b77d6aff'),
+            'intense2': pygame.Color('#c79b8cff'),
         }
 
         # model settings
@@ -230,6 +225,11 @@ class Simulation:
         h = ymax - y
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
+        fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                      int(0.05 * h))
+        fontBig = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                      int(0.13 * h))
+
         def draw_indicator(data, x, y, w, h, name=None):
             for offset in range(8, -2, -2):
                 pygame.draw.rect(self.screen, self.colors['devices0'],
@@ -254,19 +254,149 @@ class Simulation:
             if not name:
                 return
 
-            fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                          int(0.08 * h))
             self.draw_text(name, x + 0.5 * w, y + h + 0.1 * h,
                            self.colors['font1'], fontSmall, True)
 
-        draw_indicator(self.data['Heating_lvl'], x + 0.2 * w, y + 0.1 * h,
-                       0.1 * w, 0.6 * h, "HEATING")
-        draw_indicator(self.data['Cooling_lvl'], x + 0.35 * w, y + 0.1 * h,
-                       0.1 * w, 0.6 * h, "COOLING")
-        draw_indicator(self.data['Light_lvl'], x + 0.5 * w, y + 0.1 * h,
-                       0.1 * w, 0.6 * h, "LIGHT")
-        draw_indicator(self.data['Curtains_lvl'], x + 0.65 * w, y + 0.1 * h,
-                       0.1 * w, 0.6 * h, "CURTAINS")
+        x_begin = 0.35
+        indicators = {
+            x_begin: ('Heating', '001-heater'),
+            x_begin + 0.15: ('Cooling', '002-machine'),
+            x_begin + 0.30: ('Light', '008-light-bulb'),
+            x_begin + 0.45: ('Curtains', '003-blinds'),
+        }
+
+        for x_o, ind in indicators.items():
+            draw_indicator(self.data['{}_lvl'.format(ind[0])],
+                           x + x_o * w, y + 0.1 * h,
+                           0.1 * w, 0.55 * h, "{}".format(ind[0]).upper())
+            # indicator icon
+            self.draw_icon('../icons/house/{}.png'.format(ind[1]),
+                           x + x_o * w + 0.05 * w, y + 0.85 * h,
+                           0.08 * w, 0.08 * w, self.colors['font1'], True)
+
+        scale_x = 0.94
+        for offset in range(0, 12, 2):
+            self.draw_text('{}'.format(offset / 10),
+                           scale_x * w + x,
+                           0.65 * h + y - offset / 18 * h,
+                           self.colors['font1'], fontSmall, True)
+
+        # energy indicators
+        x_energy = 0.08
+        self.draw_icon('../icons/house/006-electric-tower.png',
+                       x + x_energy * w + 0.05 * w, y + 0.25 * h,
+                       0.08 * w, 0.08 * w, self.colors['font1'], True)
+        self.draw_icon('../icons/house/004-battery.png',
+                       x + x_energy * w + 0.05 * w, y + 0.53 * h,
+                       0.08 * w, 0.08 * w, self.colors['font1'], True)
+        self.draw_text("SOURCE",
+                       x + x_energy * w + 0.05 * w, y + 0.705 * h,
+                       self.colors['font1'], fontSmall, True)
+        self.draw_icon('../icons/house/005-renewable-energy.png',
+                       x + x_energy * w + 0.05 * w, y + 0.85 * h,
+                       0.07 * w, 0.07 * w, self.colors['font1'], True)
+
+        triangle_y = 0.5
+        if self.data['Energy_src'] == 'grid':
+            triangle_y = 0.2
+
+        pygame.draw.polygon(
+            self.screen,
+            self.colors['devices5'],
+            [
+                [x + x_energy / 2 * w, triangle_y * h + y],
+                [x + x_energy / 2 * w + 0.03 * w, (triangle_y + 0.05) * h + y],
+                [x + x_energy / 2 * w, (triangle_y + 0.1) * h + y],
+            ]
+        )
+        batt = self.data['Battery_lvl'] / self.env.house.battery['max']
+        self.draw_text('{:2.0f}%'.format(batt * 100),
+                       x + (x_energy + 0.16) * w,
+                       y + 0.54 * h,
+                       self.colors['font1'], fontBig, True)
+
+    def draw_chart_widget(self, mode='light', y=0):
+        # bg
+        margin = 0.025 * self.height
+        x = self.width * 3 // 7
+        xmax = self.width - margin
+        w = xmax - x
+        h = 0.15 * self.height - margin
+        ymax = y + h 
+        pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
+
+        fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                      int(0.05 * h))
+        fontBig = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                      int(0.13 * h))
+
+    def draw_speedmeter_widget(self, mode='light', x=0, y=0):
+        # bg
+        margin = 0.025 * self.height
+        w = 0.2875 * self.width - margin
+        h = 0.292 * self.height - margin
+        ymax = y + h 
+        xmax = x + w
+        pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
+
+        fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                      int(0.1 * h))
+        fontBig = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                      int(0.2 * h))
+        # title
+        self.draw_text(mode.upper() + " INSIDE", x + 0.05 * w, y + 0.05 * h,
+                       self.colors['font1'], fontSmall)
+        # text
+        if mode == 'light':
+            data = "{:.3f}".format(self.data['Light IN'])
+            request = 'Light_desired'
+        elif mode == 'temperature':
+            data = "{:.1f}°C".format(self.data['Temperature //INSIDE'])
+            request = 'Temp_desired'
+
+        self.draw_text(data, x + w / 2, y + h * 2 / 3 ,
+                       self.colors['font1'], fontBig, True)
+
+        ccenter_x = int(x + w / 2)
+        ccenter_y = int(y + h * 2 / 3)
+        radius = int(h * 2 / 3)
+
+        # pygame.draw.circle(
+            # self.screen,
+            # self.colors['intense1'],
+            # (ccenter_x, ccenter_y),
+            # radius
+        # )
+
+        # # - generate PIL image -
+
+        # pil_size = 300
+
+        # pil_image = Image.new("RGBA", (pil_size, pil_size))
+        # pil_draw = ImageDraw.Draw(pil_image)
+        # pil_draw.arc((0, 0, pil_size-1, pil_size-1), 0, 270, fill=RED)
+        # GREY  = (128, 128, 128)
+        # pil_draw.pieslice((0, 0, pil_size-1, pil_size-1), 0, 60, fill=GREY)
+        # pil_draw.rotate(45)
+
+        # - convert to PyGame image -
+
+        # mode = pil_image.mode
+        # size = pil_image.size
+        # data = pil_image.tobytes()
+
+        # image = pygame.image.fromstring(data, size, mode)
+        # image_rect = image.get_rect(center=self.screen.get_rect().center)
+        # self.screen.blit(image, image_rect)
+
+
+        # pygame.gfxdraw.arc(
+            # self.screen,
+            # x + 0.2 * w, y + 0.3 * h, w * 0.6, h),
+            # 0, math.pi,
+            # self.colors['intense1'],
+        # )
+
 
 
     def run(self):
@@ -299,6 +429,24 @@ class Simulation:
             self.draw_background()
             self.draw_weather_widget()
             self.draw_devices_widget()
+            self.draw_chart_widget(
+                'light',
+                y=(0.95 * self.height) * 0.475 + 0.0025 * self.height
+            )
+            self.draw_chart_widget(
+                'temp',
+                y=(0.95 * self.height) * 0.325 + 0.0025 * self.height
+            )
+            self.draw_speedmeter_widget(
+                'temperature',
+                x=self.width * 3 // 7,
+                y=0.025 * self.height
+            )
+            self.draw_speedmeter_widget(
+                'light',
+                x=self.width * 3 // 7 + 0.27 * self.width + 0.025 * self.height,
+                y=0.025 * self.height
+            )
 
         pygame.quit()
 
