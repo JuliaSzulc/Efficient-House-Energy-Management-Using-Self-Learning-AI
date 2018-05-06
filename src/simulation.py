@@ -5,23 +5,25 @@ import torch
 import pygame
 import pygame.gfxdraw
 from PIL import Image, ImageDraw
-# import array
+from collections import deque
 from datetime import datetime, timedelta
 from main import load_model
 from agent import Agent
 from environment import HouseEnergyEnvironment
 from world import World
 
+
 class Simulation:
 
-    def __init__(self, width=None, height=None, fps=10):
+    def __init__(self, width=None, height=None, fps=1):
         pygame.init()
         pygame.display.set_caption("Press ESC to quit, SPACE to pause")
 
         # view settings
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         if width and height:
-            self.screen = pygame.display.set_mode((self.width, self.height), pygame.DOUBLEBUF)
+            self.screen = pygame.display.set_mode((self.width, self.height),
+                                                  pygame.DOUBLEBUF)
         self.width, self.height = pygame.display.get_surface().get_size()
 
         self.background = pygame.Surface(self.screen.get_size()).convert()
@@ -47,18 +49,34 @@ class Simulation:
             'devices0': pygame.Color('#f9f9f9'),
             'intense1': pygame.Color('#b77d6aff'),
             'intense2': pygame.Color('#c79b8cff'),
+            'soft1': pygame.Color('#f1e6e2ff'),
+            'soft2': pygame.Color('#e3dcbbff'),
         }
 
         # model settings
         self.env = HouseEnergyEnvironment()
         self.agent = Agent(env=self.env)
 
-        # model_id = input('Enter model number to load\n')
         model_id = 1  # FIXME const model nr
         load_model(self.agent, model_id)
 
         self.actions = self.env.get_actions()
-        self.current_state = self.env.reset(world=World(time_step_in_minutes=1, duration_days=None))
+        self.current_state = self.env.reset(
+            world=World(time_step_in_minutes=1, duration_days=None)
+        )
+
+        # memory for charts
+        maxlen = 100
+        self.memory = {
+            'temperature': {
+                'values': deque([0] * 100, maxlen=maxlen),
+                'desires': deque([0] * 100, maxlen=maxlen)
+            },
+            'light': {
+                'values': deque([0] * 100, maxlen=maxlen),
+                'desires': deque([0] * 100, maxlen=maxlen)
+            }
+        }
 
     def update_data(self):
         labels, values = self.env.render[:-1]
@@ -89,7 +107,7 @@ class Simulation:
         ymax = self.height - margin
         w = xmax - x
         h = ymax - y
-        pygame.draw.rect(self.screen, self.colors['white'], (x ,y, w, h))
+        pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
         # small rects
         pygame.draw.rect(self.screen, self.colors['weather1'],
@@ -315,28 +333,140 @@ class Simulation:
                        y + 0.54 * h,
                        self.colors['font1'], fontBig, True)
 
-    def draw_chart_widget(self, mode='light', y=0):
+    def draw_chart_widget(self, chartmode='light', y=0):
         # bg
         margin = 0.025 * self.height
         x = self.width * 3 // 7
         xmax = self.width - margin
         w = xmax - x
         h = 0.15 * self.height - margin
-        ymax = y + h 
+        ymax = y + h
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
         fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                      int(0.05 * h))
-        fontBig = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                      int(0.13 * h))
+                                      int(0.15 * h))
+        # chartmode options
+        if chartmode == 'light':
+            main_color = 'weather1'
+            scnd_color = 'weather2'
+            soft_color = 'soft2'
+            level = self.data['Light IN']
+            desired = self.data['Light_desired']
 
-    def draw_speedmeter_widget(self, mode='light', x=0, y=0):
+        elif chartmode == 'temperature':
+            main_color = 'intense1'
+            scnd_color = 'intense2'
+            soft_color = 'soft1'
+            level = self.data['Light IN']
+            level = (self.data['Temperature //INSIDE'] + 20) / 60
+            desired = (self.data['Temp_desired'] + 20) / 60
+        else:
+            raise AttributeError('wrong chartmode')
+        # title
+        self.draw_text(
+            chartmode.upper() + " CHART",
+            x + 0.02 * w, y + 0.05 * h,
+            self.colors['font1'], fontSmall
+        )
+        # chart
+        chartx = x + 0.02 * w
+        charty = y + 0.3 * h
+        chartw = 0.96 * w
+        charth = 0.55 * h
+        pygame.draw.rect(
+            self.screen,
+            (250, 250, 250),
+            (chartx, charty, chartw, charth)
+        )
+
+        self.memory[chartmode]['values'].append(level)
+        self.memory[chartmode]['desires'].append(desired)
+
+        offset = math.ceil(chartw / 100)
+        xs = list(range(int(chartx), int(chartx + chartw), offset))
+        ys_values = [charty - 2 + charth - v * charth for v in
+                     self.memory[chartmode]['values']]
+        ys_desires = [charty - 2 + charth - v * charth for v in
+                      self.memory[chartmode]['desires']]
+        points_val = list(zip(xs, ys_values))
+        points_des = list(zip(xs, ys_desires))
+        points_val.append((chartx + chartw, charty + charth))
+        points_val.insert(0, (chartx, charty + charth))
+
+        pygame.draw.polygon(
+            self.screen,
+            self.colors[soft_color],
+            points_val
+        )
+        pygame.draw.aalines(
+            self.screen,
+            self.colors['weather4'],
+            False,
+            points_des,
+            2
+        )
+
+        # legend
+        self.draw_text(
+            'CURRENT ',
+            x + 0.3 * w, y + 0.05 * h,
+            self.colors[soft_color], fontSmall
+        )
+        pygame.draw.rect(self.screen, self.colors[soft_color],
+                         (x + 0.27 * w, y + 0.07 * h, 0.02 * w, 0.15 * h))
+
+        self.draw_text(
+            'DESIRED ',
+            x + 0.45 * w, y + 0.05 * h,
+            self.colors['weather4'], fontSmall
+        )
+        pygame.draw.rect(self.screen, self.colors['weather4'],
+                         (x + 0.42 * w, y + 0.07 * h, 0.02 * w, 0.15 * h))
+
+    def draw_speedmeter_widget(self, chartmode='light', x=0, y=0):
+        # chartmode options
+        if chartmode == 'light':
+            main_color = 'weather1'
+            scnd_color = 'weather2'
+            level = self.data['Light IN']
+            desired = self.data['Light_desired']
+            level_normalized = level * 180
+            desired_normalized = desired * 180
+            lvl_format = "{:.3f}"
+
+        elif chartmode == 'temperature':
+            main_color = 'intense1'
+            scnd_color = 'intense2'
+            level = self.data['Temperature //INSIDE']
+            level_normalized = (level + 20) * 180 / 60
+            desired = self.data['Temp_desired']
+            desired_normalized = (desired + 20) * 180 / 60
+            lvl_format = "{:.1f}°C"
+
+        else:
+            raise AttributeError('wrong chartmode')
+
+        COLOR1 = (
+            self.colors[main_color].r,
+            self.colors[main_color].g,
+            self.colors[main_color].b
+        )
+        COLOR2 = (
+            self.colors[scnd_color].r,
+            self.colors[scnd_color].g,
+            self.colors[scnd_color].b
+        )
+        WHITE = (255, 255, 255)
+        GREY = (250, 250, 250)
+
         # bg
         margin = 0.025 * self.height
         w = 0.2875 * self.width - margin
         h = 0.292 * self.height - margin
-        ymax = y + h 
+        ymax = y + h
         xmax = x + w
+
+        # bg
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
         fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
@@ -344,60 +474,67 @@ class Simulation:
         fontBig = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
                                       int(0.2 * h))
         # title
-        self.draw_text(mode.upper() + " INSIDE", x + 0.05 * w, y + 0.05 * h,
-                       self.colors['font1'], fontSmall)
-        # text
-        if mode == 'light':
-            data = "{:.3f}".format(self.data['Light IN'])
-            request = 'Light_desired'
-        elif mode == 'temperature':
-            data = "{:.1f}°C".format(self.data['Temperature //INSIDE'])
-            request = 'Temp_desired'
+        self.draw_text(
+            chartmode.upper() + " INSIDE",
+            x + 0.05 * w, y + 0.05 * h,
+            self.colors['font1'], fontSmall
+        )
 
-        self.draw_text(data, x + w / 2, y + h * 2 / 3 ,
-                       self.colors['font1'], fontBig, True)
-
-        ccenter_x = int(x + w / 2)
-        ccenter_y = int(y + h * 2 / 3)
+        # arc
         radius = int(h * 2 / 3)
+        ccenter_x = int(x + w / 2 - radius)
+        ccenter_y = int(y + h * 2 / 3 - radius * 2 / 3)
 
-        # pygame.draw.circle(
-            # self.screen,
-            # self.colors['intense1'],
-            # (ccenter_x, ccenter_y),
-            # radius
-        # )
+        # - generate PIL image -
+        pil_size = radius * 2
+        pil_image = Image.new("RGBA", (pil_size, pil_size))
+        pil_draw = ImageDraw.Draw(pil_image)
+        arcwidth = 15
 
-        # # - generate PIL image -
-
-        # pil_size = 300
-
-        # pil_image = Image.new("RGBA", (pil_size, pil_size))
-        # pil_draw = ImageDraw.Draw(pil_image)
-        # pil_draw.arc((0, 0, pil_size-1, pil_size-1), 0, 270, fill=RED)
-        # GREY  = (128, 128, 128)
-        # pil_draw.pieslice((0, 0, pil_size-1, pil_size-1), 0, 60, fill=GREY)
-        # pil_draw.rotate(45)
-
+        pil_draw.pieslice((0, 0, pil_size - 1, pil_size - 1),
+                          0, 180, fill=GREY)
+        pil_draw.pieslice((0, 0, pil_size - 1, pil_size - 1),
+                          0, level_normalized, fill=COLOR1)
+        pil_draw.pieslice(
+            (arcwidth - 1, 0, pil_size - arcwidth, pil_size - arcwidth),
+            0, 180,
+            fill=GREY
+        )
+        pil_draw.pieslice(
+            (arcwidth - 1, 0, pil_size - arcwidth, pil_size - arcwidth),
+            0, desired_normalized,
+            fill=COLOR2
+        )
+        pil_draw.pieslice(
+            ((arcwidth * 2) - 1, 0,
+             pil_size - (arcwidth * 2), pil_size - (arcwidth * 2)),
+            0, 180,
+            fill=WHITE
+        )
+        pil_draw.rectangle(
+            [0, pil_size / 2, pil_size, pil_size / 2 - arcwidth],
+            fill=WHITE
+        )
         # - convert to PyGame image -
+        mode = pil_image.mode
+        size = pil_image.size
+        data = pil_image.tobytes()
 
-        # mode = pil_image.mode
-        # size = pil_image.size
-        # data = pil_image.tobytes()
+        image = pygame.image.fromstring(data, size, mode)
+        image = pygame.transform.rotate(image, 180)
+        self.screen.blit(image, (ccenter_x, ccenter_y))
 
-        # image = pygame.image.fromstring(data, size, mode)
-        # image_rect = image.get_rect(center=self.screen.get_rect().center)
-        # self.screen.blit(image, image_rect)
-
-
-        # pygame.gfxdraw.arc(
-            # self.screen,
-            # x + 0.2 * w, y + 0.3 * h, w * 0.6, h),
-            # 0, math.pi,
-            # self.colors['intense1'],
-        # )
-
-
+        # text
+        self.draw_text(
+            lvl_format.format(level),
+            x + w / 2, y + h * 2 / 3,
+            self.colors[main_color], fontBig, True
+        )
+        self.draw_text(
+            "should be " + lvl_format.format(desired),
+            x + w / 2, y + h * 2 / 3 + 0.15 * h,
+            self.colors[scnd_color], fontSmall, True
+        )
 
     def run(self):
         """The mainloop"""
@@ -430,12 +567,12 @@ class Simulation:
             self.draw_weather_widget()
             self.draw_devices_widget()
             self.draw_chart_widget(
-                'light',
-                y=(0.95 * self.height) * 0.475 + 0.0025 * self.height
+                'temperature',
+                y=(0.95 * self.height) * 0.325 + 0.0025 * self.height
             )
             self.draw_chart_widget(
-                'temp',
-                y=(0.95 * self.height) * 0.325 + 0.0025 * self.height
+                'light',
+                y=(0.95 * self.height) * 0.475 + 0.0025 * self.height
             )
             self.draw_speedmeter_widget(
                 'temperature',
@@ -482,5 +619,4 @@ class Simulation:
 
 
 if __name__ == '__main__':
-    # Simulation(800, 600, fps=10).run()
-    Simulation(fps=1000).run()
+    Simulation(fps=100).run()
