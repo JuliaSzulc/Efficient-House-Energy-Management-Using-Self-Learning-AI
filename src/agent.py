@@ -6,9 +6,11 @@ environment.
 
 """
 import random
-from collections import deque
+import sys
+import json
 import numpy as np
 import torch
+from collections import deque
 from torch import optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
@@ -50,6 +52,9 @@ class Agent:
     """
 
     def __init__(self, env):
+        with open('../configuration.json') as config_file:
+            self.CONFIG = json.load(config_file)
+
         self.env = env
         self.actions = None
 
@@ -76,6 +81,7 @@ class Agent:
 
     def reset(self):
         """Initialize the networks and other parameters"""
+        config = self.CONFIG['agent']
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
 
@@ -85,7 +91,7 @@ class Agent:
                              'total_reward': 0}
 
         input_size = len(self.initial_state)
-        hidden1_size = 80
+        hidden1_size = config['hidden_layer_size']
         output_size = len(self.actions)
 
         self.q_network = Net(
@@ -98,21 +104,23 @@ class Agent:
             hidden1_size,
             output_size
         )
-        self.memory = Memory(maxlen=100000)
-        self.double_dqn = True
-        self.gamma = 0.9
-        self.epsilon = 0.1
-        self.epsilon_decay = 0.995
-        self.epsilon_min = 0.1
-        self.batch_size = 8
-        self.l_rate = 0.001
+        self.memory = Memory(maxlen=config['memory_size'])
+        self.double_dqn = config['double_dqn']
+        self.gamma = config['gamma']
+        self.epsilon = config['epsilon']
+        self.epsilon_decay = config['epsilon_decay']
+        self.epsilon_min = config['epsilon_min']
+        self.batch_size = config['batch_size']
+        self.l_rate = config['learning_rate']
         self.optimizer = optim.SGD(self.q_network.parameters(),
-                                   lr=self.l_rate, momentum=0.80)
+                                   lr=self.l_rate,
+                                   momentum=config['sgd_momentum'])
 
-        self.train_freq = 4
+        self.train_freq = config['training_freq']
 
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
+        config = self.CONFIG['agent']
         counter = 0
         self.current_state = self.env.reset()
         total_reward = 0
@@ -122,15 +130,15 @@ class Agent:
                              'total_reward': 0}
 
         while not terminal_state:
-            counter = (counter + 1) % 500
+            counter = (counter + 1) % config['target_network_update_freq']
             action_index = \
                 self._get_next_action_epsilon_greedy(self.current_state)
 
             next_state, reward, terminal_state = \
                 self.env.step(self.actions[action_index])
 
-            if reward < -2:
-                reward = -2
+            if reward < config['reward_clip']:
+                reward = config['reward_clip']
 
             self._update_stats(action_index, reward)
             self.memory.append((self.current_state, action_index, reward,
@@ -138,11 +146,14 @@ class Agent:
 
             self.current_state = next_state
             total_reward += reward
-            if counter % self.train_freq == 0 and len(self.memory) > 10000:
+
+            train_episode = not counter % self.train_freq
+            enough_memory = len(self.memory) > config['memory_size_to_start']
+            if train_episode and enough_memory:
                 self._train()
 
             # Update the target network:
-            qt = 0.0  # q to target ratio
+            qt = config["q_to_target_ratio"]
             if counter == 0:
                 qt = 1.0
             for target_param, q_param in zip(
@@ -304,15 +315,12 @@ class Agent:
 
         """
         # TODO load params from params.cfg as well
-        self.q_network.load_state_dict(torch.load(path))
-
-        correct_sizes = (self.q_network.input_size == len(self.current_state)
-                         and self.q_network.output_size == len(self.actions))
-
-        if not correct_sizes:
-            raise ValueError("Given model has wrong input or output layer size")
-
-        self.target_network.load_state_dict(torch.load(path))
+        try:
+            self.q_network.load_state_dict(torch.load(path))
+            self.target_network.load_state_dict(torch.load(path))
+        except RuntimeError:
+            print('Wrong network size? Aborting')
+            sys.exit()
 
     def _update_stats(self, action_index, reward):
         action = self.actions[action_index]

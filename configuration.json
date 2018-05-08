@@ -1,0 +1,29 @@
+{
+    "main": {
+        "training_episodes"          : 200000,
+        "fps"                        : 8
+    },
+    "agent": {
+        "hidden_layer_size"          : 80,
+        "memory_size"                : 100000,
+        "memory_size_to_start"       : 100000,
+        "double_dqn"                 : true,
+        "gamma"                      : 0.9,
+        "epsilon"                    : 1,
+        "epsilon_decay"              : 0.995,
+        "epsilon_min"                : 0.1,
+        "batch_size"                 : 8,
+        "learning_rate"              : 0.001,
+        "training_freq"              : 4,
+        "target_network_update_freq" : 500,
+        "reward_clip"                : -2,
+        "sgd_momentum"               : 0.9,
+        "q_to_target_ratio"          : 0.1
+    },
+    "env": {
+        "timestep_in_minutes"        : 1,
+        "temperature_w_in_reward"    : 0.5,
+        "light_w_in_reward"          : 5,
+        "cost_w_in_reward"           : 0.1
+    }
+}

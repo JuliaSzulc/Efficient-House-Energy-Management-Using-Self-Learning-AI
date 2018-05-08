@@ -10,6 +10,7 @@ Is is mainly used within HouseEnergyEnvironment class, and should not be used
 directly from outside.
 
 """
+import json
 from random import uniform
 from collections import OrderedDict
 from tools import truncate
@@ -21,6 +22,9 @@ class House:
     """Main environment part"""
 
     def __init__(self, timeframe):
+        with open('../configuration.json') as config_file:
+            self.CONFIG = json.load(config_file)
+
         #  --- Time ---
         # values are expressed in minutes
         self.timeframe = timeframe
@@ -228,7 +232,9 @@ class House:
              reward(float): weighted sum of penalties
         """
 
-        w_temp, w_light, w_cost = 0.5, 5.0, 0.1
+        w_temp = self.CONFIG['env']['temperature_w_in_reward']
+        w_light = self.CONFIG['env']['light_w_in_reward']
+        w_cost = self.CONFIG['env']['cost_w_in_reward']
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],

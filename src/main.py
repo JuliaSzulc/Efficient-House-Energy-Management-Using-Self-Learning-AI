@@ -15,6 +15,7 @@ You can run this file with additional arguments:
 
 """
 import sys
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -65,10 +66,12 @@ def main():
         model_id = input('Enter model number to load:\n')
         load_model(agent, model_id)
 
-    open('rewards.log', 'w').close()
+    open('rewards.log', 'w').close()  # reset rewards log
 
+    with open('../configuration.json') as config_file:
+        CONFIG = json.load(config_file)
+    num_episodes = CONFIG['main']['training_episodes']
     # --- learning ---
-    num_episodes = 1500
     rewards = []
     for i in range(num_episodes):
         t_reward = agent.run()

@@ -8,6 +8,7 @@ It should be used inside environment class only, unless you want to plot
 an example weather graph.
 
 """
+import json
 from datetime import datetime, timedelta
 from math import sin, pi
 import random
@@ -18,7 +19,10 @@ from tools import truncate
 class World:
     """Time and weather computations"""
 
-    def __init__(self, time_step_in_minutes=1, duration_days=1):
+    def __init__(self, time_step_in_minutes=None, duration_days=1):
+        with open('../configuration.json') as config_file:
+            self.CONFIG = json.load(config_file)
+
         self.start_date = datetime(2020, 1, 1, 0, 0, 0)
         self.stop_date = None
         if duration_days:
@@ -27,8 +31,11 @@ class World:
         # "real", interpolated values
         self.current_date = self.start_date
         self.daytime = None
-        self.time_step_in_minutes = time_step_in_minutes
-        self.time_step = timedelta(minutes=time_step_in_minutes)
+        self.time_step_in_minutes = self.CONFIG['env']['timestep_in_minutes']
+        if time_step_in_minutes:
+            self.time_step_in_minutes = time_step_in_minutes
+
+        self.time_step = timedelta(minutes=self.time_step_in_minutes)
 
         # base values
         self.base_date = self.current_date

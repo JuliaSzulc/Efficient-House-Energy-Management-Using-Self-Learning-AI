@@ -17,6 +17,7 @@ RL-for-decision-process team, 2018
 """
 
 import math
+import json
 import pygame
 import pygame.gfxdraw
 from PIL import Image, ImageDraw
@@ -29,7 +30,7 @@ from world import World
 
 class Simulation:
 
-    def __init__(self, width=None, height=None, fps=5, MODEL=1):
+    def __init__(self, width=None, height=None, MODEL=1):
         """Configuration for simulation object
 
         This method is divided into two parts, the "view" and the "model",
@@ -44,7 +45,7 @@ class Simulation:
                        world steps.
             MODEL(int) = number of model to be used.
 
-        To apply fulscreen, simply leave width and height unmodified to None. 
+        To apply fulscreen, simply leave width and height unmodified to None.
         Using different values is discouraged and could potentially cause
         errors.
 
@@ -65,7 +66,11 @@ class Simulation:
 
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
-        self.fps = fps
+
+        with open('../configuration.json') as config_file:
+            self.CONFIG = json.load(config_file)
+
+        self.fps = self.CONFIG['main']['fps']
         self.font = pygame.font.SysFont('mono', 10, bold=True)
         self.data = dict()
         self.colors = {
@@ -637,4 +642,4 @@ if __name__ == '__main__':
         model = int(input("Enter model number to execute: "))
     except ValueError:
         print('model number should be an integer')
-    Simulation(fps=3, MODEL=model).run()
+    Simulation(MODEL=model).run()
