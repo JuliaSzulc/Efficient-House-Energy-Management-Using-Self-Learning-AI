@@ -35,15 +35,10 @@ class BasicAgentTestCase(unittest.TestCase):
         self.testEnv = TestEnv()
         self.agent = Agent(self.testEnv)
 
-        self.agent.memory = [(np.array([0.1]), 0, -5,
-                         np.array([0.1]), False),
-                        (np.array([0.1]), 1, -5,
-                         np.array([0.1]), False),
-                        (np.array([0.1]), 2, -5,
-                         np.array([0.1]), False),
-                        (np.array([0.1]), 2, -5,
-                         np.array([0.1]), False),
-                        ]
+        self.agent.memory.add((np.array([0.1]), 0, -5, np.array([0.1]), False))
+        self.agent.memory.add((np.array([0.1]), 1, -5, np.array([0.1]), False))
+        self.agent.memory.add((np.array([0.1]), 2, -5, np.array([0.1]), False))
+        self.agent.memory.add((np.array([0.1]), 2, -5, np.array([0.1]), False))
 
     def test_get_experience_batch(self):
         self.agent.batch_size = 4

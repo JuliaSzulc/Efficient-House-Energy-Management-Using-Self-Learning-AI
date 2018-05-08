@@ -33,13 +33,103 @@ class Net(torch.nn.Module):
         return x
 
 
-class Memory(deque):
-    """Subclass of deque, storing transitions batches for Agent"""
+class SumTree:
+    """Structure used for storing priorities of the transitions.
 
-    # TODO: Prioritized Experience Replay
+    Used for PER (prioritized experience replay) implementation in Memory
+    """
+    pointer = 0
 
-    def __init__(self, maxlen):
-        super().__init__(maxlen=maxlen)
+    def __init__(self, max_size):
+        # number of leaves
+        self.max_size = max_size
+        # like a binary heap in an array
+        # number-of-leaves + number-of-nodes = max_size + (max_size - 1)
+        self.nodes = np.zeros(2 * max_size - 1)
+        self.data = np.zeros(max_size, object)
+
+    def update(self, index, priority):
+        change = priority - self.nodes[index]
+        self.nodes[index] = priority
+
+        while index != 0:
+            index = (index - 1) // 2
+            self.nodes[index] += change
+
+    def add(self, priority, data):
+        index = self.pointer + self.max_size - 1
+        self.data[self.pointer] = data
+        self.update(index, priority)
+
+    def get_leaves(self):
+        return self.nodes[-self.max_size:]
+
+    def get_leaf(self, value):
+        parent_index = 0
+
+        while True:
+            left_child_index = 2 * parent_index + 1
+            right_child_index = 2 * parent_index + 2
+
+            if left_child_index >= len(self.nodes):
+                leaf_index = parent_index
+                break
+            else:
+                if value <= self.nodes[left_child_index]:
+                    parent_index = left_child_index
+                else:
+                    value -= self.nodes[left_child_index]
+                    parent_index = right_child_index
+
+        data_index = leaf_index - self.max_size + 1
+
+        return leaf_index, self.nodes[leaf_index], self.data[data_index]
+
+    def get_priority_sum(self):
+        return self.nodes[0]
+
+
+class Memory:
+    """Based on a SumTree, storing transitions batches for Agent.
+
+    """
+
+    # [0, 1] - prioritization factor that determines how much
+    # prioritization is used( if 0 -> uniform case)
+    alpha = 0.5
+    # constant that prevents the transition to have 0 priority
+    epsilon = 0.01
+
+    def __init__(self, max_size):
+        self.sum_tree = SumTree(max_size)
+        self.len = 0
+
+    def add(self, transition):
+        max_priority = np.max(self.sum_tree.get_leaves())
+        self.sum_tree.add(max_priority, transition)
+
+        self.len += 1
+
+    def get_priority(self, error):
+        return (error + self.epsilon) ** self.alpha
+
+    def update(self, index, error):
+        priority = self.get_priority(error)
+        self.sum_tree.update(index, priority)
+
+    def sample(self, batch_size):
+        batch = []
+        priority_segment = self.sum_tree.get_priority_sum()
+
+        for i in range(batch_size):
+            a = i * priority_segment
+            b = (i + 1) * priority_segment
+            value = random.uniform(a, b)
+
+            (index, priority, data) = self.sum_tree.get_leaf(value)
+            batch.append((index, data))
+
+        return batch
 
 
 class Agent:
@@ -104,7 +194,7 @@ class Agent:
             hidden1_size,
             output_size
         )
-        self.memory = Memory(maxlen=config['memory_size'])
+        self.memory = Memory(config['memory_size'])
         self.double_dqn = config['double_dqn']
         self.gamma = config['gamma']
         self.epsilon = config['epsilon']
@@ -141,14 +231,14 @@ class Agent:
                 reward = config['reward_clip']
 
             self._update_stats(action_index, reward)
-            self.memory.append((self.current_state, action_index, reward,
+            self.memory.add((self.current_state, action_index, reward,
                                 next_state, terminal_state))
 
             self.current_state = next_state
             total_reward += reward
 
             train_episode = not counter % self.train_freq
-            enough_memory = len(self.memory) > config['memory_size_to_start']
+            enough_memory = self.memory.len > config['memory_size_to_start']
             if train_episode and enough_memory:
                 self._train()
 
@@ -174,7 +264,7 @@ class Agent:
 
         """
 
-        if len(self.memory) > self.batch_size:
+        if self.memory.len > self.batch_size:
             exp_batch = self.get_experience_batch()
 
             input_state_batch = exp_batch[0]
@@ -270,13 +360,8 @@ class Agent:
         """
 
         exp_batch = [0, 0, 0, 0, 0]
-        # 'combined experience replay'
-        # we use experience replay, but we put 2 last transitions in the batch
-        # to overcome the problem of very slow training with big memory sizes
-        # see paper "Deeper Look into Experience Replay" by G. Hinton
-        transition_batch = random.sample(self.memory, self.batch_size - 2)
-        transition_batch.append(self.memory[-2])
-        transition_batch.append(self.memory[-1])
+
+        transition_batch = self.memory.sample(self.batch_size - 2)
 
         # Float Tensors
         for i in [0, 2, 3, 4]:
