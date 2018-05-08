@@ -227,28 +227,22 @@ class House:
              reward(float): weighted sum of penalties
         """
 
-        w_temp, w_light, w_cost = 1.5, 100.0, 0.2
-        temp_exponent, light_exponent = 2, 0.5
+        w_temp, w_light, w_cost = 0.25, 5.0, 0.2
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
                        self.inside_sensors['first']['light'])
         req = self._get_current_user_requests()
 
-        temp_penalty = self._calculate_penalty(temp,
-                                               req['temp_desired'],
-                                               req['temp_epsilon'],
-                                               temp_exponent)
-        light_penalty = self._calculate_penalty(light,
-                                                req['light_desired'],
-                                                req['light_epsilon'],
-                                                light_exponent)
+        temp_penalty = abs(temp - req['temp_desired'])
+
+        light_penalty = abs(light - req['light_desired'])
 
         reward = -1 * ((cost * w_cost)
                        + (temp_penalty * w_temp)
                        + (light_penalty * w_light))
 
-        return reward / 50
+        return reward
 
     def _get_current_user_requests(self):
         """
@@ -259,19 +253,6 @@ class House:
         if self.day_start <= self.daytime < self.day_end:
             return self.user_requests['day']
         return self.user_requests['night']
-
-    @staticmethod
-    def _calculate_penalty(current, desired, epsilon, power):
-        """
-        Returns:
-             penalty(float): penalty for difference between current
-             and desired param (with epsilon-acceptable consideration)
-        """
-
-        difference = abs(current - desired)
-        if difference > epsilon:
-            return pow(difference, power)
-        return 0
 
     # from this point, define house actions.
     # IMPORTANT! All action names (and only them) have to start with "action"!

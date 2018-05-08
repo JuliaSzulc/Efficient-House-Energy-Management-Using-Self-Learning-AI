@@ -398,17 +398,6 @@ class BasicHouseTestCase(unittest.TestCase):
                              "Method returns user requests for the night, "
                              "not for the day")
 
-    def test_calculate_penalty(self):
-        """
-        Tests if the method correctly calculates the penalty
-        """
-        penalty = House._calculate_penalty(20.0, 21.0, 1.0, 2)
-        self.assertEqual(penalty, 0, "Penalty should be zero, "
-                                     "difference is not greater than epsilon")
-
-        penalty = House._calculate_penalty(100, 50, 1.0, 2)
-        self.assertEqual(penalty, 2500, "Penalty calculated incorrectly!")
-
 
 if __name__ == '__main__':
     unittest.main()
