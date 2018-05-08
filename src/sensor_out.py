@@ -40,9 +40,7 @@ class OutsideSensor:
         # actual_temp is calculated by the formula given in documentation
         sensor_info = OrderedDict({
             'daytime': self.daytime,
-            'actual_temp':
-                0.045 * (5.27**0.5 + 10.45 - 0.28 * self.weather['wind'])
-                * (self.weather['temperature'] - 33) + 33,
+            'actual_temp': self.weather['temperature'],
             'light': self.weather['light'],
             'clouds': self.weather['clouds'],
             'rain': self.weather['rain'],

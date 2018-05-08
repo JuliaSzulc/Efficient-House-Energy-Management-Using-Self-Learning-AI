@@ -82,7 +82,8 @@ def main():
             print("episode {} / {} | Reward: {}".format(i, num_episodes
                                                         , t_reward))
             if print_stats:
-                print_episode_stats(agent.get_episode_stats())
+                print_episode_stats(agent.get_episode_stats(),
+                                    env.get_episode_stats())
 
     if make_total_reward_plot:
         plot_total_rewards(rewards, num_episodes, avg=10)
@@ -102,15 +103,18 @@ def plot_total_rewards(rewards, num_episodes, avg=10):
     plt.show()
 
 
-def print_episode_stats(stats):
+def print_episode_stats(agent_stats, env_stats):
     print("-------------------------------------------------------------------")
-    for k, v in stats.items():
+    for k, v in agent_stats.items():
         try:
             name = v[0]
             value = v[1]
             print("{:30} = {:20} ({:.3f})".format(k, name, value))
         except TypeError:
             print("{:30} = {:.3f}".format(k, v))
+
+    for k, v in env_stats.items():
+        print("{:30} = {: .1f} %".format(k, v))
     print("===================================================================")
 
 

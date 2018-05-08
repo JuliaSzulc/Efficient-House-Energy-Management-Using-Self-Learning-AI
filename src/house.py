@@ -204,13 +204,12 @@ class House:
 
         if self.devices_settings['energy_src'] == 'battery':
             if self.battery['current'] > usage:
-                self.battery['current'] = \
-                    truncate(self.battery['current'] - usage,
-                             0, self.battery['max'])
+                self.battery['current'] -= usage
                 return 0
             else:
                 # Used more energy than we had in battery
                 usage -= self.battery['current']
+                self.battery['current'] = 0
                 self.devices_settings['energy_src'] = 'grid'
 
         return usage * self.grid_cost
@@ -229,7 +228,7 @@ class House:
              reward(float): weighted sum of penalties
         """
 
-        w_temp, w_light, w_cost = 0.7, 5.0, 0.2
+        w_temp, w_light, w_cost = 0.5, 5.0, 0.1
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
@@ -240,12 +239,11 @@ class House:
 
         light_penalty = abs(light - req['light_desired'])
 
-        reward_vector = np.array([cost * w_cost, temp_penalty * w_temp,
-                                  light_penalty * w_light])
+        reward = -1 * ((cost * w_cost)
+                       + (temp_penalty * w_temp)
+                       + (light_penalty * w_light))
 
-        reward = -1 * lina.norm(reward_vector)
-
-        return reward
+        return reward / 5
 
     def _get_current_user_requests(self):
         """
@@ -266,10 +264,7 @@ class House:
 
     def action_source_battery(self):
         """Action to be taken by RL-agent - change power source"""
-        # only if battery is more than 40%
-        # NOTE: 0.4 is a constant. Consider moving it to come config XML / JSON
-        if self.battery['current'] >= 0.4 * self.battery['max']:
-            self.devices_settings['energy_src'] = 'battery'
+        self.devices_settings['energy_src'] = 'battery'
 
     def action_more_cooling(self):
         """Action to be taken by RL-agent"""
