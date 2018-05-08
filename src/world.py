@@ -77,9 +77,8 @@ class World:
         """Registers listener on listeners list.
 
         Args:
-            listener - object to be added to self.listeners. Should implement
-                       update() method.
-
+            listener(object) - object to be added to self.listeners.
+                Should implement update() method.
         """
 
         self.listeners.append(listener)
@@ -157,20 +156,20 @@ class World:
         dayend = 1140
         daylen = dayend - daystart
         sun = 0
-        if self.basetime >= daystart and self.basetime <= dayend:
+        if daystart <= self.basetime <= dayend:
             sun = truncate(sin((self.basetime - daystart) * pi / daylen))
 
         self.delta_weather['sun_delta'] = sun - self.weather['sun']
         self.weather['sun'] = sun
 
     def _calculate_wind(self):
-        # propabilities to start / stop blowing
-        propability_stop = 0.05
-        propability_start = 0.02
+        # probabilities to start / stop blowing
+        probability_stop = 0.05
+        probability_start = 0.02
 
         is_blowing = self.weather['wind'] > 0
-        going_to_stop = random.uniform(0, 1) < propability_stop
-        going_to_start = random.uniform(0, 1) < propability_start
+        going_to_stop = random.uniform(0, 1) < probability_stop
+        going_to_start = random.uniform(0, 1) < probability_start
 
         if is_blowing:
             if going_to_stop:
@@ -180,24 +179,24 @@ class World:
                 new_factor = 1 - old_factor
 
                 new_wind = random.betavariate(0.5, 0.5)
-                self.weather['wind'] = self.weather['wind'] * old_factor\
-                                       + new_wind * new_factor
+                self.weather['wind'] = (self.weather['wind'] * old_factor
+                                        + new_wind * new_factor)
         elif going_to_start:
             self.weather['wind'] = random.betavariate(2, 5)
 
     def _calculate_clouds(self):
-        propability_stop = 0.1
-        propability_start = 0.02
-        propability_clear_all = 0.004
-        propability_storm = 0.002
-        propability_pass_critical = 0.9
+        probability_stop = 0.1
+        probability_start = 0.02
+        probability_clear_all = 0.004
+        probability_storm = 0.002
+        probability_pass_critical = 0.9
 
         is_cloudy = self.weather['clouds'] > 0
-        going_to_stop = random.uniform(0, 1) < propability_stop
-        going_to_start = random.uniform(0, 1) < propability_start
-        suddenly_clear_all = random.uniform(0, 1) < propability_clear_all
-        suddenly_storm = random.uniform(0, 1) < propability_storm
-        passing_critical = random.uniform(0, 1) < propability_pass_critical
+        going_to_stop = random.uniform(0, 1) < probability_stop
+        going_to_start = random.uniform(0, 1) < probability_start
+        suddenly_clear_all = random.uniform(0, 1) < probability_clear_all
+        suddenly_storm = random.uniform(0, 1) < probability_storm
+        passing_critical = random.uniform(0, 1) < probability_pass_critical
 
         if is_cloudy:
             if suddenly_clear_all:
@@ -217,18 +216,18 @@ class World:
                 new_cloud = random.betavariate(5, 1)
 
                 # add new cloud
-                clouds = self.weather['clouds'] * old_factor\
-                         + new_cloud * new_factor
+                clouds = (self.weather['clouds'] * old_factor
+                          + new_cloud * new_factor)
 
                 # consider influence of wind
                 clouds -= self.weather['wind'] * wind_factor
 
-                # go go over 0.4 with the propability of passing critical value
+                # go go over 0.4 with the probability of passing critical value
                 upper_limit = 0.4
                 if passing_critical:
                     upper_limit = 1
 
-                # updaate clouds
+                # update clouds
                 self.weather['clouds'] = truncate(clouds, 0, upper_limit)
 
         elif going_to_start:
@@ -246,9 +245,9 @@ class World:
         self.delta_weather['light_delta'] = self.weather['light'] - last_light
 
     def _calculate_rain(self):
-        propability_change_state = 0.05
+        probability_change_state = 0.05
 
-        change_state = random.uniform(0, 1) < propability_change_state
+        change_state = random.uniform(0, 1) < probability_change_state
         is_raining = self.weather['rain'] > 0
 
         if self.weather['clouds'] > 0:
@@ -275,11 +274,11 @@ class World:
         last_temperature = self.weather['temperature']
 
         # make changes in base temperature according to tendency
-        change_tendency_propability = 0.001
-        base_change_propability = 0.05
+        change_tendency_probability = 0.001
+        base_change_probability = 0.05
 
-        tendency_changing = random.uniform(0, 1) < change_tendency_propability
-        base_changing = random.uniform(0, 1) < base_change_propability
+        tendency_changing = random.uniform(0, 1) < change_tendency_probability
+        base_changing = random.uniform(0, 1) < base_change_probability
 
         if tendency_changing:
             self.tendency = -self.tendency
@@ -302,11 +301,11 @@ class World:
         wind_chill = 5 * self.weather['wind']
         rain_chill = 3 * self.weather['rain']
 
-        new_temp = self.base_temperature\
-                   + day_heat\
-                   + sun_heat\
-                   - wind_chill\
-                   - rain_chill\
+        new_temp = (self.base_temperature
+                    + day_heat
+                    + sun_heat
+                    - wind_chill
+                    - rain_chill)
 
         old_factor = 0.3
         new_factor = 1 - old_factor
@@ -357,4 +356,3 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     plot_weather()
     # test_base_mechanism()
-

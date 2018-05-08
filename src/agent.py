@@ -270,6 +270,10 @@ class Agent:
         """
 
         exp_batch = [0, 0, 0, 0, 0]
+        # 'combined experience replay'
+        # we use experience replay, but we put 2 last transitions in the batch
+        # to overcome the problem of very slow training with big memory sizes
+        # see paper "Deeper Look into Experience Replay" by G. Hinton
         transition_batch = random.sample(self.memory, self.batch_size - 2)
         transition_batch.append(self.memory[-2])
         transition_batch.append(self.memory[-1])
@@ -331,18 +335,18 @@ class Agent:
         most_common = max(self.stats.items(), key=lambda item:
                           item[1]['count'])
 
-        least_common = min(self.stats.items(), key=lambda item:
-                           item[1]['count'])
+        # least_common = min(self.stats.items(), key=lambda item:
+        #                    item[1]['count'])
 
         aggregated = {
             'most common action': (
                 most_common[0],
                 most_common[1]['count']
-            ),
-            'least common action': (
-                least_common[0],
-                least_common[1]['count']
             )
+            # 'least common action': (
+            #     least_common[0],
+            #     least_common[1]['count']
+            # )
         }
 
         return aggregated

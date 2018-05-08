@@ -33,7 +33,7 @@ class House:
         self.daytime = 0
 
         #  --- Energy / Light settings ---
-        self.pv_absorption = 50  # Watt/min on max sun intensity
+        self.pv_absorption = 1  # Watt/min on max sun intensity
         self.grid_cost = 0.5
         self.house_isolation_factor = 0.998
         self.house_light_factor = 0.01
@@ -93,7 +93,7 @@ class House:
         """Updates the grid cost based on daytime. Expressed in PLN for 1kWh"""
         if (0 < self.daytime < self.day_start) \
                 or (self.day_end < self.daytime < 1440):
-            self.grid_cost = 0.3
+            self.grid_cost = 0.1
         else:
             self.grid_cost = 0.5
 

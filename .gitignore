@@ -103,6 +103,7 @@ ENV/
 .idea/
 /src/saved_models/
 src/agent_test.py
+src/*.log
 *~
 *.swp
 *.swo
@@ -112,7 +113,7 @@ src/agent_test.py
 *.synctex.gz
 *.profile
 # modele
-src/saved_models/*
+
 
 # floydhub
 .floydexpt
