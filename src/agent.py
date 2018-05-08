@@ -15,22 +15,19 @@ import torch.nn.functional as F
 
 
 class Net(torch.nn.Module):
-    """Neural Network with variable layer sizes and 2 hidden layers."""
+    """Neural Network with variable layer sizes and 1 hidden layer."""
 
-    def __init__(self, input_size, hidden1_size, hidden2_size, output_size):
+    def __init__(self, input_size, hidden1_size, output_size):
         super().__init__()
         self.input_size = input_size
         self.fc1 = torch.nn.Linear(input_size, hidden1_size)
-        self.fc2 = torch.nn.Linear(hidden1_size, hidden2_size)
-        self.fc3 = torch.nn.Linear(hidden2_size, output_size)
+        self.fc2 = torch.nn.Linear(hidden1_size, output_size)
         self.output_size = output_size
 
     def forward(self, x):
         x = self.fc1(x)
         x = F.relu(x)
         x = self.fc2(x)
-        x = F.relu(x)
-        x = self.fc3(x)
         return x
 
 
@@ -62,7 +59,8 @@ class Agent:
         self.initial_state = None
         self.current_state = self.env.reset()
 
-        self.memory = Memory(maxlen=5000)
+        self.memory = None
+        self.double_dqn = None
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
@@ -88,30 +86,29 @@ class Agent:
                              'total_reward': 0}
 
         input_size = len(self.initial_state)
-        hidden1_size = 50
-        hidden2_size = 20
+        hidden1_size = 80
         output_size = len(self.actions)
 
         self.q_network = Net(
             input_size,
             hidden1_size,
-            hidden2_size,
             output_size
         )
         self.target_network = Net(
             input_size,
             hidden1_size,
-            hidden2_size,
             output_size
         )
+        self.memory = Memory(maxlen=5000)
+        self.double_dqn = True
         self.gamma = 0.9
-        self.epsilon = 0.3
-        self.epsilon_decay = 0.99
-        self.epsilon_min = 0.001
-        self.batch_size = 32
-        self.l_rate = 0.01
-        self.optimizer = optim.Adagrad(self.q_network.parameters(),
-                                       lr=self.l_rate)
+        self.epsilon = 0.4
+        self.epsilon_decay = 0.995
+        self.epsilon_min = 0.01
+        self.batch_size = 16
+        self.l_rate = 0.005
+        self.optimizer = optim.SGD(self.q_network.parameters(),
+                                   lr=self.l_rate, momentum=0.8)
 
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
@@ -176,29 +173,30 @@ class Agent:
             q_values = all_q_values. \
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
-            # DO TEGO MIEJSCA BYŁO TAK SAMO. TERAZ:
+            if self.double_dqn:
+                # Ydouble = r +
+                # Q(s_next, argmax{a}{Q(s_next,a; q_network)}; target_network)
 
-            # Ydouble =
-            # = r + Q(s_next, argmax{a}{Q(s_next,a; q_network)}; target_network)
+                # PO KAWAŁKU:
+                # q2 = Q(s_next, a; q_network)
+                # action = argmax{a}{q2}
+                # q1 = Q(s_next, action; target_network)
+                # Ydouble = r + gamma * q1
 
-            # PO KAWAŁKU:
-            # Q2 = Q(s_next, a; q_network)
-            # AKCJA = argmax{a}{Q2}
-            # Q1 = Q(s_next, AKCJA; target_network)
-            # Ydouble = r + Q1
+                q2 = self.q_network(next_state_batch)
+                q2 = Variable(q2.data)
+                _, actions = q2.max(dim=1)
 
-            Q2 = self.q_network(next_state_batch)
-            Q2 = Variable(Q2.data)
-            _, AKCJE = Q2.max(dim=1)
+                q1 = self.target_network(next_state_batch)
+                q1 = Variable(q1.data)
+                q1 = q1.gather(1, actions.unsqueeze(1)).squeeze()
 
-            Q1 = self.target_network(next_state_batch)
-            Q1 = Variable(Q1.data)
-            Q1 = Q1. \
-                gather(1, AKCJE.unsqueeze(1)).squeeze()
-
-            q_t1_max_with_terminal = Q1.mul(1 - terminal_mask_batch)
-
-            # KONIEC ZMIAN
+                q_t1_max_with_terminal = q1.mul(1 - terminal_mask_batch)
+            else:
+                q_next_max = self.q_network(next_state_batch)
+                q_next_max = Variable(q_next_max.data)
+                q_next_max, _ = q_next_max.max(dim=1)
+                q_t1_max_with_terminal = q_next_max.mul(1 - terminal_mask_batch)
 
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 
