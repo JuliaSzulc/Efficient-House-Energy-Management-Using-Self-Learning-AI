@@ -62,7 +62,7 @@ class Agent:
         self.initial_state = None
         self.current_state = self.env.reset()
 
-        self.memory = Memory(maxlen=5000)
+        self.memory = Memory(maxlen=1000)
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
@@ -88,7 +88,7 @@ class Agent:
                              'total_reward': 0}
 
         input_size = len(self.initial_state)
-        hidden1_size = 50
+        hidden1_size = 40
         hidden2_size = 20
         output_size = len(self.actions)
 
@@ -105,13 +105,13 @@ class Agent:
             output_size
         )
         self.gamma = 0.9
-        self.epsilon = 0.3
-        self.epsilon_decay = 0.99
-        self.epsilon_min = 0.001
-        self.batch_size = 32
-        self.l_rate = 0.01
-        self.optimizer = optim.Adagrad(self.q_network.parameters(),
-                                       lr=self.l_rate)
+        self.epsilon = 0.4
+        self.epsilon_decay = 0.995
+        self.epsilon_min = 0.01
+        self.batch_size = 16
+        self.l_rate = 0.005
+        self.optimizer = optim.SGD(self.q_network.parameters(),
+                                   lr=self.l_rate, momentum=0.8)
 
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
