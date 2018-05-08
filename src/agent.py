@@ -62,7 +62,8 @@ class Agent:
         self.initial_state = None
         self.current_state = self.env.reset()
 
-        self.memory = Memory(maxlen=5000)
+        self.memory = None
+        self.double_dqn = None
         self.gamma = 0
         self.epsilon = 0
         self.epsilon_decay = 0
@@ -104,14 +105,16 @@ class Agent:
             hidden2_size,
             output_size
         )
+        self.memory = Memory(maxlen=5000)
+        self.double_dqn = False
         self.gamma = 0.9
         self.epsilon = 0.3
         self.epsilon_decay = 0.99
         self.epsilon_min = 0.001
         self.batch_size = 32
         self.l_rate = 0.01
-        self.optimizer = optim.Adagrad(self.q_network.parameters(),
-                                       lr=self.l_rate)
+        self.optimizer = optim.Adadelta(self.q_network.parameters(),
+                                        lr=self.l_rate)
 
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
@@ -176,29 +179,30 @@ class Agent:
             q_values = all_q_values. \
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
-            # DO TEGO MIEJSCA BYŁO TAK SAMO. TERAZ:
+            if self.double_dqn:
+                # Ydouble = r +
+                # Q(s_next, argmax{a}{Q(s_next,a; q_network)}; target_network)
 
-            # Ydouble =
-            # = r + Q(s_next, argmax{a}{Q(s_next,a; q_network)}; target_network)
+                # PO KAWAŁKU:
+                # Q2 = Q(s_next, a; q_network)
+                # action = argmax{a}{Q2}
+                # Q1 = Q(s_next, action; target_network)
+                # Ydouble = r + gamma * Q1
 
-            # PO KAWAŁKU:
-            # Q2 = Q(s_next, a; q_network)
-            # AKCJA = argmax{a}{Q2}
-            # Q1 = Q(s_next, AKCJA; target_network)
-            # Ydouble = r + Q1
+                Q2 = self.q_network(next_state_batch)
+                Q2 = Variable(Q2.data)
+                _, actions = Q2.max(dim=1)
 
-            Q2 = self.q_network(next_state_batch)
-            Q2 = Variable(Q2.data)
-            _, AKCJE = Q2.max(dim=1)
+                Q1 = self.target_network(next_state_batch)
+                Q1 = Variable(Q1.data)
+                Q1 = Q1.gather(1, actions.unsqueeze(1)).squeeze()
 
-            Q1 = self.target_network(next_state_batch)
-            Q1 = Variable(Q1.data)
-            Q1 = Q1. \
-                gather(1, AKCJE.unsqueeze(1)).squeeze()
-
-            q_t1_max_with_terminal = Q1.mul(1 - terminal_mask_batch)
-
-            # KONIEC ZMIAN
+                q_t1_max_with_terminal = Q1.mul(1 - terminal_mask_batch)
+            else:
+                q_next_max = self.q_network(next_state_batch)
+                q_next_max = Variable(q_next_max.data)
+                q_next_max, _ = q_next_max.max(dim=1)
+                q_t1_max_with_terminal = q_next_max.mul(1 - terminal_mask_batch)
 
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 

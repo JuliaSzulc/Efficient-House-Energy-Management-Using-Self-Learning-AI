@@ -28,7 +28,7 @@ from shutil import copyfile
 def main():
     save_experiment = False
     run_manual_tests = False
-    print_stats = False
+    print_stats = True
     make_total_reward_plot = False
     load_agent_model = False
     safemode = False
