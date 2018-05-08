@@ -114,3 +114,6 @@ src/agent_test.py
 # modele
 src/saved_models/*
 
+# floydhub
+.floydexpt
+.floydignore

@@ -1,4 +1,4 @@
-"""This it the main executable module for the project.
+"""This is the main executable module for the project.
 
 Performs training of new - or loaded - model of the RL agent and provides
 logging, plotting and saving options. If 'manual' option is specified, there
@@ -68,7 +68,7 @@ def main():
     open('rewards.log', 'w').close()
 
     # --- learning ---
-    num_episodes = 1000
+    num_episodes = 5
     rewards = []
     for i in range(num_episodes):
         t_reward = agent.run()
