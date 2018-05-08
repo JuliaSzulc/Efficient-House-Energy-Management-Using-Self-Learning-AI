@@ -36,8 +36,10 @@ class HouseEnergyEnvironment:
         self.last_reward = 0
 
         self.timesteps = 0
-        self.temp_ok_count = 0
-        self.light_ok_count = 0
+        self.temp_diff_2_count = 0
+        self.temp_diff_05_count = 0
+        self.light_diff_015_count = 0
+        self.light_diff_005_count = 0
 
         self.reset(world)
 
@@ -76,8 +78,10 @@ class HouseEnergyEnvironment:
         self.world = world or World()
 
         self.timesteps = 0
-        self.temp_ok_count = 0
-        self.light_ok_count = 0
+        self.temp_diff_2_count = 0
+        self.temp_diff_05_count = 0
+        self.light_diff_015_count = 0
+        self.light_diff_005_count = 0
 
         self.house = House(self.world.time_step_in_minutes)
         self.outside_sensors = [OutsideSensor(self.house) for _ in range(1)]
@@ -271,8 +275,16 @@ class HouseEnergyEnvironment:
         return np.array(observation)
 
     def get_episode_stats(self):
-        return {'temp_ok': 100 * self.temp_ok_count / self.timesteps,
-                'light_ok': 100 * self.light_ok_count / self.timesteps}
+
+        temp_2 = 100 * self.temp_diff_2_count / self.timesteps
+        temp_05 = 100 * self.temp_diff_05_count / self.timesteps
+        light_015 = 100 * self.light_diff_015_count / self.timesteps
+        light_005 = 100 * self.light_diff_005_count / self.timesteps
+
+        return {'Temperature difference < 2': temp_2,
+                'Temperature difference < 0.5': temp_05,
+                'Light difference < 0.15': light_015,
+                'Light difference < 0.05': light_005}
 
     def _update_stats(self, state):
         self.timesteps += 1
@@ -283,7 +295,11 @@ class HouseEnergyEnvironment:
         light_difference = abs(state['inside_sensors']['first']['light']
                                - state['desired']['light_desired'])
 
-        if temp_difference < state['desired']['temp_epsilon']:
-            self.temp_ok_count += 1
-        if light_difference < state['desired']['light_epsilon']:
-            self.light_ok_count += 1
+        if temp_difference < 2:
+            self.temp_diff_2_count += 1
+            if temp_difference < 0.5:
+                self.temp_diff_05_count += 1
+        if light_difference < 0.15:
+            self.light_diff_015_count += 1
+            if light_difference < 0.05:
+                self.light_diff_005_count += 1

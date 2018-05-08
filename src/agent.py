@@ -101,13 +101,13 @@ class Agent:
         self.memory = Memory(maxlen=100000)
         self.double_dqn = True
         self.gamma = 0.9
-        self.epsilon = 0.1
+        self.epsilon = 0.3
         self.epsilon_decay = 0.995
         self.epsilon_min = 0.1
-        self.batch_size = 8
-        self.l_rate = 0.001
+        self.batch_size = 16
+        self.l_rate = 0.0004
         self.optimizer = optim.SGD(self.q_network.parameters(),
-                                   lr=self.l_rate, momentum=0.80)
+                                   lr=self.l_rate, momentum=0.95)
 
         self.train_freq = 4
 
@@ -138,11 +138,11 @@ class Agent:
 
             self.current_state = next_state
             total_reward += reward
-            if counter % self.train_freq == 0 and len(self.memory) > 10000:
+            if counter % self.train_freq == 0 and len(self.memory) > 1000:
                 self._train()
 
             # Update the target network:
-            qt = 0.0  # q to target ratio
+            qt = 0.1  # q to target ratio
             if counter == 0:
                 qt = 1.0
             for target_param, q_param in zip(
@@ -259,6 +259,10 @@ class Agent:
         """
 
         exp_batch = [0, 0, 0, 0, 0]
+        # 'combined experience replay'
+        # we use experience replay, but we put 2 last transitions in the batch
+        # to overcome the problem of very slow training with big memory sizes
+        # see paper "Deeper Look into Experience Replay" by G. Hinton
         transition_batch = random.sample(self.memory, self.batch_size - 2)
         transition_batch.append(self.memory[-2])
         transition_batch.append(self.memory[-1])
@@ -323,18 +327,18 @@ class Agent:
         most_common = max(self.stats.items(), key=lambda item:
                           item[1]['count'])
 
-        least_common = min(self.stats.items(), key=lambda item:
-                           item[1]['count'])
+        # least_common = min(self.stats.items(), key=lambda item:
+        #                    item[1]['count'])
 
         aggregated = {
             'most common action': (
                 most_common[0],
                 most_common[1]['count']
-            ),
-            'least common action': (
-                least_common[0],
-                least_common[1]['count']
             )
+            # 'least common action': (
+            #     least_common[0],
+            #     least_common[1]['count']
+            # )
         }
 
         return aggregated
