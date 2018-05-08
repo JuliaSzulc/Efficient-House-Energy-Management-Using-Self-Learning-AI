@@ -68,7 +68,7 @@ class Agent:
         self.batch_size = 0
         self.l_rate = 0
         self.optimizer = None
-        self.state_counter = 0
+        self.train_freq = 0
 
         self.stats = dict()
 
@@ -76,7 +76,6 @@ class Agent:
 
     def reset(self):
         """Initialize the networks and other parameters"""
-        self.state_counter = 0
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
 
@@ -99,19 +98,22 @@ class Agent:
             hidden1_size,
             output_size
         )
-        self.memory = Memory(maxlen=5000)
+        self.memory = Memory(maxlen=100000)
         self.double_dqn = True
         self.gamma = 0.9
-        self.epsilon = 0.4
+        self.epsilon = 0.1
         self.epsilon_decay = 0.995
-        self.epsilon_min = 0.01
-        self.batch_size = 16
-        self.l_rate = 0.005
+        self.epsilon_min = 0.1
+        self.batch_size = 8
+        self.l_rate = 0.001
         self.optimizer = optim.SGD(self.q_network.parameters(),
-                                   lr=self.l_rate, momentum=0.8)
+                                   lr=self.l_rate, momentum=0.80)
+
+        self.train_freq = 4
 
     def run(self):
         """Main agent's function. Performs the deep q-learning algorithm"""
+        counter = 0
         self.current_state = self.env.reset()
         total_reward = 0
         terminal_state = False
@@ -120,7 +122,7 @@ class Agent:
                              'total_reward': 0}
 
         while not terminal_state:
-            self.state_counter = (self.state_counter + 1) % 100
+            counter = (counter + 1) % 500
             action_index = \
                 self._get_next_action_epsilon_greedy(self.current_state)
 
@@ -136,14 +138,16 @@ class Agent:
 
             self.current_state = next_state
             total_reward += reward
-            self._train()
+            if counter % self.train_freq == 0 and len(self.memory) > 10000:
+                self._train()
 
             # Update the target network:
-            qt = 0.1  # q to target ratio
-            if self.state_counter == 0:
+            qt = 0.0  # q to target ratio
+            if counter == 0:
                 qt = 1.0
-            for target_param, q_param in zip(self.target_network.parameters(),
-                                             self.q_network.parameters()):
+            for target_param, q_param in zip(
+                    self.target_network.parameters(),
+                    self.q_network.parameters()):
                 target_param.data.copy_(q_param.data * qt
                                         + target_param.data * (1.0 - qt))
 
@@ -203,6 +207,8 @@ class Agent:
             self.optimizer.zero_grad()
             loss = nn.modules.SmoothL1Loss()(q_values, targets)
             loss.backward()
+            for param in self.q_network.parameters():
+                param.grad.data.clamp_(-1, 1)
             self.optimizer.step()
 
     def get_next_action_greedy(self, state):
@@ -253,7 +259,9 @@ class Agent:
         """
 
         exp_batch = [0, 0, 0, 0, 0]
-        transition_batch = random.sample(self.memory, self.batch_size)
+        transition_batch = random.sample(self.memory, self.batch_size - 2)
+        transition_batch.append(self.memory[-2])
+        transition_batch.append(self.memory[-1])
 
         # Float Tensors
         for i in [0, 2, 3, 4]:
@@ -318,13 +326,6 @@ class Agent:
         least_common = min(self.stats.items(), key=lambda item:
                            item[1]['count'])
 
-        best_mean_reward = max(self.stats.items(), key=lambda item:
-                               item[1]['total_reward'] /
-                               (item[1]['count'] or 1))
-
-        best_total_reward = max(self.stats.items(), key=lambda item:
-                                item[1]['total_reward'])
-
         aggregated = {
             'most common action': (
                 most_common[0],
@@ -333,19 +334,7 @@ class Agent:
             'least common action': (
                 least_common[0],
                 least_common[1]['count']
-            ),
-            'action with best avg reward': (
-                best_mean_reward[0],
-                best_mean_reward[1]['total_reward']
-                / (best_mean_reward[1]['count'] or 1)
-            ),
-            'action with best total reward': (
-                best_total_reward[0],
-                best_total_reward[1]['total_reward']
-            ),
-            'avg total reward': sum(
-                [i['total_reward'] for k, i in self.stats.items()]
-            ) / (len(self.actions) or 1)
+            )
         }
 
         return aggregated

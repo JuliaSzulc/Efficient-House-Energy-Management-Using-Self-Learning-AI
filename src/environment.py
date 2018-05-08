@@ -35,6 +35,10 @@ class HouseEnergyEnvironment:
 
         self.last_reward = 0
 
+        self.timesteps = 0
+        self.temp_ok_count = 0
+        self.light_ok_count = 0
+
         self.reset(world)
 
     def step(self, action_name):
@@ -54,8 +58,12 @@ class HouseEnergyEnvironment:
 
         getattr(self.house, action_name)()
         done = self.world.step()
-        observation = self._serialize_state(self._get_current_state())
+        current_state = self._get_current_state()
+        observation = self._serialize_state(current_state)
+
         self.last_reward = self.house.reward()
+        self._update_stats(current_state['inside'])
+
         return observation, self.last_reward, done
 
     def reset(self, world=None):
@@ -66,6 +74,11 @@ class HouseEnergyEnvironment:
         """
 
         self.world = world or World()
+
+        self.timesteps = 0
+        self.temp_ok_count = 0
+        self.light_ok_count = 0
+
         self.house = House(self.world.time_step_in_minutes)
         self.outside_sensors = [OutsideSensor(self.house) for _ in range(1)]
 
@@ -256,3 +269,21 @@ class HouseEnergyEnvironment:
             "vector: " + str(observation)
 
         return np.array(observation)
+
+    def get_episode_stats(self):
+        return {'temp_ok': 100 * self.temp_ok_count / self.timesteps,
+                'light_ok': 100 * self.light_ok_count / self.timesteps}
+
+    def _update_stats(self, state):
+        self.timesteps += 1
+
+        temp_difference = abs(state['inside_sensors']['first']['temperature']
+                              - state['desired']['temp_desired'])
+
+        light_difference = abs(state['inside_sensors']['first']['light']
+                               - state['desired']['light_desired'])
+
+        if temp_difference < state['desired']['temp_epsilon']:
+            self.temp_ok_count += 1
+        if light_difference < state['desired']['light_epsilon']:
+            self.light_ok_count += 1
