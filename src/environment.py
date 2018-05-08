@@ -256,11 +256,7 @@ class HouseEnergyEnvironment:
                 observation.append(d_value)
 
             elif d_key == 'battery_delta':
-                # NOTE better normalization of delta. This is usually a small
-                # value, so it would be nice to change it by
-                # a) scaling logarithmically, or
-                # b) considering maximum possible delta for that moment
-                d_value /= 14000
+                d_value /= 10
                 observation.append(d_value)
             else:
                 observation.append(d_value)
