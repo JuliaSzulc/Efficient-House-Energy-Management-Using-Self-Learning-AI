@@ -13,6 +13,8 @@ directly from outside.
 from random import uniform
 from collections import OrderedDict
 from tools import truncate
+import numpy as np
+from numpy import linalg as lina
 
 
 class House:
@@ -227,7 +229,7 @@ class House:
              reward(float): weighted sum of penalties
         """
 
-        w_temp, w_light, w_cost = 0.25, 5.0, 0.2
+        w_temp, w_light, w_cost = 0.7, 5.0, 0.2
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
@@ -238,9 +240,10 @@ class House:
 
         light_penalty = abs(light - req['light_desired'])
 
-        reward = -1 * ((cost * w_cost)
-                       + (temp_penalty * w_temp)
-                       + (light_penalty * w_light))
+        reward_vector = np.array([cost * w_cost, temp_penalty * w_temp,
+                                  light_penalty * w_light])
+
+        reward = -1 * lina.norm(reward_vector)
 
         return reward
 

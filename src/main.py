@@ -28,7 +28,7 @@ from shutil import copyfile
 def main():
     save_experiment = True
     run_manual_tests = False
-    print_stats = True
+    print_stats = False
     make_total_reward_plot = True
     load_agent_model = False
     safemode = False
@@ -68,7 +68,7 @@ def main():
     open('rewards.log', 'w').close()
 
     # --- learning ---
-    num_episodes = 1000
+    num_episodes = 1500
     rewards = []
     for i in range(num_episodes):
         t_reward = agent.run()
