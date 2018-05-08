@@ -1,6 +1,6 @@
 {
     "main": {
-        "training_episodes"          : 200000,
+        "training_episodes"          : 10,
         "fps"                        : 8
     },
     "agent": {

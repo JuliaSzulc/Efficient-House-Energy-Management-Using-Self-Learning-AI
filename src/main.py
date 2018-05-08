@@ -82,8 +82,8 @@ def main():
                 logfile.write("{}\n".format(t_reward))
 
         if not quiet:
-            print("episode {} / {} | Reward: {}".format(i, num_episodes
-                                                        , t_reward))
+            print("episode {} / {} | Reward: {}".format(i, num_episodes,
+                                                        t_reward))
             if print_stats:
                 print_episode_stats(agent.get_episode_stats(),
                                     env.get_episode_stats())
@@ -94,6 +94,9 @@ def main():
     if save_experiment:
         save_model_info(model_id, agent.q_network, rewards,
                         agent.get_model_info())
+
+    for param, val in CONFIG['agent'].items():
+        print(param, val)
 
 
 def plot_total_rewards(rewards, num_episodes, avg=10):
