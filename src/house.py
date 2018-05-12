@@ -4,18 +4,16 @@ in form of a House class and additional functions. House class is the most
 important part of HouseEnergyEnvironment structure, in which most of the actual
 actions take place. It simulates light and energy distribution and cost,
 contains actions for RL agent to change inside parameters such as heating or
-light levels; it also calculates reward / penalty for the agent.
+light levels; it also calculates the reward / penalty for the last timeframe.
 
 Is is mainly used within HouseEnergyEnvironment class, and should not be used
 directly from outside.
 
 """
 import json
-from random import uniform
+import random
 from collections import OrderedDict
 from tools import truncate
-import numpy as np
-from numpy import linalg as lina
 
 
 class House:
@@ -25,14 +23,13 @@ class House:
         with open('../configuration.json') as config_file:
             self.CONFIG = json.load(config_file)
 
-        #  --- Time ---
-        # values are expressed in minutes
+        # Time constants and variables (in minutes)
         self.timeframe = timeframe
         self.day_start = 7 * 60
         self.day_end = 18 * 60
         self.daytime = 0
 
-        #  --- Energy / Light settings ---
+        # Energy and light settings
         self.pv_absorption = 1  # Watt/min on max sun intensity
         self.grid_cost = 0.5
         self.house_isolation_factor = 0.998
@@ -50,25 +47,13 @@ class House:
             'light': 20
         }
 
-        #  --- Requests ---
-        self.user_requests = {
-            'day': OrderedDict({
-                'temp_desired': 21,
-                'temp_epsilon': 0.5,
-                'light_desired': 0.4,  # 200 / (max_outside_illumination
-                                       # * house_light_factor
-                                       # + max_led_illuminance)
-                'light_epsilon': 0.05
-            }),
-            'night': OrderedDict({
+        self.user_requests = OrderedDict({
                 'temp_desired': 18,
                 'temp_epsilon': 1,
                 'light_desired': 0.0,
                 'light_epsilon': 0.05
-            })
-        }
+        })
 
-        #  --- Sensors ---
         self.inside_sensors = OrderedDict({
             'first': OrderedDict({
                 'temperature': 18,
@@ -77,9 +62,9 @@ class House:
             })
         })
 
-        #  --- Action-controlled settings ---
+        # Action-controlled settings
         self.devices_settings = OrderedDict({
-            'energy_src': 'grid',  # grid/pv
+            'energy_src': 'grid',  # grid/battery
             'cooling_lvl': 0,
             'heating_lvl': 0,
             'light_lvl': 0,
@@ -91,11 +76,30 @@ class House:
 
     def _update_grid_cost(self):
         """Updates the grid cost based on daytime. Expressed in PLN for 1kWh"""
-        if (0 < self.daytime < self.day_start) \
-                or (self.day_end < self.daytime < 1440):
-            self.grid_cost = 0.1
-        else:
+        if self.day_start < self.daytime < self.day_end:
             self.grid_cost = 0.5
+        else:
+            self.grid_cost = 0.3
+
+    def _update_user_requests(self):
+        """
+        Randomly changes the user requests every 2 hours
+
+        For the temperature, requests are integers from <19, 24> interval during
+        the day, and from <15, 20> interval during the night time.
+
+        For the light, intervals remain the same during the whole time.
+        Values are multiplications of the 'influence' class field.
+
+        """
+        if self.daytime % 120 == 0:
+            self.user_requests['temp_desired'] = random.randint(15, 20)
+
+            if self.day_start < self.daytime < self.day_end:
+                self.user_requests['temp_desired'] += 4
+
+            self.user_requests['light_desired'] = \
+                random.choice([0.0, 0.2, 0.4, 0.6, 0.8])
 
     def _calculate_light(self, outside_illumination):
         for data in self.inside_sensors.values():
@@ -118,7 +122,7 @@ class House:
                     - self.devices_settings['cooling_lvl']) / 5
 
             data['temperature_delta'] = new_inside_temp - last_inside_temp
-            data['temperature'] = new_inside_temp
+            data['temperature'] = truncate(new_inside_temp, -20, 40)
 
     def _calculate_accumulated_energy(self, outside_light):
         """Calculates new value of energy accumulated in the battery"""
@@ -131,12 +135,13 @@ class House:
         """Updates house parameters
 
         Args:
-            sensor_out_info (dict) - weather and time information from
+            sensor_out_info(dict) - weather and time information from
                                      outside sensor
         """
 
         self.daytime = sensor_out_info['daytime']
         self._update_grid_cost()
+        self._update_user_requests()
         self._calculate_accumulated_energy(sensor_out_info['light'])
         self._calculate_temperature(sensor_out_info['actual_temp'])
         self._calculate_light(sensor_out_info['light']
@@ -146,34 +151,25 @@ class House:
         """Returns all important information about the state of the house
 
         Returns:
-            inside_params (dict): A dictionary with *unnormalized*
+            inside_params (OrderedDict): A dictionary with *unnormalized*
             house info and noise.
 
         Structure of returned dict consist of:
             'inside_sensors' - dict of inside sensors info
             'desired' - dict of settings requested by user
-            (currently not included) 'grid_cost' - a cost of energy
+            'grid_cost' - a cost of energy
             'battery_level' - current battery level
             'battery_delta' - accumulation tempo of the battery
         """
 
         inside_params = OrderedDict({
             'inside_sensors': self.inside_sensors,
-            'desired': self._get_current_user_requests(),
+            'desired': self.user_requests,
             'grid_cost': self.grid_cost,
             'devices_settings': self.devices_settings,
             'battery_level': self.battery['current'],
             'battery_delta': self.battery['delta']
         })
-
-        for sensor in inside_params['inside_sensors'].values():
-            for key, value in sensor.items():
-                if key == 'temperature':
-                    sensor[key] = truncate(value
-                                           + uniform(-0.05, 0.05), -20, 40)
-                elif key == 'light':
-                    sensor[key] = truncate(value
-                                           + uniform(-0.01, 0.01))
 
         return inside_params
 
@@ -239,7 +235,7 @@ class House:
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
                        self.inside_sensors['first']['light'])
-        req = self._get_current_user_requests()
+        req = self.user_requests
 
         temp_penalty = abs(temp - req['temp_desired'])
 
@@ -250,16 +246,6 @@ class House:
                        + (light_penalty * w_light))
 
         return reward / 5
-
-    def _get_current_user_requests(self):
-        """
-        Returns:
-             requests(dict): user requests corresponding to current time
-        """
-
-        if self.day_start <= self.daytime < self.day_end:
-            return self.user_requests['day']
-        return self.user_requests['night']
 
     # from this point, define house actions.
     # IMPORTANT! All action names (and only them) have to start with "action"!

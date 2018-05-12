@@ -31,7 +31,7 @@ def main():
     run_manual_tests = False
     print_stats = True
     make_total_reward_plot = True
-    load_agent_model = True
+    load_agent_model = False
     safemode = False
     quiet = False
 
