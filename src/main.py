@@ -27,11 +27,11 @@ from shutil import copyfile
 
 
 def main():
-    save_experiment = True
+    save_experiment = False
     run_manual_tests = False
     print_stats = True
-    make_total_reward_plot = True
-    load_agent_model = True
+    make_total_reward_plot = False
+    load_agent_model = False
     safemode = False
     quiet = False
 
