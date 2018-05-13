@@ -69,11 +69,11 @@ def main():
     open('rewards.log', 'w').close()  # reset rewards log
 
     with open('../configuration.json') as config_file:
-        CONFIG = json.load(config_file)
-    num_episodes = CONFIG['main']['training_episodes']
+        config = json.load(config_file)
+    training_episodes = config['main']['training_episodes']
     # --- learning ---
     rewards = []
-    for i in range(num_episodes):
+    for i in range(training_episodes):
         t_reward = agent.run()
         rewards.append(t_reward)
 
@@ -82,20 +82,20 @@ def main():
                 logfile.write("{}\n".format(t_reward))
 
         if not quiet:
-            print("episode {} / {} | Reward: {}".format(i, num_episodes,
+            print("episode {} / {} | Reward: {}".format(i, training_episodes,
                                                         t_reward))
             if print_stats:
                 print_episode_stats(agent.get_episode_stats(),
                                     env.get_episode_stats())
 
     if make_total_reward_plot:
-        plot_total_rewards(rewards, num_episodes, avg=10)
+        plot_total_rewards(rewards, training_episodes, avg=10)
 
     if save_experiment:
         save_model_info(model_id, agent.q_network, rewards,
                         agent.get_model_info())
 
-    for param, val in CONFIG['agent'].items():
+    for param, val in config['agent'].items():
         print(param, val)
 
 
