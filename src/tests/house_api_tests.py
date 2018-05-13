@@ -9,8 +9,6 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from house import House
 
 
-
-
 class HouseActionsDifferentTimeframes(unittest.TestCase):
     """Testing house actions on different timeframes"""
 
@@ -64,6 +62,7 @@ class HouseActionsTestCase(unittest.TestCase):
 
     def setUp(self):
         self.house = House(1)  # one minute timeframe
+        self.house.influence = 0.2
         self.house.devices_settings = {
             'energy_src': 'grid',
             'cooling_lvl': 0.5,
@@ -87,15 +86,6 @@ class HouseActionsTestCase(unittest.TestCase):
 
         self.house.action_source_grid()
         self.assertTrue(self.house.devices_settings['energy_src'], 'grid')
-
-    def test_action_source_battery_restriction(self):
-        """Baterry power source should be available only when charged to
-        more than 40%"""
-
-        self.house_empty_battery.action_source_battery()
-        self.assertTrue(
-            self.house_empty_battery.devices_settings['energy_src'],
-            'grid')
 
     def test_action_more_cooling(self):
         """Test more cooling"""
@@ -194,13 +184,12 @@ class HouseRewardTestCase(unittest.TestCase):
         # define perfect conditions (so reward should be zero)
         self.house._calculate_energy_cost = MagicMock(return_value=0)
         self.house.user_requests = {
-            'day': {
                 'temp_desired': 21,
                 'temp_epsilon': 0.5,
                 'light_desired': 0.7,
                 'light_epsilon': 0.05
-            }
         }
+
         self.house.inside_sensors = {
             'first': {
                 'temperature': 21,
@@ -219,7 +208,7 @@ class HouseRewardTestCase(unittest.TestCase):
     def test_reward_returns_nonpositive_values(self):
         """
         The reward in the simulator is modeled as a penalty.
-        It shouldn't return positive values
+        It shouldn't return positive values.
         """
         testing_pairs = ((-40, 0), (0, 0), (10, 0), (15, 0.02), (15, 0.5),
                          (21, 0.4), (264, 0.99), (math.pi, 1))
@@ -233,47 +222,39 @@ class HouseRewardTestCase(unittest.TestCase):
             reward = self.house.reward()
             self.assertLessEqual(reward, 0, "Reward shouldn't be positive!")
 
-    def test_reward_increase_with_energy_cost(self):
+    def test_reward_decrease_with_energy_cost(self):
         """
         Energy cost is the base parameter and with cost increase,
         penalty should be bigger
         """
         reward = self.house.reward()
         self.house._calculate_energy_cost = MagicMock(return_value=100)
-        reward_2 = self.house.reward()
-        self.assertLess(reward_2, reward,
-                        "Reward should be bigger, parameters are worse.")
+        self.assertLess(self.house.reward(), reward,
+                        "Reward should decrease, cost parameter got worse!")
+        self.house._calculate_energy_cost = MagicMock(return_value=0)
+        self.house.inside_sensors = {
+            'first': {
+                'temperature': 20,
+                'light': 0.7
+            }
+        }
+        self.assertLess(self.house.reward(), reward,
+                        "Reward should decrease, temperature got worse!")
+        self.house.inside_sensors = {
+            'first': {
+                'temperature': 21,
+                'light': 0.4
+            }
+        }
+        self.assertLess(self.house.reward(), reward,
+                        "Reward should decrease, light got worse!")
 
 
 class HouseUpdateTestCase(unittest.TestCase):
     """Testing all the methods from update and update itself"""
 
     def setUp(self):
-        self.house = House(5)
-        self.house.battery = {
-            'current': 0,
-            'max': 14000
-        }
-
-        self.house.pv_absorption = 2000
-        self.house.house_isolation_factor = 0.5
-        self.house.house_light_factor = 0.01
-        self.house.max_led_illuminance = 200
-
-        self.house.inside_sensors = {
-            'first': {
-                'temperature': 20,
-                'light': 0.8
-            }
-        }
-
-        self.house.devices_settings = {
-            'energy_src': 'grid',
-            'cooling_lvl': 0.2,
-            'heating_lvl': 0.3,
-            'light_lvl': 0.3,
-            'curtains_lvl': 0.1
-        }
+        self.house = House(1)
 
         self.sensor_out_info = {
             'daytime': 12 * 60,
@@ -290,25 +271,6 @@ class HouseUpdateTestCase(unittest.TestCase):
     def test_compare_daytime(self):
         self.assertEqual(self.house.daytime, self.sensor_out_info['daytime'],
                          "Daytime is different in house and outside sensor!")
-
-    # TODO write proper tests here! We don't really know the true values and we
-    # We will change some inside params a lot.
-    # We should rather expect things like non-negative numbers, or values
-    # from a given
-
-    # def test_check_accumulated_energy(self):
-    #     self.assertEqual(self.house.battery['current'], 4000,
-    #                      "Battery state is not correct")
-    #
-    # def test_check_inside_temperature(self):
-    #     for sensor, data in self.house.inside_sensors.items():
-    #        self.assertEqual(data['temperature'], 21.25,
-    #                         "Inside temperature is not correct.")
-    #
-    # def test_check_inside_brightness(self):
-    #     for sensor, data in self.house.inside_sensors.items():
-    #         self.assertEqual(data['light'], 0.75,
-    #                          "Inside brightness is not correct.")
 
 
 class HouseEnergyCostTestCase(unittest.TestCase):
@@ -381,22 +343,6 @@ class BasicHouseTestCase(unittest.TestCase):
             is_ordered_dict = type(param) is OrderedDict
             self.assertTrue(is_ordered_dict, "Inside dictionary has to be of "
                             "OrderedDict type")
-
-    def test_get_current_user_requests(self):
-        """
-        Tests get current user requests
-        """
-        self.house.daytime = 2 * 60  # night
-        requests = self.house._get_current_user_requests()
-        self.assertDictEqual(requests, self.house.user_requests['night'],
-                             "Method returns user requests for the day, "
-                             "not for the night")
-
-        self.house.daytime = 12 * 60  # day
-        requests = self.house._get_current_user_requests()
-        self.assertDictEqual(requests, self.house.user_requests['day'],
-                             "Method returns user requests for the night, "
-                             "not for the day")
 
 
 if __name__ == '__main__':
