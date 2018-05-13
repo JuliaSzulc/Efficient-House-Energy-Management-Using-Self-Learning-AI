@@ -51,9 +51,11 @@ class Agent:
 
     """
 
-    def __init__(self, env):
-        with open('../configuration.json') as config_file:
-            self.CONFIG = json.load(config_file)
+    def __init__(self, env, conf=None):
+        self.CONFIG = conf
+        if not conf:
+            with open('../configuration.json') as config_file:
+                self.CONFIG = json.load(config_file)
 
         self.env = env
         self.actions = None
@@ -291,40 +293,32 @@ class Agent:
 
     # --- Define utility methods below ---
 
-    def get_model_info(self):
-        """
-        Method returns current parameters such as gamma, epsilon etc.
-
-        Returns:
-            model_params(dict) - dict of parameters
-        """
-
-        model_params = {
-            'Gamma': self.gamma,
-            'Epsilon': self.epsilon,
-            'Epsilon_decay': self.epsilon_decay,
-            'Epsilon_min': self.epsilon_min,
-            'Batch_size': self.batch_size,
-            'Learning_rate': self.l_rate
-        }
-        return model_params
-
     def load_network_model(self, path):
         """
         Loads network model from given file into the Agent's network fields.
-        Performs input and output layer sizes validation.
 
         Args:
             path(str): path to file
 
         """
-        # TODO load params from params.cfg as well
         try:
             self.q_network.load_state_dict(torch.load(path))
             self.target_network.load_state_dict(torch.load(path))
         except RuntimeError:
             print('Wrong network size? Aborting')
             sys.exit()
+
+    def load_config(self, path):
+        """
+        Loads configuration from given file.
+
+        Args:
+            path(str): path to file
+
+        """
+        with open(path) as config_file:
+            self.CONFIG = json.load(config_file)
+        self.reset()
 
     def _update_stats(self, action_index, reward):
         action = self.actions[action_index]

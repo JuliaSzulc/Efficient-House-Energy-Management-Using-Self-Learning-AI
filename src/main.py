@@ -15,6 +15,7 @@ You can run this file with additional arguments:
 
 """
 import sys
+import os
 import json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,12 +23,11 @@ import torch
 from manual_test import ManualTestTerminal
 from environment import HouseEnergyEnvironment
 from agent import Agent
-import os
 from shutil import copyfile
 
 
 def main():
-    save_experiment = True
+    save_experiment = False
     run_manual_tests = False
     print_stats = True
     make_total_reward_plot = True
@@ -92,8 +92,9 @@ def main():
         plot_total_rewards(rewards, training_episodes, avg=10)
 
     if save_experiment:
-        save_model_info(model_id, agent.q_network, rewards,
-                        agent.get_model_info())
+        config =\
+            save_model_info(model_id, agent.q_network,
+                            rewards, load_agent_model)
 
     for param, val in config['agent'].items():
         print(param, val)
@@ -110,7 +111,7 @@ def plot_total_rewards(rewards, num_episodes, avg=10):
 
 
 def print_episode_stats(agent_stats, env_stats):
-    print("-------------------------------------------------------------------")
+    print("------------------------------------------------------------------")
     for k, v in agent_stats.items():
         try:
             name = v[0]
@@ -121,7 +122,7 @@ def print_episode_stats(agent_stats, env_stats):
 
     for k, v in env_stats.items():
         print("{:30} = {: .1f} %".format(k, v))
-    print("===================================================================")
+    print("==================================================================")
 
 
 def load_model(agent, model_id):
@@ -134,24 +135,28 @@ def load_model(agent, model_id):
 
     """
 
-    if os.path.isfile(
-            'saved_models/model_{}/network.pt'.format(model_id)):
-        agent.load_network_model('saved_models/model_{}/network.pt'.
-                                 format(model_id))
-    else:
-        raise ValueError('No model with given index\n')
+    try:
+        agent.load_config('saved_models/model_{}/configuration.json'.
+                          format(model_id))
+    except FileNotFoundError:
+        print("Loading model failed. No model with given index, or no\
+              configuration file")
+        sys.exit()
+
+    agent.load_network_model('saved_models/model_{}/network.pt'.
+                             format(model_id))
 
 
-def save_model_info(model_id, model, rewards, agent_params):
+def save_model_info(model_id, model, rewards, model_was_loaded=False):
     """
-    Method saves the model and training rewards to a files in the
-    saved_models/{model_id} directory.
+    Method saves the model, configuration file  and training rewards to a files
+    in the saved_models/{model_id} directory.
 
     Args:
         model_id(number): id of the model (should be -1 if it's a new model)
         model(torch.nn.Net): neural network torch model (q_network)
         rewards(list): list of total rewards for each episode
-        agent_params(dict): dict of other agent parameters to be saved
+        model_was_loaded(bool): determine if model was loaded or created
     """
 
     # create new directory with incremented id
@@ -162,28 +167,36 @@ def save_model_info(model_id, model, rewards, agent_params):
             break
         new_index += 1
 
-    model_was_loaded = (model_id != -1) and os.path.isfile(
-        'saved_models/model_{}/rewards.log'.format(model_id))
-
+    # copy old rewards log to append new if model was loaded
+    # model_was_loaded = (model_id != -1) and os.path.isfile(
+        # 'saved_models/model_{}/rewards.log'.format(model_id))
     if model_was_loaded:
         copyfile(
             'saved_models/model_{}/rewards.log'.format(model_id),
             'saved_models/model_{}/rewards.log'.format(new_index))
 
-    # save new data
+    #  --- save new data
+    # model
     torch.save(model.state_dict(), 'saved_models/model_{}/network.pt'
                .format(new_index))
 
+    # rewards log
     logfile = open("saved_models/model_{}/rewards.log".format(new_index), "a")
     for reward in rewards:
         logfile.write("{}\n".format(reward))
     logfile.close()
 
-    logfile = open("saved_models/model_{}/params.cfg".format(new_index), "w")
-    for key, value in agent_params.items():
-        logfile.write("{:20} {}\n".format(key, value))
-    logfile.close()
+    # config
+    if model_was_loaded:
+        config = "saved_models/model_{}/configuration.json".format(model_id)
+    else:
+        config = "../configuration.json"
 
+    copyfile(
+        config,
+        "saved_models/model_{}/configuration.json".format(new_index))
+
+    # rewards chart
     rewards = []
     for line in open('saved_models/model_{}/rewards.log'.format(new_index), 'r'):
         values = [float(s) for s in line.split()]
@@ -193,6 +206,12 @@ def save_model_info(model_id, model, rewards, agent_params):
         avg_rewards.append(np.mean(rewards[10 * i: 10 * (i + 1)]))
     plt.plot(avg_rewards)
     plt.savefig('saved_models/model_{}/learning_plot.png'.format(new_index))
+
+    with open(
+        "saved_models/model_{}/configuration.json".format(new_index)
+    ) as config_file:
+        CONFIG_AGENT = json.load(config_file)
+    return CONFIG_AGENT
 
 
 if __name__ == "__main__":

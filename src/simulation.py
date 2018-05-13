@@ -16,6 +16,11 @@ have fun watching Agent being alive,
 RL-for-decision-process team, 2018
 """
 
+# TODO: Add more lvls of power to light and curtains.
+
+# FIXME: Fix bug when light in house is turned on,
+# but light inside is showed as zero.
+
 import math
 import json
 import pygame
