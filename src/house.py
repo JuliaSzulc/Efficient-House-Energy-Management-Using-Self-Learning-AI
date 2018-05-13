@@ -21,7 +21,7 @@ class House:
 
     def __init__(self, timeframe):
         with open('../configuration.json') as config_file:
-            self.CONFIG = json.load(config_file)
+            self.config = json.load(config_file)
 
         # Time constants and variables (in minutes)
         self.timeframe = timeframe
@@ -228,9 +228,9 @@ class House:
              reward(float): weighted sum of penalties
         """
 
-        w_temp = self.CONFIG['env']['temperature_w_in_reward']
-        w_light = self.CONFIG['env']['light_w_in_reward']
-        w_cost = self.CONFIG['env']['cost_w_in_reward']
+        w_temp = self.config['env']['temperature_w_in_reward']
+        w_light = self.config['env']['light_w_in_reward']
+        w_cost = self.config['env']['cost_w_in_reward']
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
