@@ -27,20 +27,16 @@ W planie zarządzania projektem należy zdefiniować wstępną ocenę skutków w
 
 Wstępna ocena skutków wystąpienia ryzyka – wstępna ocena skutków wystąpienia danego ryzyka została sklasyfikowana opisowo, według następującego klucza:
 \begin{itemize}
-\item{Nieistotne}
 \item{Niskie}
 \item{Średnie}
 \item{Wysokie}
-\item{Krytyczne}
 \end{itemize}
 
 Wstępna ocena prawdopodobieństwa – wstępna ocena skutków wystąpienia danego ryzyka została sklasyfikowana opisowo, według następującego klucza:
 \begin{itemize}
 \item{Mało prawdopodobne (0 – 20\%)}
-\item{Możliwe (20\% - 50\%)}
-\item{Prawdopodobne (50\% - 75\%)}
-\item{Wysoce prawdopodobne (75\% - 95\%)}
-\item{Prawie pewne (pow. 95\%)}
+\item{Możliwe (20\% - 60\%)}
+\item{Prawdopodobne (60\% - 100\%)}
 \end{itemize}
 
 
@@ -96,6 +92,7 @@ Analiza skutków wystąpienia ryzyka, w kolejności od krytycznych do mających 
 \item{Nieczytelność serwisu}
 \end{enumerate}
 
+Macierz ryzyka, redukcja grup, przypisanie do formularzy, ew. Symptomy
 
 \paragraph{Ilościowa analiza ryzyka} \mbox{}\\
 
@@ -105,39 +102,37 @@ Obliczane według następującego wzoru (skutek\_ryzyka \* prawd\_wystąpienia)
 
 Wagi dla skutków ryzyka
 \begin{itemize}
-\item{Nieistotne - Waga: 1}
-\item{Niskie     - Waga: 2}
-\item{Średnie    - Waga: 3}
-\item{Wysokie	 - Waga: 4}
-\item{Krytyczne	 - Waga: 5}
+\item{Niskie     - Waga: 1}
+\item{Średnie    - Waga: 2}
+\item{Wysokie	 - Waga: 3}
 \end{itemize}
 \mbox{}\\
+\mbox{}\\\mbox{}\\
 
 Wagi dla prawdopodobieństw wystąpienia
 \begin{itemize}
 \item{Mało prawdopodobne (0 – 20\%) - Waga: 1}
-\item{Możliwe (pow. 20\% - 50\%) - Waga: 2}
-\item{Prawdopodobne (pow. 50\% - 75\%) - Waga: 3}
-\item{Wysoce prawdopodobne (pow. 75\% - 95\%) - Waga: 4}
-\item{Prawie pewne (pow. 95\%) - Waga: 5}
+\item{Możliwe (pow. 20\% - 60\%) - Waga: 2}
+\item{Prawdopodobne (pow. 60\% - 100\%) - Waga: 3}
 \end{itemize}
 \mbox{}\\ \mbox{}\\
 
 Źródła ryzyka wraz z wagami prezentują się następująco:
 \begin{enumerate}
-\item{Utrata danych - (5*2) = 10}
-\item{Błędnie stworzona specyfikacja projektu - (4*2) = 8}
-\item{Dodawanie nowych wymagań po zamknięciu specyfikacji - (4*1) = 4}
-\item{Wybór nieodpowiednich technologii do realizacji systemu - (4*2) = 8}
-\item{Błędy w implementacji systemu - (4*2) = 8}
-\item{Choroby/wypadki - (4*1) = 4}
-\item{Niedoświadczony zespół - (4*2) = 8}
-\item{Nieodpowiedni kierownik zespołu - (4*1) = 4}
-\item{Niemożność ukończenia projektu ze względu na brak finansów - (4*1) = 4}
-\item{Utrudnienia w komunikacji - (2*1) = 2}
-\item{Nieczytelność serwisu - (2*1) = 2}
+\item{Utrata danych - (3*2) = 6}
+\item{Błędnie stworzona specyfikacja projektu - (3*2) = 6}
+\item{Dodawanie nowych wymagań po zamknięciu specyfikacji - (3*1) = 3}
+\item{Wybór nieodpowiednich technologii do realizacji systemu - (3*2) = 6}
+\item{Błędy w implementacji systemu - (3*2) = 6}
+\item{Choroby/wypadki - (3*1) = 3}
+\item{Niedoświadczony zespół - (3*2) = 6}
+\item{Nieodpowiedni kierownik zespołu - (3*1) = 3}
+\item{Niemożność ukończenia projektu ze względu na brak finansów - (3*1) = 3}
+\item{Utrudnienia w komunikacji - (1*1) = 1}
+\item{Nieczytelność serwisu - (1*1) = 1}
 \end{enumerate}
-\mbox{}\\ \mbox{}\\
+\mbox{}\\ \mbox{}\\\mbox{}\\\mbox{}\\\mbox{}\\\mbox{}\\\mbox{}\\ \mbox{}\\ \mbox{}\\\mbox{}\\
+
 \paragraph{Planowanie reakcji na ryzyko}
 \mbox{}\\ \mbox{}\\
 %\begin{table}[]
@@ -188,6 +183,8 @@ Prawdopodobieństwo wystąpienia & Mało prawdopodobne \\
 \hline
 Wpływ na realizację projektu   & Wysoki \\
 \hline
+Ogólna ocena ryzyka   & Niepożądane \\
+\hline
 Środki zaradcze				   & Upewnienie się, że lista wymagań jest kompletna jeszcze przed zamknięciem specyfikacji \\
 \hline
 Zadania awaryjne			   & Modyfikacja harmonogramu projektu oraz przydział nowych zadań     \\
@@ -208,6 +205,8 @@ Opis zagrożenia				   & Źle przystosowana szata graficzna \\
 Prawdopodobieństwo wystąpienia & Mało prawdopodobne \\
 \hline
 Wpływ na realizację projektu   & Niski \\
+\hline
+Ogólna ocena ryzyka   & Akceptowalne \\
 \hline
 Środki zaradcze				   & Konsultacje z klientem, w celu akceptacji wyglądu aplikacji \\
 \hline
@@ -230,6 +229,8 @@ Prawdopodobieństwo wystąpienia & Mało prawdopodobne \\
 \hline
 Wpływ na realizację projektu   & Wysoki \\
 \hline
+Ogólna ocena ryzyka   & Niepożądane \\
+\hline
 Środki zaradcze				   & Przeanalizowanie serwisów, w celu znalezienia najtańszego lub darmowego rozwiązania \\
 \hline
 Zadania awaryjne			   & Wykorzystanie własnego sprzętu do obliczeń \\
@@ -250,6 +251,8 @@ Opis zagrożenia				   & Ze względu na niewielkie doświadczenie zespołu w~uż
 Prawdopodobieństwo wystąpienia & Możliwe \\
 \hline
 Wpływ na realizację projektu   & Wysoki \\
+\hline
+Ogólna ocena ryzyka   & Nieakceptowalne \\
 \hline
 Środki zaradcze				   & Konsultacje z ekspertem ze strony klienta, konsultacje z~osobami doświadczonymi w temacie projektu, udzielanie się na forach dyskusyjnych, związanych z używaną w~systemie technologią \\
 \hline
@@ -272,6 +275,8 @@ Prawdopodobieństwo wystąpienia & Mało prawdopodobne \\
 \hline
 Wpływ na realizację projektu   & Niski \\
 \hline
+Ogólna ocena ryzyka   & Akceptowalne \\
+\hline
 Środki zaradcze				   & Zapewnienie nadmiarowej ilości kanałów komunikacyjnych \\
 \hline
 Zadania awaryjne			   & Określenie alternatywnego kanału komunikacyjnego \\
@@ -292,6 +297,8 @@ Opis zagrożenia				   & Niedyspozycyjność członków zespołu, mogąca spowol
 Prawdopodobieństwo wystąpienia & Mało prawdopodobne \\
 \hline
 Wpływ na realizację projektu   & Wysoki \\
+\hline
+Ogólna ocena ryzyka   & Niepożądane \\
 \hline
 Środki zaradcze				   & Każdy członek zespołu powinien być samodzielny, by być w stanie przejąć obowiązki i zadania od innego członka zespołu \\
 \hline
@@ -314,6 +321,8 @@ Prawdopodobieństwo wystąpienia & Możliwe \\
 \hline
 Wpływ na realizację projektu   & Wysoki \\
 \hline
+Ogólna ocena ryzyka   & Nieakceptowalne \\
+\hline
 Środki zaradcze				   & Przeprowadzenie szkolenia przez eksperta z danej technologii, samokształcenie się przez wszystkich członków zespołu z oficjalnej dokumentacji  \\
 \hline
 Zadania awaryjne			   & Przeznaczenie czasu jednego lub kilku członków zespołu na poznanie technologii a następnie wdrożenie w nią pozostałych członków zespołu \\
@@ -335,6 +344,8 @@ Prawdopodobieństwo wystąpienia & Mało prawdopodobne \\
 \hline
 Wpływ na realizację projektu   & Wysoki \\
 \hline
+Ogólna ocena ryzyka   & Niepożądane \\
+\hline
 Środki zaradcze				   & Sprawdzenie kompetencji osoby, która ma zostać kierownikiem zespołu \\
 \hline
 Zadania awaryjne			   & Zmiana kierownika zespołu \\
@@ -354,7 +365,9 @@ Opis zagrożenia				   & Utrata danych na którymkolwiek z etapów projektu w~sk
 \hline
 Prawdopodobieństwo wystąpienia & Możliwe \\
 \hline
-Wpływ na realizację projektu   & Krytyczny \\
+Wpływ na realizację projektu   & Wysoki \\
+\hline
+Ogólna ocena ryzyka   & Nieakceptowalne \\
 \hline
 Środki zaradcze				   & Należy osiągnąć nadmiarowość danych za pomocą kopii zapasowych     \\
 \hline
@@ -376,6 +389,8 @@ Opis zagrożenia				   & Błędny wybór technologii może prowadzić do niemoż
 Prawdopodobieństwo wystąpienia & Możliwe \\
 \hline
 Wpływ na realizację projektu   & Wysoki \\
+\hline
+Ogólna ocena ryzyka   & Nieakceptowalne \\
 \hline
 Środki zaradcze				   & Dokładna analiza dostępnych technologii przed przystąpieniem do projektowania systemu
 Projekt systemu w możliwie jak najbardziej niezależny od technologii sposób
@@ -402,6 +417,8 @@ Prawdopodobieństwo wystąpienia & Możliwe \\
 \hline
 Wpływ na realizację projektu   & Wysoki \\
 \hline
+Ogólna ocena ryzyka   & Nieakceptowalne \\
+\hline
 Środki zaradcze				   & Testy systemu na każdym etapie tworzenia
 Konsultacje z~ekspertem w celu weryfikacji zastosowanych rozwiązań
  \\
@@ -409,5 +426,22 @@ Konsultacje z~ekspertem w celu weryfikacji zastosowanych rozwiązań
 Zadania awaryjne			   & Przeznaczenie dodatkowych zasobów na poprawę błędów \\
 \hline
 \end{tabular}}
+
+\mbox{}\\\mbox{}\\
+\paragraph{Macierz ryzyka}
+\mbox{}\\
+
+Macierz ryzyka jest to graficzna reprezentacja ryzyka, oraz reakcji na ryzyko, według prawdopodobieństwa wystąpienia (likelihood) oraz wpływu na realizację projektu (impact).
+Według podanej macierzy, poziomy ryzyka prezentują się następująco:
+\begin{itemize}
+\item Low - akceptowalne
+\item Medium - niepożądane
+\item High - nieakceptowalne
+\end{itemize}
+
+\begin{center}
+	\includegraphics[scale=0.8]{Updated-Risk-Matrix.jpg} % w finalnej prezentacji może się lepiej ułoży
+\end{center}
+
 
 \end{document}
