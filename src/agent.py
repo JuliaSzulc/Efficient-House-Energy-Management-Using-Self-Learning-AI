@@ -131,7 +131,7 @@ class Memory:
             b = (i + 1) * priority_segment
             value = random.uniform(a, b)
 
-            (index, priority, data) = self.sum_tree.get(value)
+            index, priority, data = self.sum_tree.get(value)
             batch.append(data)
             indexes.append(index)
 
@@ -389,8 +389,8 @@ class Agent:
                 [x[i] for x in transition_batch]))
 
         # Long Tensor for actions
-        exp_batch[1] = Variable(
-            torch.LongTensor([int(x) for x in transition_batch]))
+        exp_batch[1] = Variable(torch.LongTensor(
+            [int(x) for x in transition_batch]))
 
         return exp_batch, indexes
 
