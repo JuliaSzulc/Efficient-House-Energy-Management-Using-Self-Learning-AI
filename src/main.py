@@ -58,7 +58,7 @@ def main():
         return
 
     # --- initialization ---
-    env = HouseEnergyEnvironment()
+    env = HouseEnergyEnvironment(collect_stats=print_stats)
     agent = Agent(env=env)
 
     model_id = -1

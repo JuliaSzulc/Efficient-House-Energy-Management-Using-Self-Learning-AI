@@ -22,7 +22,7 @@ class HouseEnergyEnvironment:
 
     """
 
-    def __init__(self, world=None):
+    def __init__(self, world=None, collect_stats=False):
         """Actual initialization is moved to reset() method
 
         to be able to re-initialize the whole environment.
@@ -35,6 +35,7 @@ class HouseEnergyEnvironment:
 
         self.last_reward = 0
 
+        self.collect_stats = collect_stats
         self.timesteps = 0
         self.temp_diff_2_count = 0
         self.temp_diff_05_count = 0
@@ -64,7 +65,8 @@ class HouseEnergyEnvironment:
         observation = self._serialize_state(current_state)
 
         self.last_reward = self.house.reward()
-        self._update_stats(current_state['inside'])
+        if self.collect_stats:
+            self._update_stats(current_state['inside'])
 
         return observation, self.last_reward, done
 
@@ -261,10 +263,10 @@ class HouseEnergyEnvironment:
             else:
                 observation.append(d_value)
 
-        # NOTE move the assert below to tests, (in the future)
+        # TODO move the assert below to tests
         # make sure that vector is normalized. no safety zone - it has to work!
         assert all([x is not None and (0 <= x <= 1) for x in observation]), \
-            "Whoa, some of observation values are not" + \
+            "Some of observation values are not " + \
             "truncated to 0-1 or are None!" + \
             "vector: " + str(observation)
 
@@ -272,15 +274,16 @@ class HouseEnergyEnvironment:
 
     def get_episode_stats(self):
 
-        temp_2 = 100 * self.temp_diff_2_count / self.timesteps
-        temp_05 = 100 * self.temp_diff_05_count / self.timesteps
-        light_015 = 100 * self.light_diff_015_count / self.timesteps
-        light_005 = 100 * self.light_diff_005_count / self.timesteps
+        if self.collect_stats:
+            temp_2 = 100 * self.temp_diff_2_count / (self.timesteps or 1)
+            temp_05 = 100 * self.temp_diff_05_count / self.timesteps
+            light_015 = 100 * self.light_diff_015_count / self.timesteps
+            light_005 = 100 * self.light_diff_005_count / self.timesteps
 
-        return {'Temperature difference < 2': temp_2,
-                'Temperature difference < 0.5': temp_05,
-                'Light difference < 0.15': light_015,
-                'Light difference < 0.05': light_005}
+            return {'Temperature difference < 2': temp_2,
+                    'Temperature difference < 0.5': temp_05,
+                    'Light difference < 0.15': light_015,
+                    'Light difference < 0.05': light_005}
 
     def _update_stats(self, state):
         self.timesteps += 1

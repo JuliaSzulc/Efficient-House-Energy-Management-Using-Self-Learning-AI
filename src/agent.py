@@ -329,18 +329,11 @@ class Agent:
         most_common = max(self.stats.items(), key=lambda item:
                           item[1]['count'])
 
-        # least_common = min(self.stats.items(), key=lambda item:
-        #                    item[1]['count'])
-
         aggregated = {
             'most common action': (
                 most_common[0],
                 most_common[1]['count']
             )
-            # 'least common action': (
-            #     least_common[0],
-            #     least_common[1]['count']
-            # )
         }
 
         return aggregated
