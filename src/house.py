@@ -44,7 +44,7 @@ class House:
         self.devices_power = {
             'air_conditioner': 1500,
             'heater': 3000,
-            'light': 20
+            'light': 720
         }
 
         self.user_requests = OrderedDict({
@@ -281,22 +281,22 @@ class House:
     def action_more_light(self):
         """Action to be taken by RL-agent"""
         self.devices_settings['light_lvl'] = \
-            truncate(self.devices_settings['light_lvl'] + self.influence)
+            truncate(self.devices_settings['light_lvl'] + self.influence/2)
 
     def action_less_light(self):
         """Action to be taken by RL-agent"""
         self.devices_settings['light_lvl'] = \
-            truncate(self.devices_settings['light_lvl'] - self.influence)
+            truncate(self.devices_settings['light_lvl'] - self.influence/2)
 
     def action_curtains_down(self):
         """Action to be taken by RL-agent"""
         self.devices_settings['curtains_lvl'] = \
-            truncate(self.devices_settings['curtains_lvl'] + self.influence)
+            truncate(self.devices_settings['curtains_lvl'] + self.influence/2)
 
     def action_curtains_up(self):
         """Action to be taken by RL-agent"""
         self.devices_settings['curtains_lvl'] = \
-            truncate(self.devices_settings['curtains_lvl'] - self.influence)
+            truncate(self.devices_settings['curtains_lvl'] - self.influence/2)
 
     def action_nop(self):
         """Action to be taken by RL-agent - do nothing"""
