@@ -46,12 +46,12 @@ class HouseActionsDifferentTimeframes(unittest.TestCase):
     def test_shortest_timeframe(self):
         """Test example action on shortest timeframe"""
 
-        for _ in range(5 * 60 + 1):
+        for _ in range(10 * 60 + 1):
             self.house_shortest.action_more_heating()
         self.assertEqual(self.house_shortest.devices_settings['heating_lvl'],
                          1)
 
-        for _ in range(5 * 60 + 1):
+        for _ in range(10 * 60 + 1):
             self.house_shortest.action_less_cooling()
         self.assertEqual(self.house_shortest.devices_settings['cooling_lvl'],
                          0)
@@ -97,26 +97,6 @@ class HouseActionsTestCase(unittest.TestCase):
             self.house.action_more_cooling()
         self.assertEqual(self.house.devices_settings['cooling_lvl'], 1)
 
-    def test_action_more_heating(self):
-        """Test more heating"""
-
-        self.house.action_more_heating()
-        self.assertEqual(self.house.devices_settings['heating_lvl'], 0.7)
-
-        for _ in range(3):
-            self.house.action_more_heating()
-        self.assertEqual(self.house.devices_settings['heating_lvl'], 1)
-
-    def test_action_more_light(self):
-        """Test more light"""
-
-        self.house.action_more_light()
-        self.assertEqual(self.house.devices_settings['light_lvl'], 0.7)
-
-        for _ in range(3):
-            self.house.action_more_light()
-        self.assertEqual(self.house.devices_settings['light_lvl'], 1)
-
     def test_action_less_cooling(self):
         """Test less cooling"""
 
@@ -126,6 +106,16 @@ class HouseActionsTestCase(unittest.TestCase):
         for _ in range(3):
             self.house.action_less_cooling()
         self.assertEqual(self.house.devices_settings['cooling_lvl'], 0)
+
+    def test_action_more_heating(self):
+        """Test more heating"""
+
+        self.house.action_more_heating()
+        self.assertEqual(self.house.devices_settings['heating_lvl'], 0.7)
+
+        for _ in range(3):
+            self.house.action_more_heating()
+        self.assertEqual(self.house.devices_settings['heating_lvl'], 1)
 
     def test_action_less_heating(self):
         """Test less heating"""
@@ -137,13 +127,23 @@ class HouseActionsTestCase(unittest.TestCase):
             self.house.action_less_heating()
         self.assertEqual(self.house.devices_settings['heating_lvl'], 0)
 
+    def test_action_more_light(self):
+        """Test more light"""
+
+        self.house.action_more_light()
+        self.assertEqual(self.house.devices_settings['light_lvl'], 0.6)
+
+        for _ in range(6):
+            self.house.action_more_light()
+        self.assertEqual(self.house.devices_settings['light_lvl'], 1)
+
     def test_action_less_light(self):
         """Test less light"""
 
         self.house.action_less_light()
-        self.assertEqual(self.house.devices_settings['light_lvl'], 0.3)
+        self.assertEqual(self.house.devices_settings['light_lvl'], 0.4)
 
-        for _ in range(3):
+        for _ in range(6):
             self.house.action_less_light()
         self.assertEqual(self.house.devices_settings['light_lvl'], 0)
 
@@ -151,9 +151,9 @@ class HouseActionsTestCase(unittest.TestCase):
         """Test curtains up"""
 
         self.house.action_curtains_up()
-        self.assertEqual(self.house.devices_settings['curtains_lvl'], 0.3)
+        self.assertEqual(self.house.devices_settings['curtains_lvl'], 0.4)
 
-        for _ in range(3):
+        for _ in range(6):
             self.house.action_curtains_up()
         self.assertEqual(self.house.devices_settings['curtains_lvl'], 0)
 
@@ -161,9 +161,9 @@ class HouseActionsTestCase(unittest.TestCase):
         """Test curtains down"""
 
         self.house.action_curtains_down()
-        self.assertEqual(self.house.devices_settings['curtains_lvl'], 0.7)
+        self.assertEqual(self.house.devices_settings['curtains_lvl'], 0.6)
 
-        for _ in range(3):
+        for _ in range(6):
             self.house.action_curtains_down()
         self.assertEqual(self.house.devices_settings['curtains_lvl'], 1)
 
