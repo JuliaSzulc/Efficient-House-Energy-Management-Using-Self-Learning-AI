@@ -15,6 +15,7 @@ have fun watching Agent being alive,
 
 RL-for-decision-process team, 2018
 """
+# FIXME naughty comments and some uppercase variables!
 
 import math
 import json
@@ -189,17 +190,17 @@ class Simulation:
                 int(_radius * w)
             )
         # text - clock
-        fontMono = pygame.font.Font(
+        font_mono = pygame.font.Font(
             '../fonts/droid-sans-mono/DroidSansMono.ttf',
             int(0.05 * h)
         )
-        fontHeader = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_header = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
                                       int(0.09 * h))
 
         time = [int(x) for x in divmod(daytime, 60)]
         time = "{:02}:{:02}".format(*time)
         self.draw_text(time, circle_center_x, circle_center_y,
-                       self.colors['weather5'], fontHeader, True)
+                       self.colors['weather5'], font_header, True)
         # text - blocks
         for _off, _data in enumerate(('Light OUT', 'Wind', 'Clouds', 'Rain')):
             _label = _data.upper()
@@ -210,13 +211,13 @@ class Simulation:
                                 _label,
                                 self.data[_data]
                            ), x + 0.57 * w, y + (0.65 + _off / 10) * h,
-                           self.colors['font'], fontMono, True)
+                           self.colors['font'], font_mono, True)
 
         # text - temperature
         self.draw_text("{:<3.1f}°C".format(
                             self.data['Temperature_outside']
                        ), x + 0.55 * w, y + 0.5 * h,
-                       self.colors['weather5'], fontHeader, True)
+                       self.colors['weather5'], font_header, True)
 
         # weather icons
         for _off, _data in enumerate(('016-sun', '013-wind',
@@ -252,20 +253,16 @@ class Simulation:
         h = ymax - y
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
-        fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_small = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
                                      int(0.05 * h))
-        fontBig = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_big = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
                                    int(0.13 * h))
 
         def draw_indicator(data, x, y, w, h, name=None):
             for offset in range(8, -2, -2):
                 pygame.draw.rect(self.screen, self.colors['devices0'],
                                  (x, y + offset * h / 10, w, 0.19 * h))
-
-            # avoid bug when data is eq 0.2000000001
-            # and then are printing three instead of two rects
-            data = round(data, 2)
-
+            # FIXME code below is very repeatable, refactor to loop
             if data > 0:
                 pygame.draw.rect(self.screen, self.colors['devices1'],
                                  (x, y + 0.9 * h, w, 0.095 * h))
@@ -300,7 +297,7 @@ class Simulation:
                 return
 
             self.draw_text(name, x + 0.5 * w, y + h + 0.1 * h,
-                           self.colors['font'], fontSmall, True)
+                           self.colors['font'], font_small, True)
 
         x_begin = 0.35
         indicators = {
@@ -324,7 +321,7 @@ class Simulation:
             self.draw_text('{}'.format(offset / 10),
                            scale_x * w + x,
                            0.65 * h + y - offset / 18 * h,
-                           self.colors['font'], fontSmall, True)
+                           self.colors['font'], font_small, True)
 
         # energy indicator
         x_energy = 0.08
@@ -339,7 +336,7 @@ class Simulation:
                        0.07 * w, 0.07 * w, self.colors['font'], True)
         self.draw_text("SOURCE",
                        x + x_energy * w + 0.05 * w, y + 0.705 * h,
-                       self.colors['font'], fontSmall, True)
+                       self.colors['font'], font_small, True)
 
         triangle_y = 0.5
         if self.data['Energy_src'] == 'grid':
@@ -358,7 +355,7 @@ class Simulation:
         self.draw_text('{:2.0f}%'.format(batt * 100),
                        x + (x_energy + 0.16) * w,
                        y + 0.54 * h,
-                       self.colors['font'], fontBig, True)
+                       self.colors['font'], font_big, True)
 
     def draw_chart_widget(self, chartmode='light', y=0):
         """Oh-my-queue"""
@@ -369,21 +366,17 @@ class Simulation:
         h = 0.15 * self.height - self.margin
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
-        fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                     int(0.15 * h))
+        font_small = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                      int(0.15 * h))
+
         # chartmode options
         if chartmode == 'light':
-            main_color = 'weather1'
-            scnd_color = 'weather2'
             soft_color = 'soft2'
             level = self.data['Light IN']
             desired = self.data['Light_desired']
 
         elif chartmode == 'temperature':
-            main_color = 'intense1'
-            scnd_color = 'intense2'
             soft_color = 'soft1'
-            level = self.data['Light IN']
             level = (self.data['Temperature //INSIDE'] + 20) / 60
             desired = (self.data['Temp_desired'] + 20) / 60
         else:
@@ -392,7 +385,7 @@ class Simulation:
         self.draw_text(
             chartmode.upper() + " CHART",
             x + 0.02 * w, y + 0.05 * h,
-            self.colors['font'], fontSmall
+            self.colors['font'], font_small
         )
         # chart
         chartx = x + 0.02 * w
@@ -437,14 +430,14 @@ class Simulation:
         self.draw_text(
             'CURRENT ',
             x + 0.3 * w, y + 0.05 * h,
-            self.colors[soft_color], fontSmall
+            self.colors[soft_color], font_small
         )
         pygame.draw.rect(self.screen, self.colors[soft_color],
                          (x + 0.27 * w, y + 0.07 * h, 0.02 * w, 0.15 * h))
         self.draw_text(
             'DESIRED ',
             x + 0.45 * w, y + 0.05 * h,
-            self.colors['weather4'], fontSmall
+            self.colors['weather4'], font_small
         )
         pygame.draw.rect(self.screen, self.colors['weather4'],
                          (x + 0.42 * w, y + 0.07 * h, 0.02 * w, 0.15 * h))
@@ -473,18 +466,18 @@ class Simulation:
         else:
             raise AttributeError('wrong chartmode')
 
-        COLOR1 = (
+        color_1 = (
             self.colors[main_color].r,
             self.colors[main_color].g,
             self.colors[main_color].b
         )
-        COLOR2 = (
+        color_2 = (
             self.colors[scnd_color].r,
             self.colors[scnd_color].g,
             self.colors[scnd_color].b
         )
-        WHITE = (255, 255, 255)
-        GREY = (250, 250, 250)
+        white = (255, 255, 255)
+        grey = (250, 250, 250)
 
         w = 0.2875 * self.width - self.margin
         h = 0.292 * self.height - self.margin
@@ -492,15 +485,15 @@ class Simulation:
         # bg
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
-        fontSmall = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                     int(0.1 * h))
-        fontBig = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                   int(0.2 * h))
+        font_small = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                      int(0.1 * h))
+        font_big = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+                                    int(0.2 * h))
         # title
         self.draw_text(
             chartmode.upper() + " INSIDE",
             x + 0.05 * w, y + 0.05 * h,
-            self.colors['font'], fontSmall
+            self.colors['font'], font_small
         )
 
         # arc
@@ -517,28 +510,28 @@ class Simulation:
         # haha those pieslices are nice
         # who cares, nobody even reads this shit
         pil_draw.pieslice((0, 0, pil_size - 1, pil_size - 1),
-                          0, 180, fill=GREY)
+                          0, 180, fill=grey)
         pil_draw.pieslice((0, 0, pil_size - 1, pil_size - 1),
-                          0, level_normalized, fill=COLOR1)
+                          0, level_normalized, fill=color_1)
         pil_draw.pieslice(
             (arcwidth - 1, 0, pil_size - arcwidth, pil_size - arcwidth),
             0, 180,
-            fill=GREY
+            fill=grey
         )
         pil_draw.pieslice(
             (arcwidth - 1, 0, pil_size - arcwidth, pil_size - arcwidth),
             0, desired_normalized,
-            fill=COLOR2
+            fill=color_2
         )
         pil_draw.pieslice(
             ((arcwidth * 2) - 1, 0,
              pil_size - (arcwidth * 2), pil_size - (arcwidth * 2)),
             0, 180,
-            fill=WHITE
+            fill=white
         )
         pil_draw.rectangle(
             [0, pil_size / 2, pil_size, pil_size / 2 - arcwidth],
-            fill=WHITE
+            fill=white
         )
         # - convert to PyGame image -
         mode = pil_image.mode
@@ -553,12 +546,12 @@ class Simulation:
         self.draw_text(
             lvl_format.format(level),
             x + w / 2, y + h * 2 / 3,
-            self.colors[main_color], fontBig, True
+            self.colors[main_color], font_big, True
         )
         self.draw_text(
             "should be " + lvl_format.format(desired),
             x + w / 2, y + h * 2 / 3 + 0.15 * h,
-            self.colors[scnd_color], fontSmall, True
+            self.colors[scnd_color], font_small, True
         )
 
     def run(self):
