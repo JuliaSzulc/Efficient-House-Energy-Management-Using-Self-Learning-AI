@@ -260,43 +260,43 @@ class House:
 
     def action_more_cooling(self):
         """Action to be taken by RL-agent"""
-        self.devices_settings['cooling_lvl'] = \
-            truncate(self.devices_settings['cooling_lvl'] + self.influence)
+        self.devices_settings['cooling_lvl'] = round(
+            truncate(self.devices_settings['cooling_lvl'] + self.influence), 2)
 
     def action_less_cooling(self):
         """Action to be taken by RL-agent"""
-        self.devices_settings['cooling_lvl'] = \
-            truncate(self.devices_settings['cooling_lvl'] - self.influence)
+        self.devices_settings['cooling_lvl'] = round(
+            truncate(self.devices_settings['cooling_lvl'] - self.influence), 2)
 
     def action_more_heating(self):
         """Action to be taken by RL-agent"""
-        self.devices_settings['heating_lvl'] = \
-            truncate(self.devices_settings['heating_lvl'] + self.influence)
+        self.devices_settings['heating_lvl'] = round(
+            truncate(self.devices_settings['heating_lvl'] + self.influence), 2)
 
     def action_less_heating(self):
         """Action to be taken by RL-agent"""
-        self.devices_settings['heating_lvl'] = \
-            truncate(self.devices_settings['heating_lvl'] - self.influence)
+        self.devices_settings['heating_lvl'] = round(
+            truncate(self.devices_settings['heating_lvl'] - self.influence), 2)
 
     def action_more_light(self):
         """Action to be taken by RL-agent"""
-        self.devices_settings['light_lvl'] = \
-            truncate(self.devices_settings['light_lvl'] + self.influence)
+        self.devices_settings['light_lvl'] = round(
+            truncate(self.devices_settings['light_lvl'] + self.influence), 2)
 
     def action_less_light(self):
         """Action to be taken by RL-agent"""
-        self.devices_settings['light_lvl'] = \
-            truncate(self.devices_settings['light_lvl'] - self.influence)
+        self.devices_settings['light_lvl'] = round(
+            truncate(self.devices_settings['light_lvl'] - self.influence), 2)
 
     def action_curtains_down(self):
         """Action to be taken by RL-agent"""
-        self.devices_settings['curtains_lvl'] = \
-            truncate(self.devices_settings['curtains_lvl'] + self.influence)
+        self.devices_settings['curtains_lvl'] = round(
+            truncate(self.devices_settings['curtains_lvl'] + self.influence), 2)
 
     def action_curtains_up(self):
         """Action to be taken by RL-agent"""
-        self.devices_settings['curtains_lvl'] = \
-            truncate(self.devices_settings['curtains_lvl'] - self.influence)
+        self.devices_settings['curtains_lvl'] = round(
+            truncate(self.devices_settings['curtains_lvl'] - self.influence), 2)
 
     def action_nop(self):
         """Action to be taken by RL-agent - do nothing"""
