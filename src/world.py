@@ -4,10 +4,16 @@ Grouped in World class, these methods play a major role in
 HouseEnergyEnvironment. World takes care of weather and time computations, and
 sends them forward to all listeners - house and outside sensors.
 
-It should be used inside environment class only, unless you want to plot
-an example weather graph.
+It should be used inside environment class, unless you want to plot
+an example weather graph, than you can run this file as a script.
+
+Information for listeners are the daytime and the weather.
+'sun' value is the sun power before calculating with clouds
+'light' value is the sun power after this calculation
 
 """
+# FIXME a lot of unexplained / undocumented calculations going on. Either
+# FIXME add docs to update methods or add abstraction
 import json
 from datetime import datetime, timedelta
 from math import sin, pi
@@ -21,7 +27,7 @@ class World:
 
     def __init__(self, time_step_in_minutes=None, duration_days=1):
         with open('../configuration.json') as config_file:
-            self.CONFIG = json.load(config_file)
+            self.config = json.load(config_file)
 
         self.start_date = datetime(2020, 1, 1, 0, 0, 0)
         self.stop_date = None
@@ -31,7 +37,7 @@ class World:
         # "real", interpolated values
         self.current_date = self.start_date
         self.daytime = None
-        self.time_step_in_minutes = self.CONFIG['env']['timestep_in_minutes']
+        self.time_step_in_minutes = self.config['env']['timestep_in_minutes']
         if time_step_in_minutes:
             self.time_step_in_minutes = time_step_in_minutes
 
@@ -46,9 +52,6 @@ class World:
         self._compute_daytime()
         self._compute_basetime()
 
-        # --- weather part ----
-        # sun   -> sun power before calculating with clouds
-        # light -> sun power after calculation
         self.weather = {
             'temperature': 12,
             'sun': 0,
@@ -63,12 +66,6 @@ class World:
         self.base_temperature = random.randrange(-10, 30)
         self.tendency = 1  # 1 or -1, the overall temperature will be slowly
         # increasing or decreasing
-
-        self.delta_weather = {
-            'temp_delta': 0,
-            'sun_delta': 0,
-            'light_delta': 0,
-        }
 
         # other settings
         self.listeners = []
@@ -159,7 +156,6 @@ class World:
         if daystart <= self.basetime <= dayend:
             sun = truncate(sin((self.basetime - daystart) * pi / daylen))
 
-        self.delta_weather['sun_delta'] = sun - self.weather['sun']
         self.weather['sun'] = sun
 
     def _calculate_wind(self):
@@ -235,14 +231,11 @@ class World:
             self.weather['clouds'] = random.uniform(0.05, 0.2)
 
     def _calculate_light(self):
-        last_light = self.weather['light']
         clouds_factor = 0.7
 
         self.weather['light'] = truncate(
             self.weather['sun'] - (self.weather['clouds'] * clouds_factor)
         )
-
-        self.delta_weather['light_delta'] = self.weather['light'] - last_light
 
     def _calculate_rain(self):
         probability_change_state = 0.05
@@ -271,8 +264,6 @@ class World:
             self.weather['rain'] = 0
 
     def _calculate_temperature(self):
-        last_temperature = self.weather['temperature']
-
         # make changes in base temperature according to tendency
         change_tendency_probability = 0.001
         base_change_probability = 0.05
@@ -314,9 +305,6 @@ class World:
             + new_factor * new_temp,
             -20, 40
         )
-
-        self.delta_weather['temp_delta'] = self.weather['temperature'] \
-            - last_temperature
 
 
 def plot_weather():

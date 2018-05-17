@@ -37,7 +37,6 @@ class OutsideSensor:
             sensor_info(dict): weather information
         """
 
-        # actual_temp is calculated by the formula given in documentation
         sensor_info = OrderedDict({
             'daytime': self.daytime,
             'actual_temp': self.weather['temperature'],

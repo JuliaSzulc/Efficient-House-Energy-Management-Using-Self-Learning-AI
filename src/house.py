@@ -9,6 +9,10 @@ light levels; it also calculates the reward / penalty for the last timeframe.
 Is is mainly used within HouseEnergyEnvironment class, and should not be used
 directly from outside.
 
+Note: Currently, the sensor has no specific impact on the registered values, so
+every sensor would register the same values. There is only one, main sensor
+used at the moment, and you have to
+
 """
 import json
 import random
@@ -71,6 +75,8 @@ class House:
             'curtains_lvl': 0
         })
 
+        self.illegal_action_penalty = 0
+
         # actions influence on current settings - default to 0.2 / min
         self.influence = 0.2 * timeframe
 
@@ -83,34 +89,59 @@ class House:
 
     def _update_user_requests(self):
         """
-        Randomly changes the user requests every 2 hours
+        Randomly updates the user requests every 2 hours
 
         For the temperature, requests are integers from <19, 24> interval during
         the day, and from <15, 20> interval during the night time.
 
-        For the light, intervals remain the same during the whole time.
-        Values are multiplications of the 'influence' class field.
-
+        For the light, interval remain the same during the whole time - <0, 1>
+        Values are rounded to 1 decimal point.
         """
+
         if self.daytime % 120 == 0:
             self.user_requests['temp_desired'] = random.randint(15, 20)
 
             if self.day_start < self.daytime < self.day_end:
                 self.user_requests['temp_desired'] += 4
 
-            self.user_requests['light_desired'] = \
-                random.choice([0.0, 0.2, 0.4, 0.6, 0.8])
+            self.user_requests['light_desired'] = round(random.random(), 1)
 
-    def _calculate_light(self, outside_illumination):
+    def _calculate_light(self, outside_illuminance):
+        """
+        Updates the inside sensors with new light value. Final light is
+        normalized to <0, 1> interval and depends on the
+        light device level, curtains level, outside light level and
+        house_light_factor, which describes how much illuminance 'enters'
+        the house.
+
+        Note: Currently, the sensor has no impact on the registered value, so
+        every sensor would register the same value.
+        """
+
         for data in self.inside_sensors.values():
-            light = ((outside_illumination * self.house_light_factor)
-                     * (1 - self.devices_settings['curtains_lvl'])
-                     + self.devices_settings['light_lvl']
-                     * self.max_led_illuminance) / self.max_led_illuminance
+            outside_light = (outside_illuminance * self.house_light_factor) \
+                * (1 - self.devices_settings['curtains_lvl'])
 
-            data['light'] = truncate(light)
+            inside_light = self.devices_settings['light_lvl'] \
+                * self.max_led_illuminance
+
+            final_light = (outside_light + inside_light) \
+                / self.max_led_illuminance
+
+            data['light'] = truncate(final_light)
 
     def _calculate_temperature(self, outside_temp):
+        """
+        Updates the inside sensors with new temperature value. The new value
+        depends on the last temperature, the outside temperature, house's
+        isolation factor, and levels of heating and cooling devices.
+        Value is truncated to <-20, 40> interval and this interval is assumed
+        in the environment's normalization method -
+        HouseEnergyEnvironment.serialize_state().
+
+        Note: Currently, the sensor has no impact on the registered value, so
+        every sensor would register the same value.
+        """
         for data in self.inside_sensors.values():
             last_inside_temp = data['temperature']
             temp_delta = (outside_temp - last_inside_temp) \
@@ -148,16 +179,17 @@ class House:
                               * self.max_outside_illumination)
 
     def get_inside_params(self):
-        """Returns all important information about the state of the house
+        """Returns unnormalized information about the state of the house
 
         Returns:
-            inside_params (OrderedDict): A dictionary with *unnormalized*
-            house info and noise.
+            inside_params (OrderedDict): A dictionary with unnormalized
+            house information
 
         Structure of returned dict consist of:
             'inside_sensors' - dict of inside sensors info
             'desired' - dict of settings requested by user
             'grid_cost' - a cost of energy
+            'devices_settings' - levels of action-dependent settings
             'battery_level' - current battery level
             'battery_delta' - accumulation tempo of the battery
         """
@@ -179,7 +211,7 @@ class House:
         Calculates cost of last time-frame's energy usage of given device
 
         Args:
-            device_full_power(numeric): full potential power in kWh
+            device_full_power(numeric): full device power in kWh
             device_setting(numeric): value from 0 to 1
         Returns:
             energy usage of last timeframe expressed in kWh
@@ -188,7 +220,14 @@ class House:
         return device_full_power * device_setting * (self.timeframe / 60)
 
     def _calculate_energy_cost(self):
+        """
+        Calculates the cost of energy usage of last time-frame in the whole
+        house. Energy used from photovoltaic battery is free. If the usage
+        exceeded the battery level, the source of energy is switched to grid.
+        Returns:
+            cost of energy usage - usage multiplied by current grid_cost
 
+        """
         usage = self._calculate_device_energy_usage(
             self.devices_power['air_conditioner'],
             self.devices_settings['cooling_lvl']
@@ -245,59 +284,88 @@ class House:
                        + (temp_penalty * w_temp)
                        + (light_penalty * w_light))
 
-        return reward / 5
+        return reward / 5 - (1 if self.illegal_action_penalty else 0)
 
-    # from this point, define house actions.
-    # IMPORTANT! All action names (and only them) have to start with "action"!
+    # All action-method names (and only them) have to start with "action"!
 
     def action_source_grid(self):
         """Action to be taken by RL-agent - change power source"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['energy_src'] == 'grid' else 0
+
         self.devices_settings['energy_src'] = 'grid'
 
     def action_source_battery(self):
         """Action to be taken by RL-agent - change power source"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['energy_src'] == 'battery' else 0
+
         self.devices_settings['energy_src'] = 'battery'
 
     def action_more_cooling(self):
         """Action to be taken by RL-agent"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['cooling_lvl'] == 1 else 0
+
         self.devices_settings['cooling_lvl'] = round(
             truncate(self.devices_settings['cooling_lvl'] + self.influence), 2)
 
     def action_less_cooling(self):
         """Action to be taken by RL-agent"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['cooling_lvl'] == 0 else 0
+
         self.devices_settings['cooling_lvl'] = round(
             truncate(self.devices_settings['cooling_lvl'] - self.influence), 2)
 
     def action_more_heating(self):
         """Action to be taken by RL-agent"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['heating_lvl'] == 1 else 0
+
         self.devices_settings['heating_lvl'] = round(
             truncate(self.devices_settings['heating_lvl'] + self.influence), 2)
 
     def action_less_heating(self):
         """Action to be taken by RL-agent"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['heating_lvl'] == 0 else 0
+
         self.devices_settings['heating_lvl'] = round(
             truncate(self.devices_settings['heating_lvl'] - self.influence), 2)
 
     def action_more_light(self):
         """Action to be taken by RL-agent"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['light_lvl'] == 1 else 0
+
         self.devices_settings['light_lvl'] = round(
             truncate(self.devices_settings['light_lvl'] + self.influence), 2)
 
     def action_less_light(self):
         """Action to be taken by RL-agent"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['light_lvl'] == 0 else 0
+
         self.devices_settings['light_lvl'] = round(
             truncate(self.devices_settings['light_lvl'] - self.influence), 2)
 
     def action_curtains_down(self):
         """Action to be taken by RL-agent"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['curtains_lvl'] == 1 else 0
+
         self.devices_settings['curtains_lvl'] = round(
             truncate(self.devices_settings['curtains_lvl'] + self.influence), 2)
 
     def action_curtains_up(self):
         """Action to be taken by RL-agent"""
+        self.illegal_action_penalty = 1 if \
+            self.devices_settings['curtains_lvl'] == 0 else 0
+
         self.devices_settings['curtains_lvl'] = round(
             truncate(self.devices_settings['curtains_lvl'] - self.influence), 2)
 
     def action_nop(self):
         """Action to be taken by RL-agent - do nothing"""
-        pass
+        self.illegal_action_penalty = 0
