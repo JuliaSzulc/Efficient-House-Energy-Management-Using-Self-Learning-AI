@@ -30,10 +30,10 @@ class House:
         self.daytime = 0
 
         # Energy and light settings
-        self.pv_absorption = 1  # Watt/min on max sun intensity
+        self.pv_absorption = 5  # Watt/min on max sun intensity
         self.grid_cost = 0.5
         self.house_isolation_factor = 0.998
-        self.house_light_factor = 0.01
+        self.house_light_factor = 0.0075
         self.max_led_illuminance = 200  # lux
         self.max_outside_illumination = 25000  # lux - max. in ambient daylight
         self.battery = {
