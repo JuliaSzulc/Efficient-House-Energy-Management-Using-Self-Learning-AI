@@ -16,11 +16,6 @@ have fun watching Agent being alive,
 RL-for-decision-process team, 2018
 """
 
-# TODO: Add more lvls of power to light and curtains.
-
-# FIXME: Fix bug when light in house is turned on,
-# but light inside is showed as zero.
-
 import math
 import json
 import pygame
@@ -267,22 +262,40 @@ class Simulation:
                 pygame.draw.rect(self.screen, self.colors['devices0'],
                                  (x, y + offset * h / 10, w, 0.19 * h))
 
+            # avoid bug when data is eq 0.2000000001
+            # and then are printing three instead of two rects
+            data = round(data, 2)
+
             if data > 0:
                 pygame.draw.rect(self.screen, self.colors['devices1'],
-                                 (x, y + 0.8 * h, w, 0.19 * h))
+                                 (x, y + 0.9 * h, w, 0.095 * h))
+            if data > 0.1:
+                pygame.draw.rect(self.screen, self.colors['devices1'],
+                                 (x, y + 0.8 * h, w, 0.095 * h))
             if data > 0.2:
                 pygame.draw.rect(self.screen, self.colors['devices2'],
-                                 (x, y + 0.6 * h, w, 0.19 * h))
+                                 (x, y + 0.7 * h, w, 0.095 * h))
+            if data > 0.3:
+                pygame.draw.rect(self.screen, self.colors['devices2'],
+                                 (x, y + 0.6 * h, w, 0.095 * h))
             if data > 0.4:
                 pygame.draw.rect(self.screen, self.colors['devices3'],
-                                 (x, y + 0.4 * h, w, 0.19 * h))
+                                 (x, y + 0.5 * h, w, 0.095 * h))
+            if data > 0.5:
+                pygame.draw.rect(self.screen, self.colors['devices3'],
+                                 (x, y + 0.4 * h, w, 0.095 * h))
             if data > 0.6:
                 pygame.draw.rect(self.screen, self.colors['devices4'],
-                                 (x, y + 0.2 * h, w, 0.19 * h))
+                                 (x, y + 0.3 * h, w, 0.095 * h))
+            if data > 0.7:
+                pygame.draw.rect(self.screen, self.colors['devices4'],
+                                 (x, y + 0.2 * h, w, 0.095 * h))
             if data > 0.8:
                 pygame.draw.rect(self.screen, self.colors['devices5'],
-                                 (x, y + 0.0 * h, w, 0.19 * h))
-
+                                 (x, y + 0.1 * h, w, 0.095 * h))
+            if data > 0.9:
+                pygame.draw.rect(self.screen, self.colors['devices5'],
+                                 (x, y + 0.0 * h, w, 0.095 * h))
             if not name:
                 return
 
