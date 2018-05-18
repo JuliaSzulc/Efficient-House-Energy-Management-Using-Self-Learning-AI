@@ -2,7 +2,7 @@
 
 Performs training of new - or loaded - model of the RL agent and provides
 logging, plotting and saving options. If 'manual' option is specified, there
-is no training. TODO: Manual testing as a separate script
+is no training.
 
 You can run this file with additional arguments:
     manual   - enables manual test mode
@@ -52,6 +52,7 @@ def main():
     if 'quiet' in sys.argv:
         quiet = True
 
+    # TODO: Manual testing as a separate script
     if run_manual_tests:
         tests = ManualTestTerminal()
         tests.manual_testing()
@@ -124,7 +125,7 @@ def print_episode_stats(agent_stats, env_stats):
         print("{:30} = {: .1f} %".format(k, v))
     print("==================================================================")
 
-
+# FIXME move loading and saving to a separate class
 def load_model(agent, model_id):
     """
     Loads the given model to the Agent's network fields.
