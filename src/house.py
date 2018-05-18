@@ -11,7 +11,7 @@ directly from outside.
 
 Note: Currently, the sensor has no specific impact on the registered values, so
 every sensor would register the same values. There is only one, main sensor
-used at the moment, and you have to
+used at the moment.
 
 """
 import json
@@ -75,7 +75,7 @@ class House:
             'curtains_lvl': 0
         })
 
-        self.illegal_action_penalty = 0
+        self.action_penalty = 0
 
         # actions influence on current settings - default to 0.2 / min
         self.influence = 0.2 * timeframe
@@ -163,7 +163,8 @@ class House:
                                            upper=self.battery['max'])
 
     def update(self, sensor_out_info):
-        """Updates house parameters
+        """Updates house parameters. The order of the methods matters and it
+        shouldn't be changed without any good reason.
 
         Args:
             sensor_out_info(dict) - weather and time information from
@@ -246,7 +247,6 @@ class House:
                 self.battery['current'] -= usage
                 return 0
             else:
-                # Used more energy than we had in battery
                 usage -= self.battery['current']
                 self.battery['current'] = 0
                 self.devices_settings['energy_src'] = 'grid'
@@ -264,7 +264,8 @@ class House:
         To see how exponents are used, check _calculate_penalty() method
 
         Returns:
-             reward(float): weighted sum of penalties
+             reward(float): weighted sum of penalties plus additional action
+             penalty. The final value of reward function for lats timeframe
         """
 
         w_temp = self.config['env']['temperature_w_in_reward']
@@ -280,63 +281,69 @@ class House:
 
         light_penalty = abs(light - req['light_desired'])
 
-        reward = -1 * ((cost * w_cost)
-                       + (temp_penalty * w_temp)
-                       + (light_penalty * w_light))
+        reward = (cost * w_cost) \
+            + (temp_penalty * w_temp) \
+            + (light_penalty * w_light)
 
-        return reward / 5 - (1 if self.illegal_action_penalty else 0)
+        return -(reward + self.action_penalty)
 
     # All action-method names (and only them) have to start with "action"!
+    # You should define the action penalty.
 
     def action_source_grid(self):
         """Action to be taken by RL-agent - change power source"""
-        self.illegal_action_penalty = 1 if \
+        self.action_penalty = 1 if \
             self.devices_settings['energy_src'] == 'grid' else 0
 
         self.devices_settings['energy_src'] = 'grid'
 
     def action_source_battery(self):
         """Action to be taken by RL-agent - change power source"""
-        self.illegal_action_penalty = 1 if \
+        self.action_penalty = 1 if \
             self.devices_settings['energy_src'] == 'battery' else 0
 
         self.devices_settings['energy_src'] = 'battery'
 
     def action_more_cooling(self):
-        """Action to be taken by RL-agent"""
-        self.illegal_action_penalty = 1 if \
+        """Action to be taken by RL-agent. Increase cooling level."""
+        self.action_penalty = 1 if \
             self.devices_settings['cooling_lvl'] == 1 else 0
 
         self.devices_settings['cooling_lvl'] = round(
             truncate(self.devices_settings['cooling_lvl'] + self.influence), 4)
 
     def action_less_cooling(self):
-        """Action to be taken by RL-agent"""
-        self.illegal_action_penalty = 1 if \
+        """Action to be taken by RL-agent. Decrease cooling level."""
+        self.action_penalty = 1 if \
             self.devices_settings['cooling_lvl'] == 0 else 0
 
         self.devices_settings['cooling_lvl'] = round(
             truncate(self.devices_settings['cooling_lvl'] - self.influence), 4)
 
     def action_more_heating(self):
-        """Action to be taken by RL-agent"""
-        self.illegal_action_penalty = 1 if \
+        """Action to be taken by RL-agent. Increase heating level."""
+        self.action_penalty = 1 if \
             self.devices_settings['heating_lvl'] == 1 else 0
 
         self.devices_settings['heating_lvl'] = round(
             truncate(self.devices_settings['heating_lvl'] + self.influence), 4)
 
     def action_less_heating(self):
-        """Action to be taken by RL-agent"""
-        self.illegal_action_penalty = 1 if \
+        """Action to be taken by RL-agent. Decrease heating level."""
+        self.action_penalty = 1 if \
             self.devices_settings['heating_lvl'] == 0 else 0
 
         self.devices_settings['heating_lvl'] = round(
             truncate(self.devices_settings['heating_lvl'] - self.influence), 4)
 
     def action_more_light(self):
-        """Action to be taken by RL-agent"""
-        self.illegal_action_penalty = 1 if \
+        """
+        Action to be taken by RL-agent. Increase lights level.
+        Note that this action uses 2 times smaller influence as agent
+        needs a bit more precision with the light settings.
+        """
+
+        self.action_penalty = 1 if \
             self.devices_settings['light_lvl'] == 1 else 0
 
         self.devices_settings['light_lvl'] = round(
@@ -344,8 +351,13 @@ class House:
                      + self.influence / 2), 4)
 
     def action_less_light(self):
-        """Action to be taken by RL-agent"""
-        self.illegal_action_penalty = 1 if \
+        """
+        Action to be taken by RL-agent. Decrease lights level.
+        Note that this action uses 2 times smaller influence as agent
+        needs a bit more precision with the light settings.
+        """
+
+        self.action_penalty = 1 if \
             self.devices_settings['light_lvl'] == 0 else 0
 
         self.devices_settings['light_lvl'] = round(
@@ -353,18 +365,32 @@ class House:
                      - self.influence / 2), 4)
 
     def action_curtains_down(self):
-        """Action to be taken by RL-agent"""
-        self.illegal_action_penalty = 1 if \
-            self.devices_settings['curtains_lvl'] == 1 else 0
+        """
+        Action to be taken by RL-agent. Lower the curtains.
+        Note that this action uses 2 times smaller influence as agent
+        needs a bit more precision with the light settings.
+        There is a small penalty for using this action, to prevent it
+        from being used as an action_nop.
+        """
+
+        self.action_penalty = 1 if \
+            self.devices_settings['curtains_lvl'] == 1 else 0.1
 
         self.devices_settings['curtains_lvl'] = round(
             truncate(self.devices_settings['curtains_lvl']
                      + self.influence / 2), 4)
 
     def action_curtains_up(self):
-        """Action to be taken by RL-agent"""
-        self.illegal_action_penalty = 1 if \
-            self.devices_settings['curtains_lvl'] == 0 else 0
+        """
+        Action to be taken by RL-agent. Increase the curtains level.
+        Note that this action uses 2 times smaller influence as agent
+        needs a bit more precision with the light settings.
+        There is a small penalty for using this action, to prevent it
+        from being used as an action_nop.
+        """
+
+        self.action_penalty = 1 if \
+            self.devices_settings['curtains_lvl'] == 0 else 0.1
 
         self.devices_settings['curtains_lvl'] = round(
             truncate(self.devices_settings['curtains_lvl']
@@ -372,4 +398,4 @@ class House:
 
     def action_nop(self):
         """Action to be taken by RL-agent - do nothing"""
-        self.illegal_action_penalty = 0
+        self.action_penalty = 0
