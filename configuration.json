@@ -22,8 +22,8 @@
     },
     "env": {
         "timestep_in_minutes"        : 1,
-        "temperature_w_in_reward"    : 0.5,
-        "light_w_in_reward"          : 5,
-        "cost_w_in_reward"           : 0.1
+        "temperature_w_in_reward"    : 0.1,
+        "light_w_in_reward"          : 1,
+        "cost_w_in_reward"           : 0.02
     }
 }
