@@ -374,7 +374,7 @@ class House:
         """
 
         self.action_penalty = 1 if \
-            self.devices_settings['curtains_lvl'] == 1 else 0.1
+            self.devices_settings['curtains_lvl'] == 1 else 0.05
 
         self.devices_settings['curtains_lvl'] = round(
             truncate(self.devices_settings['curtains_lvl']
@@ -390,7 +390,7 @@ class House:
         """
 
         self.action_penalty = 1 if \
-            self.devices_settings['curtains_lvl'] == 0 else 0.1
+            self.devices_settings['curtains_lvl'] == 0 else 0.05
 
         self.devices_settings['curtains_lvl'] = round(
             truncate(self.devices_settings['curtains_lvl']
