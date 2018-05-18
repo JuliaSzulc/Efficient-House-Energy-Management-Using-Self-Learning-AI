@@ -24,22 +24,52 @@ class House:
     """Main environment part"""
 
     def __init__(self, timeframe):
+        """
+        Initializes all fields of the House object, including:
+        - time constants/variables, expressed in minutes, to define the
+            day/night time, current time
+        - Energy, light, isolation constants. This includes empirically chosen
+            isolation factor, absorption of photovoltaic battery
+        - Photovoltaic Battery parameters - current accumulation, delta and max
+            capacity.
+        - Devices' power. Currently the light power is unrealistically
+            increased for better agent performance and this should be fixed
+            in other way.
+        - User Requests about the desired temperature and light. Note that
+            epsilons (they define 'acceptance intervals') are currently
+            not used in the reward function, as they seem to make the
+            training harder.
+        - Inside Sensors, which register parameters. There is only one, main
+            sensor currently.
+        - Devices action-controlled settings of <0.0, 1.0> values
+        - Action penalty field used to express the current penalty for using
+            an 'illegal' actions. You can use the field to penalize unwanted
+            behaviours, like using some actions as NOP action etc.
+        - Influence, describing how large is the change of device setting
+            when action is executed. Note that the influence for light-related
+            actions is influence divided by 2 to allow better precision.
+
+        Args:
+            timeframe(numeric): duration of timeframe in minutes.
+        """
+
+        # FIXME extract more params to config (day start/end, isolation and
+        # FIXME light factors, pv absorption, devices power)
         with open('../configuration.json') as config_file:
             self.config = json.load(config_file)
 
-        # Time constants and variables (in minutes)
         self.timeframe = timeframe
         self.day_start = 7 * 60
         self.day_end = 18 * 60
         self.daytime = 0
 
-        # Energy and light settings
-        self.pv_absorption = 5  # Watt/min on max sun intensity
-        self.grid_cost = 0.5
+        self.max_pv_absorption = 5  # Watt/min
+        self.grid_cost = 0.5    # PLN / kWh
         self.house_isolation_factor = 0.998
         self.house_light_factor = 0.0075
+        # FIXME decide and be consistent - illuminance vs illumination
         self.max_led_illuminance = 200  # lux
-        self.max_outside_illumination = 25000  # lux - max. in ambient daylight
+        self.max_outside_illumination = 25000  # lux
         self.battery = {
             'current': 0,
             'delta': 0,
@@ -66,7 +96,6 @@ class House:
             })
         })
 
-        # Action-controlled settings
         self.devices_settings = OrderedDict({
             'energy_src': 'grid',  # grid/battery
             'cooling_lvl': 0,
@@ -77,7 +106,6 @@ class House:
 
         self.action_penalty = 0
 
-        # actions influence on current settings - default to 0.2 / min
         self.influence = 0.2 * timeframe
 
     def _update_grid_cost(self):
@@ -157,7 +185,7 @@ class House:
 
     def _calculate_accumulated_energy(self, outside_light):
         """Calculates new value of energy accumulated in the battery"""
-        acc = outside_light * self.pv_absorption * self.timeframe
+        acc = outside_light * self.max_pv_absorption * self.timeframe
         self.battery['delta'] = acc
         self.battery['current'] = truncate(arg=(acc + self.battery['current']),
                                            upper=self.battery['max'])
