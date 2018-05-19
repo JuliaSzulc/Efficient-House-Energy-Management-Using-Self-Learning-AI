@@ -1,12 +1,12 @@
 {
     "main": {
-        "training_episodes"          : 1000,
-        "fps"                        : 8
+        "training_episodes"          : 15000,
+        "fps"                        : 16
     },
     "agent": {
         "hidden_layer_size"          : 80,
         "memory_size"                : 100000,
-        "memory_size_to_start"       : 100000,
+        "memory_size_to_start"       : 10,
         "double_dqn"                 : true,
         "gamma"                      : 0.9,
         "epsilon"                    : 1,
@@ -22,8 +22,8 @@
     },
     "env": {
         "timestep_in_minutes"        : 1,
-        "temperature_w_in_reward"    : 0.1,
-        "light_w_in_reward"          : 1,
-        "cost_w_in_reward"           : 0.02
+        "temperature_w_in_reward"    : 0.35,
+        "light_w_in_reward"          : 0.82,
+        "cost_w_in_reward"           : 0.024
     }
 }
