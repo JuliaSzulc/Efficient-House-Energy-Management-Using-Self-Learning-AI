@@ -2,7 +2,7 @@
 
 in form of a House class and additional functions. House class is the most
 important part of HouseEnergyEnvironment structure, in which most of the actual
-actions take place. It simulates light and energy distribution and cost,
+actions take place. It simulates light and energy distribution and their cost;
 contains actions for RL agent to change inside parameters such as heating or
 light levels; it also calculates the reward / penalty for the last timeframe.
 
@@ -15,6 +15,7 @@ used at the moment.
 
 """
 import json
+import os
 import random
 from collections import OrderedDict
 from tools import truncate
@@ -24,38 +25,45 @@ class House:
     """Main environment part"""
 
     def __init__(self, timeframe):
-        """
-        Initializes all fields of the House object, including:
-        - time constants/variables, expressed in minutes, to define the
-            day/night time, current time
-        - Energy, light, isolation constants. This includes empirically chosen
-            isolation factor, absorption of photovoltaic battery
-        - Photovoltaic Battery parameters - current accumulation, delta and max
-            capacity.
-        - Devices' power. Currently the light power is unrealistically
-            increased for better agent performance and this should be fixed
-            in other way.
-        - User Requests about the desired temperature and light. Note that
-            epsilons (they define 'acceptance intervals') are currently
-            not used in the reward function, as they seem to make the
-            training harder.
-        - Inside Sensors, which register parameters. There is only one, main
-            sensor currently.
-        - Devices action-controlled settings of <0.0, 1.0> values
-        - Action penalty field used to express the current penalty for using
-            an 'illegal' actions. You can use the field to penalize unwanted
-            behaviours, like using some actions as NOP action etc.
-        - Influence, describing how large is the change of device setting
-            when action is executed. Note that the influence for light-related
-            actions is influence divided by 2 to allow better precision.
+        """Initialize the House object
 
         Args:
             timeframe(numeric): duration of timeframe in minutes.
+
+        House object fields include:
+
+        - time constants/variables, expressed in minutes, to define the
+          day/night time, current time
+        - Energy, light, isolation constants. This includes empirically chosen
+          isolation factor, absorption of photovoltaic battery
+        - Photovoltaic Battery parameters - current accumulation, delta and max
+          capacity.
+        - Devices' power. Currently the light power is unrealistically
+          increased for better agent performance and this should be fixed
+          in other way.
+        - User Requests about the desired temperature and light. Note that
+          epsilons (they define 'acceptance intervals') are currently
+          not used in the reward function, as they seem to make the
+          training harder.
+        - Inside Sensors, which register parameters. There is only one, main
+          sensor currently.
+        - Devices action-controlled settings of <0.0, 1.0> values
+        - Action penalty field used to express the current penalty for using
+          an 'illegal' actions. You can use the field to penalize unwanted
+          behaviours, like using some actions as NOP action etc.
+        - Influence, describing how large is the change of device setting
+          when action is executed. Note that the influence for light-related
+          actions is influence divided by 2 to allow better precision.
+
         """
 
         # FIXME extract more params to config (day start/end, isolation and
         # FIXME light factors, pv absorption, devices power)
-        with open('../configuration.json') as config_file:
+
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        with open(add_path + '../configuration.json') as config_file:
             self.config = json.load(config_file)
 
         self.timeframe = timeframe
@@ -67,7 +75,7 @@ class House:
         self.grid_cost = 0.5    # PLN / kWh
         self.house_isolation_factor = 0.998
         self.house_light_factor = 0.0075
-        # FIXME decide and be consistent - illuminance vs illumination
+        # FIXME decide and be consistent - illuminance vs illumination (xd)
         self.max_led_illuminance = 200  # lux
         self.max_outside_illumination = 25000  # lux
         self.battery = {
@@ -110,17 +118,17 @@ class House:
 
     def _update_grid_cost(self):
         """Updates the grid cost based on daytime. Expressed in PLN for 1kWh"""
+        #TODO move constants to config
         if self.day_start < self.daytime < self.day_end:
             self.grid_cost = 0.5
         else:
             self.grid_cost = 0.3
 
     def _update_user_requests(self):
-        """
-        Randomly updates the user requests every 2 hours
+        """Randomly updates the user requests every 2 hours
 
-        For the temperature, requests are integers from <19, 24> interval during
-        the day, and from <15, 20> interval during the night time.
+        For the temperature, requests are integers from <19, 24> interval
+        during the day, and from <15, 20> interval during the night time.
 
         For the light, interval remain the same during the whole time - <0, 1>
         Values are rounded to 1 decimal point.
@@ -135,9 +143,10 @@ class House:
             self.user_requests['light_desired'] = round(random.random(), 1)
 
     def _calculate_light(self, outside_illuminance):
-        """
-        Updates the inside sensors with new light value. Final light is
-        normalized to <0, 1> interval and depends on the
+        # TODO: add param to docstring
+        """Updates the inside sensors with new light value.
+
+        Final light is normalized to <0, 1> interval and depends on the
         light device level, curtains level, outside light level and
         house_light_factor, which describes how much illuminance 'enters'
         the house.
@@ -159,10 +168,11 @@ class House:
             data['light'] = truncate(final_light)
 
     def _calculate_temperature(self, outside_temp):
-        """
-        Updates the inside sensors with new temperature value. The new value
-        depends on the last temperature, the outside temperature, house's
-        isolation factor, and levels of heating and cooling devices.
+        # TODO add param to docstring
+        """Updates the inside sensors with new temperature value.
+
+        The new value depends on the last temperature, the outside temperature,
+        house's isolation factor, and levels of heating and cooling devices.
         Value is truncated to <-20, 40> interval and this interval is assumed
         in the environment's normalization method -
         HouseEnergyEnvironment.serialize_state().
@@ -184,6 +194,7 @@ class House:
             data['temperature'] = truncate(new_inside_temp, -20, 40)
 
     def _calculate_accumulated_energy(self, outside_light):
+        # TODO: add param to docstring
         """Calculates new value of energy accumulated in the battery"""
         acc = outside_light * self.max_pv_absorption * self.timeframe
         self.battery['delta'] = acc
@@ -212,7 +223,7 @@ class House:
 
         Returns:
             inside_params (OrderedDict): A dictionary with unnormalized
-            house information
+                                         house information
 
         Structure of returned dict consist of:
             'inside_sensors' - dict of inside sensors info
@@ -220,7 +231,7 @@ class House:
             'grid_cost' - a cost of energy
             'devices_settings' - levels of action-dependent settings
             'battery_level' - current battery level
-            'battery_delta' - accumulation tempo of the battery
+            'battery_delta' - accumulation speed of the battery
         """
 
         inside_params = OrderedDict({
@@ -236,8 +247,7 @@ class House:
 
     def _calculate_device_energy_usage(self, device_full_power,
                                        device_setting):
-        """
-        Calculates cost of last time-frame's energy usage of given device
+        """Calculates cost of last time-frame's energy usage of given device
 
         Args:
             device_full_power(numeric): full device power in kWh
@@ -249,9 +259,9 @@ class House:
         return device_full_power * device_setting * (self.timeframe / 60)
 
     def _calculate_energy_cost(self):
-        """
-        Calculates the cost of energy usage of last time-frame in the whole
-        house. Energy used from photovoltaic battery is free. If the usage
+        """Calculates the cost of energy usage of last time-frame in the house.
+
+        Energy used from photovoltaic battery is free. If the usage
         exceeded the battery level, the source of energy is switched to grid.
         Returns:
             cost of energy usage - usage multiplied by current grid_cost
@@ -282,8 +292,8 @@ class House:
         return usage * self.grid_cost
 
     def reward(self):
-        """
-        Calculate reward for the last timeframe.
+        """Calculate reward for the last timeframe.
+
         Note that the reward in the whole simulator is always non-positive,
         so it is easier to interpret as penalty in this case.
 
@@ -294,6 +304,7 @@ class House:
         Returns:
              reward(float): weighted sum of penalties plus additional action
              penalty. The final value of reward function for lats timeframe
+
         """
 
         w_temp = self.config['env']['temperature_w_in_reward']

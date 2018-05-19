@@ -18,7 +18,7 @@ class HouseEnergyEnvironment:
 
     This is where we gather together our World, OutsideSensors, House,
     etc., connect each other in a proper way and basically set up a working RL
-    environment
+    environment.
 
     """
 
@@ -26,12 +26,16 @@ class HouseEnergyEnvironment:
         """
         Declares all class' fields.
 
-        Actual initialization is moved to reset() method
-        to be able to re-initialize the whole environment.
+        Initialization is moved to reset() method
+        to be able to quickly re-initialize the whole environment.
 
         Stats-related fields describe how many times given parameter
         was close to the desired value within a particular interval
         in current episode (see _update_stats method)
+
+        Args:
+            world(World): (optional) a World object to be used in environment
+            collect_stats(boolean): (optional)
 
         """
 
@@ -52,7 +56,7 @@ class HouseEnergyEnvironment:
 
     def step(self, action_name):
         """
-        Update the environment by one timestep and updates the statistics.
+        Update the environment by one timestep and update the statistics.
         This method is the main communication point between
         agent and the environment.
 
@@ -63,7 +67,8 @@ class HouseEnergyEnvironment:
             observation(dict): serialized information about the environment
             reward(float): a reward for RL agent's last action
             done(boolean): information whether the new state, achieved after
-            this update, is terminal (episode end)
+                           this update, is terminal (episode end)
+
         """
 
         getattr(self.house, action_name)()
@@ -78,8 +83,8 @@ class HouseEnergyEnvironment:
         return observation, self.last_reward, done
 
     def reset(self, world=None):
-        """
-        (Re)initializes the environment and registers the listeners.
+        """(Re)initializes the environment and registers the listeners.
+
         Should be used to start a new episode. Returns the first,
         serialized initial state.
 
@@ -107,6 +112,7 @@ class HouseEnergyEnvironment:
 
         return self._serialize_state(self._get_current_state())
 
+    # TODO: usunac to property, bo nie ma zadnego powodu zeby bylo.
     @property
     def render(self):
         """Outputs the state of environment in a human-readable format
@@ -168,6 +174,7 @@ class HouseEnergyEnvironment:
             'TOTAL REWARD: '
         ]
 
+        # TODO: ogarnac te zwracane typy, niech to będzie jeden słownik nieznormalizowany i tyle
         return labels_names, unnormalized_dataset, dataset
 
     def get_actions(self):
@@ -190,6 +197,7 @@ class HouseEnergyEnvironment:
                 and re.match("action.*", action)]
 
     def _get_current_state(self):
+        #TODO: napisać tu docstringa, bo tego się często używa, warto żeby był
         outside_params = [sensor.get_info() for sensor in self.outside_sensors]
         inside_params = self.house.get_inside_params()
         observation = OrderedDict({
@@ -232,6 +240,7 @@ class HouseEnergyEnvironment:
         [ ] battery_level
         [ ] battery_delta
         """
+        #TODO: ogarnac czy docstring sie zgadza
 
         observation = []
         for sensor in state['outside']:
@@ -283,11 +292,16 @@ class HouseEnergyEnvironment:
         return np.array(observation)
 
     def get_episode_stats(self):
-        """
-        Returns dictionary with current statistics expressed in percent of
-        current episode time. Returns the correct values only, if the
-        environment works in the collect_stats mode and there was at least one
-        step taken, and returns None if not.
+        """Provides statistic info about episode.
+
+        Returns:
+            dictionary with current statistics expressed in percent of
+            current episode time.
+
+        Returns the correct values only if the environment works in the
+        collect_stats mode and there was at least one step taken; returns None
+        if not.
+
         """
 
         if self.collect_stats and self.timesteps != 0:
@@ -304,12 +318,14 @@ class HouseEnergyEnvironment:
             return None
 
     def _update_stats(self, state):
+        #TODO: add param to docstring
         """
-        Updates the stats. This is calculated by checking the absolute
-        difference between current and desired values. If the difference
-        is smaller than given value, the statistic is increased. Note that
-        the statistics are just counts - the episode percents are calculated
-        in the get_episode_stats method.
+        Updating stats is calculated by checking the absolute
+        difference between current and desired values.
+
+        If the difference is smaller than given value, the statistic is
+        increased. Note that the statistics are just counts - the episode
+        percents are calculated in the get_episode_stats method.
         """
 
         self.timesteps += 1
@@ -328,3 +344,4 @@ class HouseEnergyEnvironment:
             self.light_diff_015_count += 1
             if light_difference < 0.05:
                 self.light_diff_005_count += 1
+

@@ -7,6 +7,7 @@ environment.
 """
 import random
 import sys
+import os
 import json
 import numpy as np
 import torch
@@ -54,7 +55,10 @@ class Agent:
     def __init__(self, env, conf=None):
         self.CONFIG = conf
         if not conf:
-            with open('../configuration.json') as config_file:
+            add_path = ''
+            if 'tests' in os.getcwd():
+                add_path = '../'
+            with open(add_path + '../configuration.json') as config_file:
                 self.CONFIG = json.load(config_file)
 
         self.env = env
@@ -121,7 +125,7 @@ class Agent:
         self.train_freq = config['training_freq']
 
     def run(self):
-        """Main agent's function. Performs the deep q-learning algorithm"""
+        """Main agents function. Performs the deep q-learning algorithm"""
         config = self.CONFIG['agent']
         counter = 0
         self.current_state = self.env.reset()
@@ -170,9 +174,10 @@ class Agent:
         return total_reward
 
     def _train(self):
-        """Trains the underlying q_network with use of experience memory
+        """Trains the underlying q_network with use of experience memory.
 
-        Note: this method does a training *step*, not whole training
+        Training can use the advantages of DoubleDQN.
+        Note: this method does a training *step*, not the whole training.
 
         """
 
@@ -191,10 +196,11 @@ class Agent:
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
             if self.double_dqn:
+                # --- Formula:
                 # Ydouble = r +
                 # Q(s_next, argmax{a}{Q(s_next,a; q_network)}; target_network)
 
-                # PO KAWAŁKU:
+                # --- step by step explanation:
                 # q2 = Q(s_next, a; q_network)
                 # action = argmax{a}{q2}
                 # q1 = Q(s_next, action; target_network)
@@ -305,7 +311,7 @@ class Agent:
             self.q_network.load_state_dict(torch.load(path))
             self.target_network.load_state_dict(torch.load(path))
         except RuntimeError:
-            print('Wrong network size? Aborting')
+            print('Error while loading model. Wrong network size? Aborting')
             sys.exit()
 
     def load_config(self, path):
@@ -316,16 +322,22 @@ class Agent:
             path(str): path to file
 
         """
-        with open(path) as config_file:
-            self.CONFIG = json.load(config_file)
-        self.reset()
+        try:
+            with open(path) as config_file:
+                self.CONFIG = json.load(config_file)
+            self.reset()
+        except FileNotFoundError:
+            print('Configuration file doesnt exist!')
+            sys.exit()
 
     def _update_stats(self, action_index, reward):
+        """Updates agent statistics"""
         action = self.actions[action_index]
         self.stats[action]['count'] += 1
         self.stats[action]['total_reward'] += reward
 
     def get_episode_stats(self):
+        # TODO: write docstring
         most_common = max(self.stats.items(), key=lambda item:
                           item[1]['count'])
 

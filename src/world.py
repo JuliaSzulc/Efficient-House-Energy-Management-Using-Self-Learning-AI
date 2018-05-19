@@ -15,9 +15,10 @@ Information for listeners are the daytime and the weather.
 # FIXME a lot of unexplained / undocumented calculations going on. Either
 # FIXME add docs to update methods or add abstraction
 import json
+import os
+import random
 from datetime import datetime, timedelta
 from math import sin, pi
-import random
 from random import choices
 from tools import truncate
 
@@ -26,7 +27,11 @@ class World:
     """Time and weather computations"""
 
     def __init__(self, time_step_in_minutes=None, duration_days=1):
-        with open('../configuration.json') as config_file:
+
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        with open(add_path + '../configuration.json') as config_file:
             self.config = json.load(config_file)
 
         self.start_date = datetime(2020, 1, 1, 0, 0, 0)
@@ -307,7 +312,7 @@ class World:
         )
 
 
-def plot_weather():
+def plot_weather(): # pragma: no cover
     """Plot normalized weather graph in a single episode"""
     temp, sun, light, clouds, rain, wind = [], [], [], [], [], []
 
@@ -343,4 +348,3 @@ def plot_weather():
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     plot_weather()
-    # test_base_mechanism()

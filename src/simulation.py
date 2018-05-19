@@ -19,6 +19,7 @@ RL-for-decision-process team, 2018
 
 import math
 import json
+import os
 import pygame
 import pygame.gfxdraw
 from PIL import Image, ImageDraw
@@ -68,7 +69,10 @@ class Simulation:
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
 
-        with open('../configuration.json') as config_file:
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        with open(add_path + '../configuration.json') as config_file:
             self.CONFIG = json.load(config_file)
 
         self.fps = self.CONFIG['main']['fps']

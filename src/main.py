@@ -69,8 +69,13 @@ def main():
 
     open('rewards.log', 'w').close()  # reset rewards log
 
-    with open('../configuration.json') as config_file:
+
+    add_path = ''
+    if 'tests' in os.getcwd():
+        add_path = '../'
+    with open(add_path + '../configuration.json') as config_file:
         config = json.load(config_file)
+
     training_episodes = config['main']['training_episodes']
     # --- learning ---
     rewards = []
@@ -191,7 +196,11 @@ def save_model_info(model_id, model, rewards, model_was_loaded=False):
     if model_was_loaded:
         config = "saved_models/model_{}/configuration.json".format(model_id)
     else:
-        config = "../configuration.json"
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        with open(add_path + '../configuration.json') as config_file:
+            config = json.load(config_file)
 
     copyfile(
         config,
