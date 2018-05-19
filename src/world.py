@@ -345,6 +345,6 @@ def plot_weather(): # pragma: no cover
     plt.show()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__': # pragma: no cover
     import matplotlib.pyplot as plt
     plot_weather()

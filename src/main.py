@@ -27,6 +27,7 @@ from shutil import copyfile
 
 
 def main():
+    # TODO: write a "just run it" test, to check consistency
     save_experiment = False
     run_manual_tests = False
     print_stats = True
@@ -106,7 +107,7 @@ def main():
         print(param, val)
 
 
-def plot_total_rewards(rewards, num_episodes, avg=10):
+def plot_total_rewards(rewards, num_episodes, avg=10): # pragma: no cover
     # Note: avg has to be a divisor of num_episodes
     avg_rewards = []
     for i in range(num_episodes // (avg or 1)):
@@ -116,7 +117,7 @@ def plot_total_rewards(rewards, num_episodes, avg=10):
     plt.show()
 
 
-def print_episode_stats(agent_stats, env_stats):
+def print_episode_stats(agent_stats, env_stats): # pragma: no cover
     print("------------------------------------------------------------------")
     for k, v in agent_stats.items():
         try:
@@ -132,6 +133,7 @@ def print_episode_stats(agent_stats, env_stats):
 
 # FIXME move loading and saving to a separate class
 def load_model(agent, model_id):
+    # TODO: write some tests
     """
     Loads the given model to the Agent's network fields.
 
@@ -154,6 +156,7 @@ def load_model(agent, model_id):
 
 
 def save_model_info(model_id, model, rewards, model_was_loaded=False):
+    # TODO: write some tests
     """
     Method saves the model, configuration file  and training rewards to a files
     in the saved_models/{model_id} directory.
@@ -224,5 +227,5 @@ def save_model_info(model_id, model, rewards, model_was_loaded=False):
     return CONFIG_AGENT
 
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     main()

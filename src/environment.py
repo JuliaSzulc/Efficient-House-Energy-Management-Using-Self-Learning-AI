@@ -78,6 +78,7 @@ class HouseEnergyEnvironment:
 
         self.last_reward = self.house.reward()
         if self.collect_stats:
+            # TODO: no test written for this part
             self._update_stats(current_state['inside'])
 
         return observation, self.last_reward, done
@@ -121,6 +122,7 @@ class HouseEnergyEnvironment:
             labels(list) - names for each value in data
             data(numpy array) - values of environment parameters
         """
+        # TODO: no test written for this part
 
         reward = self.last_reward
 
@@ -303,6 +305,7 @@ class HouseEnergyEnvironment:
         if not.
 
         """
+        # TODO: no test written for this part
 
         if self.collect_stats and self.timesteps != 0:
             temp_2 = 100 * self.temp_diff_2_count / self.timesteps
@@ -318,7 +321,8 @@ class HouseEnergyEnvironment:
             return None
 
     def _update_stats(self, state):
-        #TODO: add param to docstring
+        # TODO: add param to docstring
+        # TODO: no test written for this part
         """
         Updating stats is calculated by checking the absolute
         difference between current and desired values.
