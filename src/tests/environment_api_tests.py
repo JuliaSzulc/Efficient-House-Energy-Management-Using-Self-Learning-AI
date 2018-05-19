@@ -96,5 +96,42 @@ class EnvironmentStepTestCase(unittest.TestCase):
         self.assertTrue(isinstance(done, bool),
                         "Third value should be a bool")
 
-    if __name__ == '__main__':
-        unittest.main()
+
+class EnvironmentStatisticsTestCase(unittest.TestCase):
+    """ Testing environment's statistics functionality"""
+
+    def setUp(self):
+        self.stats_env = HouseEnergyEnvironment(collect_stats=True)
+        self.no_stats_env = HouseEnergyEnvironment(collect_stats=False)
+
+    def test_no_stats_env_returns_none(self):
+        self.no_stats_env.reset()
+        self.assertIsNone(self.no_stats_env.get_episode_stats())
+        self.no_stats_env.step("action_nop")
+        self.assertIsNone(self.no_stats_env.get_episode_stats())
+
+    def test_stats_env_returns_none_after_reset(self):
+        self.stats_env.reset()
+        self.assertIsNone(self.stats_env.get_episode_stats())
+
+    def test_stats_return_dict_after_step_taken(self):
+        self.stats_env.reset()
+        self.stats_env.step("action_nop")
+        stats = self.stats_env.get_episode_stats()
+        self.assertTrue(isinstance(stats, dict))
+
+    def test_no_stats_env_not_calls_stats_update_on_step(self):
+        self.no_stats_env.reset()
+        self.no_stats_env._update_stats = MagicMock()
+        self.no_stats_env.step("action_nop")
+        self.no_stats_env._update_stats.assert_not_called()
+
+    def test_stats_env_calls_stats_update_once_on_step(self):
+        self.stats_env.reset()
+        self.stats_env._update_stats = MagicMock()
+        self.stats_env.step("action_nop")
+        self.stats_env._update_stats.assert_called_once()
+
+
+if __name__ == '__main__':
+    unittest.main()
