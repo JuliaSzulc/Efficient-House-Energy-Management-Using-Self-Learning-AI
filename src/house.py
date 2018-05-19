@@ -259,11 +259,13 @@ class House:
 
         return device_full_power * device_setting * (self.timeframe / 60)
 
-    def _calculate_energy_cost(self):
-        """Calculates the cost of energy usage of last time-frame in the house.
+    def _calculate_cost_and_update_energy_source(self):
+        """Calculates the energy cost of last time-frame and updates source.
 
-        Energy used from photovoltaic battery is free. If the usage
-        exceeded the battery level, the source of energy is switched to grid.
+        Updating the source means subtracting the used energy from battery
+        and/or switching the source. Energy used from photovoltaic battery
+        is free. If the usage exceeded the battery level, the source of energy
+        is switched to grid.
         Returns:
             cost of energy usage - usage multiplied by current grid_cost
 
@@ -313,7 +315,7 @@ class House:
         w_light = self.config['light_w_in_reward']
         w_cost = self.config['cost_w_in_reward']
 
-        cost = self._calculate_energy_cost()
+        cost = self._calculate_cost_and_update_energy_source()
         temp, light = (self.inside_sensors['first']['temperature'],
                        self.inside_sensors['first']['light'])
         req = self.user_requests

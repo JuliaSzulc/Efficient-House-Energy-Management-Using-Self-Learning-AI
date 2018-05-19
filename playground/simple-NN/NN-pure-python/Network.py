@@ -11,7 +11,6 @@ class Network:
      jest poniekad latwiej zrozumiec feed-forward i backpropagation.
     """
 
-    # TODO: split file into clear code file and jupyter notebook with comments
     def __init__(self, layer_sizes=(2, 4, 2)):
         """Inicjalizacja parametrow
         :param layer_sizes: ilosc neuronow w kazdej warstwie

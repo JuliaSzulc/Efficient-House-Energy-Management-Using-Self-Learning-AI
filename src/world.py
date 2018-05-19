@@ -19,7 +19,6 @@ import os
 import random
 from datetime import datetime, timedelta
 from math import sin, pi
-from random import choices
 from tools import truncate
 
 
@@ -89,6 +88,7 @@ class World:
         """Update all listeners with interpolated weather and current time"""
 
         for listener in self.listeners:
+            # FIXME czy ten try-except jest tutaj potrzebny?
             try:
                 listener.update(daytime=self.daytime,
                                 weather=self.int_weather)
@@ -159,6 +159,7 @@ class World:
         daylen = dayend - daystart
         sun = 0
         if daystart <= self.basetime <= dayend:
+            # FIXME sinus amplitude random, calculated once for 1 episode
             sun = truncate(sin((self.basetime - daystart) * pi / daylen))
 
         self.weather['sun'] = sun
