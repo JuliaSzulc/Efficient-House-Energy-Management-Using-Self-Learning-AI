@@ -35,7 +35,8 @@ class House:
         - time constants/variables, expressed in minutes, to define the
           day/night time, current time
         - Energy, light, isolation constants. This includes empirically chosen
-          isolation factor, absorption of photovoltaic battery
+          isolation and light factors, absorption of photovoltaic battery.
+          The max illuminance fields are real-world based, shouldn't be changed
         - Photovoltaic Battery parameters - current accumulation, delta and max
           capacity.
         - Devices' power. Currently the light power is unrealistically
@@ -54,40 +55,31 @@ class House:
         - Influence, describing how large is the change of device setting
           when action is executed. Note that the influence for light-related
           actions is influence divided by 2 to allow better precision.
-
         """
-
-        # FIXME extract more params to config (day start/end, isolation and
-        # FIXME light factors, pv absorption, devices power)
 
         add_path = ''
         if 'tests' in os.getcwd():
             add_path = '../'
         with open(add_path + '../configuration.json') as config_file:
-            self.config = json.load(config_file)
+            self.config = json.load(config_file)['env']
 
         self.timeframe = timeframe
-        self.day_start = 7 * 60
-        self.day_end = 18 * 60
+        self.day_start = self.config['day_start']
+        self.day_end = self.config['day_end']
         self.daytime = 0
 
-        self.max_pv_absorption = 5  # Watt/min
-        self.grid_cost = 0.5    # PLN / kWh
-        self.house_isolation_factor = 0.998
-        self.house_light_factor = 0.0075
-        # FIXME decide and be consistent - illuminance vs illumination (xd)
-        self.max_led_illuminance = 200  # lux
+        self.max_pv_absorption = self.config['max_pv_absorption']
+        self.grid_cost = self.config['night_grid_cost']
+        self.house_isolation_factor = self.config['house_isolation_factor']
+        self.house_light_factor = self.config['house_light_factor']
+        self.max_led_illumination = 200  # lux
         self.max_outside_illumination = 25000  # lux
         self.battery = {
             'current': 0,
             'delta': 0,
-            'max': 14000  # Watt, as good as single Tesla PowerWall unit.
+            'max': self.config['battery_max']  # Watt
         }
-        self.devices_power = {
-            'air_conditioner': 1500,
-            'heater': 3000,
-            'light': 720
-        }
+        self.devices_power = self.config['devices_power']
 
         self.user_requests = OrderedDict({
                 'temp_desired': 18,
@@ -114,15 +106,14 @@ class House:
 
         self.action_penalty = 0
 
-        self.influence = 0.2 * timeframe
+        self.influence = self.config['influence_per_min'] * timeframe
 
     def _update_grid_cost(self):
-        """Updates the grid cost based on daytime. Expressed in PLN for 1kWh"""
-        #TODO move constants to config
+        """Updates the grid cost based on daytime."""
         if self.day_start < self.daytime < self.day_end:
-            self.grid_cost = 0.5
+            self.grid_cost = self.config['day_grid_cost']
         else:
-            self.grid_cost = 0.3
+            self.grid_cost = self.config['night_grid_cost']
 
     def _update_user_requests(self):
         """Randomly updates the user requests every 2 hours
@@ -142,33 +133,35 @@ class House:
 
             self.user_requests['light_desired'] = round(random.random(), 1)
 
-    def _calculate_light(self, outside_illuminance):
-        # TODO: add param to docstring
+    def _calculate_light(self, outside_illumination):
         """Updates the inside sensors with new light value.
 
         Final light is normalized to <0, 1> interval and depends on the
         light device level, curtains level, outside light level and
-        house_light_factor, which describes how much illuminance 'enters'
+        house_light_factor, which describes how much illumination 'enters'
         the house.
+
+        Args:
+            outside_illumination(numeric): Registered value of outside
+                                           illumination
 
         Note: Currently, the sensor has no impact on the registered value, so
         every sensor would register the same value.
         """
 
         for data in self.inside_sensors.values():
-            outside_light = (outside_illuminance * self.house_light_factor) \
+            outside_light = (outside_illumination * self.house_light_factor) \
                 * (1 - self.devices_settings['curtains_lvl'])
 
             inside_light = self.devices_settings['light_lvl'] \
-                * self.max_led_illuminance
+                * self.max_led_illumination
 
             final_light = (outside_light + inside_light) \
-                / self.max_led_illuminance
+                / self.max_led_illumination
 
             data['light'] = truncate(final_light)
 
     def _calculate_temperature(self, outside_temp):
-        # TODO add param to docstring
         """Updates the inside sensors with new temperature value.
 
         The new value depends on the last temperature, the outside temperature,
@@ -176,6 +169,10 @@ class House:
         Value is truncated to <-20, 40> interval and this interval is assumed
         in the environment's normalization method -
         HouseEnergyEnvironment.serialize_state().
+
+        Args:
+            outside_temp(numeric): Unnormalized value of registered
+                                   outside temperature
 
         Note: Currently, the sensor has no impact on the registered value, so
         every sensor would register the same value.
@@ -193,10 +190,14 @@ class House:
             data['temperature_delta'] = new_inside_temp - last_inside_temp
             data['temperature'] = truncate(new_inside_temp, -20, 40)
 
-    def _calculate_accumulated_energy(self, outside_light):
-        # TODO: add param to docstring
-        """Calculates new value of energy accumulated in the battery"""
-        acc = outside_light * self.max_pv_absorption * self.timeframe
+    def _calculate_accumulated_energy(self, outside_illumination):
+        """Calculates new value of energy accumulated in the battery
+
+        Args:
+            outside_illumination(numeric): Registered value of outside
+                                           illumination
+        """
+        acc = outside_illumination * self.max_pv_absorption * self.timeframe
         self.battery['delta'] = acc
         self.battery['current'] = truncate(arg=(acc + self.battery['current']),
                                            upper=self.battery['max'])
@@ -206,8 +207,8 @@ class House:
         shouldn't be changed without any good reason.
 
         Args:
-            sensor_out_info(dict) - weather and time information from
-                                     outside sensor
+            sensor_out_info(dict): weather and time information from
+                                   outside sensor
         """
 
         self.daytime = sensor_out_info['daytime']
@@ -304,13 +305,13 @@ class House:
 
         Returns:
              reward(float): weighted sum of penalties plus additional action
-             penalty. The final value of reward function for lats timeframe
+                penalty. The final value of reward function for lats timeframe
 
         """
 
-        w_temp = self.config['env']['temperature_w_in_reward']
-        w_light = self.config['env']['light_w_in_reward']
-        w_cost = self.config['env']['cost_w_in_reward']
+        w_temp = self.config['temperature_w_in_reward']
+        w_light = self.config['light_w_in_reward']
+        w_cost = self.config['cost_w_in_reward']
 
         cost = self._calculate_energy_cost()
         temp, light = (self.inside_sensors['first']['temperature'],
