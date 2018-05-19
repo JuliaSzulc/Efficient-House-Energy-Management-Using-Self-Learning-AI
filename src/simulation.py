@@ -21,10 +21,10 @@ RL-for-decision-process team, 2018
 import math
 import json
 import os
+from collections import deque
 import pygame
 import pygame.gfxdraw
 from PIL import Image, ImageDraw
-from collections import deque
 from main import load_model
 from agent import Agent
 from environment import HouseEnergyEnvironment
@@ -80,24 +80,24 @@ class Simulation:
         self.font = pygame.font.SysFont('mono', 10, bold=True)
         self.data = dict()
         self.colors = {
-            'bg': pygame.Color('#ecececff'),        # lightgrey
-            'white': pygame.Color('#ffffffff'),
-            'weather1': pygame.Color('#f1e2bbff'),  # mellow yellow
-            'weather2': pygame.Color('#e2ebd1ff'),  # pastel light green
-            'weather3': pygame.Color('#d0dcdcff'),  # pastel light blue
-            'weather4': pygame.Color('#b4c4c2ff'),  # pastel dark blue
-            'weather5': pygame.Color('#ddcfb3ff'),  # i dont remember really
-            'font': pygame.Color('#9b9b9bff'),      # medium grey
-            'devices1': pygame.Color('#e3dcbbff'),  # dirty yellow light
-            'devices2': pygame.Color('#ded5aeff'),  # ...
-            'devices3': pygame.Color('#d6cb98ff'),
-            'devices4': pygame.Color('#ccbe81ff'),
-            'devices5': pygame.Color('#c4b46cff'),  # dirty yellow dark
-            'devices0': pygame.Color('#f9f9f9'),    # idk
-            'intense1': pygame.Color('#b77d6aff'),  # pastel dark red
-            'intense2': pygame.Color('#c79b8cff'),  # pastel light red
-            'soft1': pygame.Color('#f1e6e2ff'),     # reddish light grey
-            'soft2': pygame.Color('#e3dcbbff'),     # yellowish light grey
+            'bg':       pygame.Color('#ececec'),  # lightgrey
+            'white':    pygame.Color('#ffffff'),
+            'weather1': pygame.Color('#f1e2bb'),  # mellow yellow
+            'weather2': pygame.Color('#e2ebd1'),  # pastel light green
+            'weather3': pygame.Color('#d0dcdc'),  # pastel light blue
+            'weather4': pygame.Color('#b4c4c2'),  # pastel dark blue
+            'weather5': pygame.Color('#ddcfb3'),  # i dont remember really
+            'font':     pygame.Color('#9b9b9b'),  # medium grey
+            'devices1': pygame.Color('#e3dcbb'),  # dirty yellow light
+            'devices2': pygame.Color('#ded5ae'),  # ...
+            'devices3': pygame.Color('#d6cb98'),
+            'devices4': pygame.Color('#ccbe81'),
+            'devices5': pygame.Color('#c4b46c'),  # dirty yellow dark
+            'devices0': pygame.Color('#f9f9f9'),  # light grey
+            'intense1': pygame.Color('#b77d6a'),  # pastel dark red
+            'intense2': pygame.Color('#c79b8c'),  # pastel light red
+            'soft1':    pygame.Color('#f1e6e2'),  # reddish light grey
+            'soft2':    pygame.Color('#e3dcbb'),  # yellowish light grey
         }
         self.margin = 0.025 * self.height
 
@@ -212,9 +212,9 @@ class Simulation:
             if _data == 'Light OUT':
                 _label = 'SUN'
 
-            self.draw_text("{:<13}{:0<5.3f}".format(
+            self.draw_text("{:<13}{:>5.0f}%".format(
                                 _label,
-                                self.data[_data]
+                                self.data[_data] * 100
                            ), x + 0.57 * w, y + (0.65 + _off / 10) * h,
                            self.colors['font'], font_mono, True)
 
@@ -453,11 +453,11 @@ class Simulation:
         if chartmode == 'light':
             main_color = 'weather1'
             scnd_color = 'weather2'
-            level = self.data['Light IN']
-            desired = self.data['Light_desired']
-            level_normalized = level * 180
-            desired_normalized = desired * 180
-            lvl_format = "{:.3f}"
+            level = self.data['Light IN'] * 100
+            desired = self.data['Light_desired'] * 100
+            level_normalized = level * 180 / 100
+            desired_normalized = desired * 180 / 100
+            lvl_format = "{:.0f}%"
 
         elif chartmode == 'temperature':
             main_color = 'intense1'

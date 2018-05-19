@@ -28,6 +28,8 @@ from shutil import copyfile
 
 def main():
     # TODO: write a "just run it" test, to check consistency
+    # TODO: posprzątać te flagi i 'if-y', za dużo tego, wywalić te flagi z =True,
+    # wywalić safemode, wywalić manual test.
     save_experiment = False
     run_manual_tests = False
     print_stats = True
