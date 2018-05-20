@@ -8,14 +8,22 @@ usage instructions:
     1) start with
         python3 simulation.py
     2) enter a model number to execute
-    3) press ESC to finish, or SPACEBAR to pause
+    3) Key      | action
+       ---------+-----------
+       ESC      | finish
+       SPACEBAR | pause
+       -        | slow down
+       =        | speed up
+       z        | toggle chart zoom
 
+NOTE: if you are using multiple monitors, you NEED to specify window
+width and height as parameters in Simulations init method, otherwise fullscreen
+will span across all monitors.
 
 have fun watching Agent being alive,
 
 RL-for-decision-process team, 2018
 """
-# FIXME naughty comments and some uppercase variables!
 # TODO: write some "just run it" test, to check for basic errors
 
 import math
@@ -52,6 +60,9 @@ class Simulation:
         Using different values is discouraged and could potentially cause
         errors.
 
+        Note: if you are using multiple monitors, you NEED to specify window
+        width and height, otherwise fullscreen will span across all monitors.
+
         """
 
         pygame.init()
@@ -70,6 +81,7 @@ class Simulation:
         self.background = pygame.Surface(self.screen.get_size()).convert()
         self.clock = pygame.time.Clock()
 
+        # open configuration file
         add_path = ''
         if 'tests' in os.getcwd():
             add_path = '../'
@@ -124,29 +136,39 @@ class Simulation:
                 'desires': deque([0] * 100, maxlen=maxlen)
             }
         }
+        # zooming for charts
+        self.zoom = 0
 
         # dictionary for colorized icon images
         self.icons = {}
 
     def update_data(self):
+        """Updates simulation with data from environment"""
         labels, values = self.env.render[:-1]
         labels = [label.strip().strip(':') for label in labels]
         self.data = dict(zip(labels, values))
 
     def make_world_step(self):
+        """Computes world events and moves forward for one timestep"""
         action_index = \
             self.agent.get_next_action_greedy(self.current_state)
 
         self.current_state = self.env.step(self.actions[action_index])[0]
 
     def draw_background(self):
-        """Just a big bald rectangle"""
+        """Draws full-width rectangle"""
         self.screen.blit(self.background, (0, 0))
         pygame.draw.rect(self.screen, self.colors['bg'],
                          (0, 0, self.width, self.height))
 
     def draw_weather_widget(self):
-        """A big fancy weather widget, whoooa"""
+        """Draws weather widget
+
+        Widget has timer animation and five weather indicators:
+        temperature and sun / wind / clouds / rain intensity.
+
+        """
+
         # bg
         x = y = self.margin
         xmax = self.width * 3 // 7 - self.margin
@@ -180,9 +202,9 @@ class Simulation:
              0.02 * w, 0.035 * h)
         )
         daytime = self.data['Daytime //OUTSIDE']
-        fi = (daytime / 1440) * 2 * math.pi + math.pi / 2
-        x_indicator = radius * math.cos(fi)
-        y_indicator = radius * math.sin(fi)
+        _phi = (daytime / 1440) * 2 * math.pi + math.pi / 2
+        x_indicator = radius * math.cos(_phi)
+        y_indicator = radius * math.sin(_phi)
         radius_indicator = 0.03
 
         for _radius, _color in ((radius_indicator, 'weather1'),
@@ -200,7 +222,7 @@ class Simulation:
             int(0.05 * h)
         )
         font_header = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                      int(0.09 * h))
+                                       int(0.09 * h))
 
         time = [int(x) for x in divmod(daytime, 60)]
         time = "{:02}:{:02}".format(*time)
@@ -213,10 +235,10 @@ class Simulation:
                 _label = 'SUN'
 
             self.draw_text("{:<13}{:>5.0f}%".format(
-                                _label,
-                                self.data[_data] * 100
-                           ), x + 0.57 * w, y + (0.65 + _off / 10) * h,
-                           self.colors['font'], font_mono, True)
+                _label,
+                self.data[_data] * 100
+            ), x + 0.57 * w, y + (0.65 + _off / 10) * h,
+            self.colors['font'], font_mono, True)
 
         # text - temperature
         self.draw_text("{:<3.1f}°C".format(
@@ -259,45 +281,22 @@ class Simulation:
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
         font_small = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                     int(0.05 * h))
+                                      int(0.05 * h))
         font_big = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
-                                   int(0.13 * h))
+                                    int(0.13 * h))
 
         def draw_indicator(data, x, y, w, h, name=None):
-            for offset in range(8, -2, -2):
-                pygame.draw.rect(self.screen, self.colors['devices0'],
-                                 (x, y + offset * h / 10, w, 0.19 * h))
-            # FIXME code below is very repeatable, refactor to loop
-            if data > 0:
-                pygame.draw.rect(self.screen, self.colors['devices1'],
-                                 (x, y + 0.9 * h, w, 0.095 * h))
-            if data > 0.1:
-                pygame.draw.rect(self.screen, self.colors['devices1'],
-                                 (x, y + 0.8 * h, w, 0.095 * h))
-            if data > 0.2:
-                pygame.draw.rect(self.screen, self.colors['devices2'],
-                                 (x, y + 0.7 * h, w, 0.095 * h))
-            if data > 0.3:
-                pygame.draw.rect(self.screen, self.colors['devices2'],
-                                 (x, y + 0.6 * h, w, 0.095 * h))
-            if data > 0.4:
-                pygame.draw.rect(self.screen, self.colors['devices3'],
-                                 (x, y + 0.5 * h, w, 0.095 * h))
-            if data > 0.5:
-                pygame.draw.rect(self.screen, self.colors['devices3'],
-                                 (x, y + 0.4 * h, w, 0.095 * h))
-            if data > 0.6:
-                pygame.draw.rect(self.screen, self.colors['devices4'],
-                                 (x, y + 0.3 * h, w, 0.095 * h))
-            if data > 0.7:
-                pygame.draw.rect(self.screen, self.colors['devices4'],
-                                 (x, y + 0.2 * h, w, 0.095 * h))
-            if data > 0.8:
-                pygame.draw.rect(self.screen, self.colors['devices5'],
-                                 (x, y + 0.1 * h, w, 0.095 * h))
-            if data > 0.9:
-                pygame.draw.rect(self.screen, self.colors['devices5'],
-                                 (x, y + 0.0 * h, w, 0.095 * h))
+            for offset in range(9, -1, -1):
+                clr = str((9 - offset) // 2 + 1)
+                if data > (9 - offset) / 10:
+                    # colourful rect
+                    pygame.draw.rect(self.screen, self.colors['devices' + clr],
+                                     (x, y + offset * h / 10, w, 0.095 * h))
+                else:
+                    # white rect
+                    pygame.draw.rect(self.screen, self.colors['devices0'],
+                                     (x, y + offset * h / 10, w, 0.095 * h))
+
             if not name:
                 return
 
@@ -363,7 +362,17 @@ class Simulation:
                        self.colors['font'], font_big, True)
 
     def draw_chart_widget(self, chartmode='light', y=0):
-        """Oh-my-queue"""
+        """Draws light and temperature charts
+
+        Those charts are presenting latest 100 values in time, along with
+        users requested value. Charts can be zoomed in to show
+        range (-10%, +10%) of total range based on requested value
+
+        Args:
+            chartmode(string): 'light' or 'temperature'
+            y(int): y position on screen
+
+        """
         # bg
         x = self.width * 3 // 7
         xmax = self.width - self.margin
@@ -408,10 +417,21 @@ class Simulation:
 
         offset = math.ceil(chartw / 100)
         xs = list(range(int(chartx), int(chartx + chartw), offset))
-        ys_values = [charty - 2 + charth - v * charth for v in
-                     self.memory[chartmode]['values']]
-        ys_desires = [charty - 2 + charth - v * charth for v in
-                      self.memory[chartmode]['desires']]
+        if not self.zoom:
+            ys_values = [charty - 2 + charth - v * charth for v in
+                         self.memory[chartmode]['values']]
+            ys_desires = [charty - 2 + charth - v * charth for v in
+                          self.memory[chartmode]['desires']]
+        else:
+            deltas = [
+                max(min(v - d, 0.1), -0.1) for
+                v, d in zip(self.memory[chartmode]['values'],
+                            self.memory[chartmode]['desires'])
+            ]
+            ys_values = [charty - 2 + charth - (d * 5 + 0.5) * charth for d in
+                         deltas]
+            ys_desires = [charty - 2 + 0.5 * charth for v in
+                          self.memory[chartmode]['desires']]
 
         points_des = list(zip(xs, ys_desires))
 
@@ -446,9 +466,22 @@ class Simulation:
         )
         pygame.draw.rect(self.screen, self.colors['weather4'],
                          (x + 0.42 * w, y + 0.07 * h, 0.02 * w, 0.15 * h))
+        if self.zoom:
+            self.draw_text(
+                'ZOOMED',
+                x + 0.9 * w, y + 0.05 * h,
+                self.colors['weather4'], font_small
+            )
 
     def draw_speedmeter_widget(self, chartmode='light', x=0, y=0):
-        """Wrrrum"""
+        """Draws gauge-like indicator for light or temperature
+
+        Args:
+            chartmode(string): 'light' or 'temperature'
+            x(int): x position on screen
+            y(int): y position on screnn
+
+        """
         # chartmode options
         if chartmode == 'light':
             main_color = 'weather1'
@@ -560,7 +593,7 @@ class Simulation:
         )
 
     def run(self):
-        """Yup, it's a main events / render loop. Nothing to do here folks"""
+        """Main events / render loop"""
         running = True
         pause = 0
         while running:
@@ -573,6 +606,14 @@ class Simulation:
                         running = False
                     if event.key == pygame.K_SPACE:
                         pause = abs(1 - pause)
+                    if event.key == pygame.K_EQUALS:
+                        if self.fps < 40:
+                            self.fps += 1
+                    if event.key == pygame.K_MINUS:
+                        if self.fps > 1:
+                            self.fps -= 1
+                    if event.key == pygame.K_z:
+                        self.zoom = 1 - self.zoom
 
             # LOOP ------
             if pause:
@@ -612,7 +653,7 @@ class Simulation:
 
     def draw_text(self, text='', x=0, y=0, color=(0, 0, 0), font=None,
                   centered=False):
-        """It draws text. Shocked?"""
+        """A shortcut method to draw text on screen"""
         if not font:
             font = self.font
         surface = font.render(text, True, color)
@@ -634,7 +675,14 @@ class Simulation:
 
     def draw_icon(self, filename, x=0, y=0, width=32, height=32,
                   color=(0, 0, 0), centered=False):
-        """This one's pretty clever"""
+        """Draws icon on screen
+
+        Fills icon with color. At first, loads icon from memory; on next
+        iterations, loads icon as python object from dictionary to optimise
+        i/o time.
+
+        """
+
         try:
             image = self.icons[filename]
         except KeyError:
