@@ -78,7 +78,6 @@ class HouseEnergyEnvironment:
 
         self.last_reward = self.house.reward()
         if self.collect_stats:
-            # TODO: no test written for this part
             self._update_stats(current_state['inside'])
 
         return observation, self.last_reward, done
@@ -113,7 +112,7 @@ class HouseEnergyEnvironment:
 
         return self._serialize_state(self._get_current_state())
 
-    # TODO: usunac to property, bo nie ma zadnego powodu zeby bylo.
+    # TODO: Delete this function as a part of 'state cleaning' task
     @property
     def render(self):
         """Outputs the state of environment in a human-readable format
@@ -122,7 +121,6 @@ class HouseEnergyEnvironment:
             labels(list) - names for each value in data
             data(numpy array) - values of environment parameters
         """
-        # TODO: no test written for this part
 
         reward = self.last_reward
 
@@ -176,7 +174,6 @@ class HouseEnergyEnvironment:
             'TOTAL REWARD: '
         ]
 
-        # TODO: ogarnac te zwracane typy, niech to będzie jeden słownik nieznormalizowany i tyle
         return labels_names, unnormalized_dataset, dataset
 
     def get_actions(self):
@@ -198,8 +195,9 @@ class HouseEnergyEnvironment:
                 if callable(getattr(self.house, action))
                 and re.match("action.*", action)]
 
+    # TODO: Zmienić tę funkcję, zaby zwracała nie-zagniezdzony OrderedDict
+    # wartości nie-normalizowanych. + testy które to weryfikuja
     def _get_current_state(self):
-        #TODO: napisać tu docstringa, bo tego się często używa, warto żeby był
         outside_params = [sensor.get_info() for sensor in self.outside_sensors]
         inside_params = self.house.get_inside_params()
         observation = OrderedDict({
@@ -208,6 +206,7 @@ class HouseEnergyEnvironment:
         })
         return observation
 
+    # TODO: Zgodnie z taskiem sprzatania stanu, wywalic daytime i epsilony
     @staticmethod
     def _serialize_state(state):
         """Returns 1-dim ndarray of normalized state parameters from dict
@@ -242,7 +241,6 @@ class HouseEnergyEnvironment:
         [ ] battery_level
         [ ] battery_delta
         """
-        #TODO: ogarnac czy docstring sie zgadza
 
         observation = []
         for sensor in state['outside']:
@@ -284,13 +282,6 @@ class HouseEnergyEnvironment:
             else:
                 observation.append(d_value)
 
-        # TODO move the assert below to tests
-        # make sure that vector is normalized. no safety zone - it has to work!
-        assert all([x is not None and (0 <= x <= 1) for x in observation]), \
-            "Some of observation values are not " + \
-            "truncated to 0-1 or are None!" + \
-            "vector: " + str(observation)
-
         return np.array(observation)
 
     def get_episode_stats(self):
@@ -303,9 +294,7 @@ class HouseEnergyEnvironment:
         Returns the correct values only if the environment works in the
         collect_stats mode and there was at least one step taken; returns None
         if not.
-
         """
-        # TODO: no test written for this part
 
         if self.collect_stats and self.timesteps != 0:
             temp_2 = 100 * self.temp_diff_2_count / self.timesteps
@@ -321,22 +310,25 @@ class HouseEnergyEnvironment:
             return None
 
     def _update_stats(self, state):
-        # TODO: add param to docstring
-        # TODO: no test written for this part
-        """
-        Updating stats is calculated by checking the absolute
+        """Updates the statistics of fulfilling the desired values.
+
+        Updating stats is done by checking the absolute
         difference between current and desired values.
 
         If the difference is smaller than given value, the statistic is
         increased. Note that the statistics are just counts - the episode
         percents are calculated in the get_episode_stats method.
+
+        Args:
+            state(OrderedDict): dictionary in format returned by
+                                _get_current_state() method
         """
+        # TODO don't forgot to update this method when the structure of
+        # TODO unnormalized state dict will change during the cleaning task
 
         self.timesteps += 1
-
         temp_difference = abs(state['inside_sensors']['first']['temperature']
                               - state['desired']['temp_desired'])
-
         light_difference = abs(state['inside_sensors']['first']['light']
                                - state['desired']['light_desired'])
 

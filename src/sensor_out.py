@@ -11,7 +11,11 @@ class OutsideSensor:
     """Weather sensor on the outside of the house"""
 
     def __init__(self, house_listener):
-        # TODO add param do docstring
+        """
+        Args:
+            house_listener(House): House object that has the update() method
+                                   implemented
+        """
         self.daytime = None
 
         self.weather = {

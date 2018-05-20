@@ -10,7 +10,6 @@ class Network2:
     Ta siec jest napisana przy pomocy zapisu macierzowego, który pozwala na uniknięcie wielu pętl z pierwszej
     implementacji i zwiększa czytelność kodu (dla osób, która rozumieją iterację pierwszą i znają rachunek macierzowy)
     """
-    # TODO: split file into clear code file and jupyter notebook with comments
 
     def __init__(self, layer_sizes=(2, 4, 2)):
         """Inicjalizacja parametrow
