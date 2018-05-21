@@ -29,13 +29,12 @@ from shutil import copyfile
 def main():
     # TODO: write a "just run it" test, to check consistency
     # TODO: posprzątać te flagi i 'if-y', za dużo tego, wywalić te flagi z =True,
-    # wywalić safemode, wywalić manual test.
-    save_experiment = False
+    # wywalić manual test.
+    save_experiment = True
     run_manual_tests = False
     print_stats = True
     make_total_reward_plot = True
-    load_agent_model = False
-    safemode = False
+    load_agent_model = True
     quiet = False
 
     if 'manual' in sys.argv:
@@ -50,8 +49,6 @@ def main():
         make_total_reward_plot = False
     if 'plot=True' in sys.argv:
         make_total_reward_plot = True
-    if 'safemode' in sys.argv:
-        safemode = True
     if 'quiet' in sys.argv:
         quiet = True
 
@@ -70,9 +67,6 @@ def main():
         model_id = input('Enter model number to load:\n')
         load_model(agent, model_id)
 
-    open('rewards.log', 'w').close()  # reset rewards log
-
-
     add_path = ''
     if 'tests' in os.getcwd():
         add_path = '../'
@@ -86,10 +80,6 @@ def main():
         t_reward = agent.run()
         rewards.append(t_reward)
 
-        if safemode:
-            with open("rewards.log", "a") as logfile:
-                logfile.write("{}\n".format(t_reward))
-
         if not quiet:
             print("episode {} / {} | Reward: {}".format(i, training_episodes,
                                                         t_reward))
@@ -101,12 +91,8 @@ def main():
         plot_total_rewards(rewards, training_episodes, avg=10)
 
     if save_experiment:
-        config =\
             save_model_info(model_id, agent.q_network,
                             rewards, load_agent_model)
-
-    for param, val in config['agent'].items():
-        print(param, val)
 
 
 def plot_total_rewards(rewards, num_episodes, avg=10): # pragma: no cover
@@ -132,6 +118,7 @@ def print_episode_stats(agent_stats, env_stats): # pragma: no cover
     for k, v in env_stats.items():
         print("{:30} = {: .1f} %".format(k, v))
     print("==================================================================")
+
 
 # FIXME move loading and saving to a separate class
 def load_model(agent, model_id):
@@ -198,17 +185,17 @@ def save_model_info(model_id, model, rewards, model_was_loaded=False):
     logfile.close()
 
     # config
+    config_path = '../configuration.json'
     if model_was_loaded:
-        config = "saved_models/model_{}/configuration.json".format(model_id)
+        config_path = "saved_models/model_{}/" \
+                      "configuration.json".format(model_id)
     else:
-        add_path = ''
         if 'tests' in os.getcwd():
             add_path = '../'
-        with open(add_path + '../configuration.json') as config_file:
-            config = json.load(config_file)
+            config_path = add_path + '../configuration.json'
 
     copyfile(
-        config,
+        config_path,
         "saved_models/model_{}/configuration.json".format(new_index))
 
     # rewards chart
@@ -221,12 +208,6 @@ def save_model_info(model_id, model, rewards, model_was_loaded=False):
         avg_rewards.append(np.mean(rewards[10 * i: 10 * (i + 1)]))
     plt.plot(avg_rewards)
     plt.savefig('saved_models/model_{}/learning_plot.png'.format(new_index))
-
-    with open(
-        "saved_models/model_{}/configuration.json".format(new_index)
-    ) as config_file:
-        CONFIG_AGENT = json.load(config_file)
-    return CONFIG_AGENT
 
 
 if __name__ == "__main__": # pragma: no cover

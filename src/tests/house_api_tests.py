@@ -169,6 +169,15 @@ class HouseActionsTestCase(unittest.TestCase):
             self.house.action_curtains_down()
         self.assertEqual(self.house.devices_settings['curtains_lvl'], 1)
 
+    def test_action_nop(self):
+        """Test action nop"""
+
+        devices_settings = dict(self.house.devices_settings)
+        self.house.action_nop()
+        self.assertDictEqual(devices_settings,
+                             self.house.devices_settings,
+                             "Action Nop shouldn't change devices' settings")
+
 
 class HouseActionPenaltiesTestCase(unittest.TestCase):
     """
@@ -325,10 +334,12 @@ class HouseRewardTestCase(unittest.TestCase):
         penalty should be bigger
         """
         reward = self.house.reward()
-        self.house._calculate_energy_cost = MagicMock(return_value=100)
+        self.house._calculate_cost_and_update_energy_source = \
+            MagicMock(return_value=100)
         self.assertLess(self.house.reward(), reward,
                         "Reward should decrease, cost parameter got worse!")
-        self.house._calculate_energy_cost = MagicMock(return_value=0)
+        self.house._calculate_cost_and_update_energy_source = \
+            MagicMock(return_value=0)
         self.house.inside_sensors = {
             'first': {
                 'temperature': 20,
@@ -387,8 +398,13 @@ class HouseEnergyCostTestCase(unittest.TestCase):
         self.house.battery['current'] = 0.001
 
     def test_change_source_if_not_enough_energy_in_battery(self):
-        self.house._calculate_energy_cost()
+        self.house._calculate_cost_and_update_energy_source()
         self.assertTrue(self.house.devices_settings['energy_src'] == 'grid')
+
+    def test_update_battery_should_take_energy_from_it(self):
+        self.house.battery['current'] = 100
+        self.house._calculate_cost_and_update_energy_source()
+        self.assertLess(self.house.battery['current'], 100)
 
     def test_energy_cost_not_negative(self):
         self.house.devices_settings = OrderedDict({
@@ -398,8 +414,8 @@ class HouseEnergyCostTestCase(unittest.TestCase):
             'light_lvl': 0,
             'curtains_lvl': 0
         })
-
-        self.assertTrue(self.house._calculate_energy_cost() >= 0,
+        cost = self.house._calculate_cost_and_update_energy_source()
+        self.assertTrue(cost >= 0,
                         "Energy cost should not be a negative number!\n"
                         "Settings: \n{}".format(self.house.devices_settings))
 
@@ -411,7 +427,8 @@ class HouseEnergyCostTestCase(unittest.TestCase):
                 'light_lvl': random.random(),
                 'curtains_lvl': random.random()
             })
-            self.assertTrue(self.house._calculate_energy_cost() >= 0,
+            cost = self.house._calculate_cost_and_update_energy_source()
+            self.assertTrue(cost >= 0,
                             "Energy cost should not be a negative number!\n"
                             "Settings:\n{}".format(self.house.devices_settings))
 
