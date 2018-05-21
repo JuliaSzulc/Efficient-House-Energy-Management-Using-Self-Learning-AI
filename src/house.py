@@ -285,7 +285,6 @@ class House:
 
         if self.devices_settings['energy_src'] == 'battery':
             if self.battery['current'] > usage:
-                # TODO: no test written for this part
                 self.battery['current'] -= usage
                 return 0
             else:

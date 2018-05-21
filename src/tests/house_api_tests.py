@@ -401,6 +401,11 @@ class HouseEnergyCostTestCase(unittest.TestCase):
         self.house._calculate_cost_and_update_energy_source()
         self.assertTrue(self.house.devices_settings['energy_src'] == 'grid')
 
+    def test_update_battery_should_take_energy_from_it(self):
+        self.house.battery['current'] = 100
+        self.house._calculate_cost_and_update_energy_source()
+        self.assertLess(self.house.battery['current'], 100)
+
     def test_energy_cost_not_negative(self):
         self.house.devices_settings = OrderedDict({
             'energy_src': 'grid',
