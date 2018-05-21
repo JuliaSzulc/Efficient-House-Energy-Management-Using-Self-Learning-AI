@@ -325,10 +325,12 @@ class HouseRewardTestCase(unittest.TestCase):
         penalty should be bigger
         """
         reward = self.house.reward()
-        self.house._calculate_energy_cost = MagicMock(return_value=100)
+        self.house._calculate_cost_and_update_energy_source = \
+            MagicMock(return_value=100)
         self.assertLess(self.house.reward(), reward,
                         "Reward should decrease, cost parameter got worse!")
-        self.house._calculate_energy_cost = MagicMock(return_value=0)
+        self.house._calculate_cost_and_update_energy_source = \
+            MagicMock(return_value=0)
         self.house.inside_sensors = {
             'first': {
                 'temperature': 20,
@@ -387,7 +389,7 @@ class HouseEnergyCostTestCase(unittest.TestCase):
         self.house.battery['current'] = 0.001
 
     def test_change_source_if_not_enough_energy_in_battery(self):
-        self.house._calculate_energy_cost()
+        self.house._calculate_cost_and_update_energy_source()
         self.assertTrue(self.house.devices_settings['energy_src'] == 'grid')
 
     def test_energy_cost_not_negative(self):
@@ -398,8 +400,8 @@ class HouseEnergyCostTestCase(unittest.TestCase):
             'light_lvl': 0,
             'curtains_lvl': 0
         })
-
-        self.assertTrue(self.house._calculate_energy_cost() >= 0,
+        cost = self.house._calculate_cost_and_update_energy_source()
+        self.assertTrue(cost >= 0,
                         "Energy cost should not be a negative number!\n"
                         "Settings: \n{}".format(self.house.devices_settings))
 
@@ -411,7 +413,8 @@ class HouseEnergyCostTestCase(unittest.TestCase):
                 'light_lvl': random.random(),
                 'curtains_lvl': random.random()
             })
-            self.assertTrue(self.house._calculate_energy_cost() >= 0,
+            cost = self.house._calculate_cost_and_update_energy_source()
+            self.assertTrue(cost >= 0,
                             "Energy cost should not be a negative number!\n"
                             "Settings:\n{}".format(self.house.devices_settings))
 

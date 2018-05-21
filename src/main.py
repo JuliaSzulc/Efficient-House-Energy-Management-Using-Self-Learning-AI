@@ -30,11 +30,11 @@ def main():
     # TODO: write a "just run it" test, to check consistency
     # TODO: posprzątać te flagi i 'if-y', za dużo tego, wywalić te flagi z =True,
     # wywalić manual test.
-    save_experiment = False
+    save_experiment = True
     run_manual_tests = False
     print_stats = True
     make_total_reward_plot = True
-    load_agent_model = False
+    load_agent_model = True
     quiet = False
 
     if 'manual' in sys.argv:
@@ -185,17 +185,17 @@ def save_model_info(model_id, model, rewards, model_was_loaded=False):
     logfile.close()
 
     # config
+    config_path = '../configuration.json'
     if model_was_loaded:
-        config = "saved_models/model_{}/configuration.json".format(model_id)
+        config_path = "saved_models/model_{}/" \
+                      "configuration.json".format(model_id)
     else:
-        add_path = ''
         if 'tests' in os.getcwd():
             add_path = '../'
-        with open(add_path + '../configuration.json') as config_file:
-            config = json.load(config_file)
+            config_path = add_path + '../configuration.json'
 
     copyfile(
-        config,
+        config_path,
         "saved_models/model_{}/configuration.json".format(new_index))
 
     # rewards chart
