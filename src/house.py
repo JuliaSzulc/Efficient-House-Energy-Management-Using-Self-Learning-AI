@@ -440,6 +440,5 @@ class House:
                      - self.influence / 2), 4)
 
     def action_nop(self):
-        # TODO: no test written for this part
         """Action to be taken by RL-agent - do nothing"""
         self.action_penalty = 0

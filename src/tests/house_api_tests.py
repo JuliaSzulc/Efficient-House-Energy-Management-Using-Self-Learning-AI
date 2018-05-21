@@ -169,6 +169,15 @@ class HouseActionsTestCase(unittest.TestCase):
             self.house.action_curtains_down()
         self.assertEqual(self.house.devices_settings['curtains_lvl'], 1)
 
+    def test_action_nop(self):
+        """Test action nop"""
+
+        devices_settings = dict(self.house.devices_settings)
+        self.house.action_nop()
+        self.assertDictEqual(devices_settings,
+                             self.house.devices_settings,
+                             "Action Nop shouldn't change devices' settings")
+
 
 class HouseActionPenaltiesTestCase(unittest.TestCase):
     """
