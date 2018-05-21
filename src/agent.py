@@ -321,7 +321,7 @@ class Agent:
         """
         try:
             with open(path) as config_file:
-                self.config = json.load(config_file)
+                self.config = json.load(config_file)['agent']
             self.reset()
         except FileNotFoundError:
             print('Configuration file doesnt exist!')
