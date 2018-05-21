@@ -1,5 +1,6 @@
 import unittest
 import os, sys
+import json
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from world import World
@@ -18,9 +19,15 @@ class TimestepsTestCase(unittest.TestCase):
 
         for timestep in timesteps:
             self.worlds.append(World(timestep))
+        for w in self.worlds:
+            w.sun_amplitude = 1
 
     def test_sun(self):
-        """Test if sun is independent from timeframe"""
+        """Test if sun is independent from timeframe
+
+        Note that sun amplitude is mocked to be max (1)
+
+        """
 
         # checking if for the same daytime, sun is set to the same level
         # on different timesteps
@@ -109,9 +116,15 @@ class DurationTestCase(unittest.TestCase):
 
         for duration in duration_list:
             self.worlds.append(World(duration_days=duration))
+        for w in self.worlds:
+            w.sun_amplitude = 1
 
     def test_sun(self):
-        """Test if sun is independent from duration"""
+        """Test if sun is independent from duration
+
+        Note that sun amplitude is mocked to be max(1)
+
+        """
 
         # checking if for the same daytime, sun is set to the same level
         # on different timesteps
@@ -146,12 +159,19 @@ class WeatherTestCase(unittest.TestCase):
     # needs.
 
     def setUp(self):
+        # read config
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        with open(add_path + '../configuration.json') as config_file:
+            self.config = json.load(config_file)
+
         self.world = World()
 
     def test_sun(self):
         """Sun should shine in appropiate range of daytime"""
-        daystart = 300
-        dayend = 1140
+        daystart = self.config['env']['day_start']
+        dayend = self.config['env']['day_end']
         while not self.world.step():
             if dayend > self.world.daytime > daystart:
                 self.assertTrue(self.world.weather['sun'] != 0,
