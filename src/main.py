@@ -4,14 +4,8 @@ Performs training of new - or loaded - model of the RL agent and provides
 logging, plotting and saving options. If 'manual' option is specified, there
 is no training.
 
-You can run this file with additional arguments:
-    manual   - enables manual test mode
-    stats    - print more stats about each episode
-    save     - saves experiment results
-    load     - load agent model from file before training
-    plot     - make plot of the total rewards of each episode (default True)
-    safemode - log total reward to rewards.log after each episode
-    quiet    - disable printing total rewards to console
+You can change the behaviour details with boolean flags at the beginning
+of the main function.
 
 """
 import sys
@@ -28,29 +22,12 @@ from shutil import copyfile
 
 def main():
     # TODO: write a "just run it" test, to check consistency
-    # TODO: posprzątać te flagi i 'if-y', za dużo tego, wywalić te flagi z =True,
-    # wywalić manual test.
+
     save_experiment = True
     run_manual_tests = False
     print_stats = True
     make_total_reward_plot = True
     load_agent_model = True
-    quiet = False
-
-    if 'manual' in sys.argv:
-        run_manual_tests = True
-    if 'stats' in sys.argv:
-        print_stats = True
-    if 'save' in sys.argv:
-        save_experiment = True
-    if 'load' in sys.argv:
-        load_agent_model = True
-    if 'plot=False' in sys.argv:
-        make_total_reward_plot = False
-    if 'plot=True' in sys.argv:
-        make_total_reward_plot = True
-    if 'quiet' in sys.argv:
-        quiet = True
 
     # TODO: Manual testing as a separate script
     if run_manual_tests:
@@ -58,34 +35,29 @@ def main():
         tests.manual_testing()
         return
 
-    # --- initialization ---
     env = HouseEnergyEnvironment(collect_stats=print_stats)
     agent = Agent(env=env)
 
     model_id = -1
     if load_agent_model:
-        model_id = input('Enter model number to load:\n')
-        load_model(agent, model_id)
+        load_model(agent, input('Enter model number to load:\n'))
 
-    add_path = ''
-    if 'tests' in os.getcwd():
-        add_path = '../'
-    with open(add_path + '../configuration.json') as config_file:
+    with open('../configuration.json') as config_file:
         config = json.load(config_file)
 
     training_episodes = config['main']['training_episodes']
+
     # --- learning ---
     rewards = []
     for i in range(training_episodes):
         t_reward = agent.run()
         rewards.append(t_reward)
 
-        if not quiet:
-            print("episode {} / {} | Reward: {}".format(i, training_episodes,
-                                                        t_reward))
-            if print_stats:
-                print_episode_stats(agent.get_episode_stats(),
-                                    env.get_episode_stats())
+        print("episode {} / {} | Reward: {}".format(i, training_episodes,
+                                                    t_reward))
+        if print_stats:
+            print_episode_stats(agent.get_episode_stats(),
+                                env.get_episode_stats())
 
     if make_total_reward_plot:
         plot_total_rewards(rewards, training_episodes, avg=10)
@@ -95,7 +67,7 @@ def main():
                             rewards, load_agent_model)
 
 
-def plot_total_rewards(rewards, num_episodes, avg=10): # pragma: no cover
+def plot_total_rewards(rewards, num_episodes, avg=10):  # pragma: no cover
     # Note: avg has to be a divisor of num_episodes
     avg_rewards = []
     for i in range(num_episodes // (avg or 1)):
@@ -105,7 +77,7 @@ def plot_total_rewards(rewards, num_episodes, avg=10): # pragma: no cover
     plt.show()
 
 
-def print_episode_stats(agent_stats, env_stats): # pragma: no cover
+def print_episode_stats(agent_stats, env_stats):  # pragma: no cover
     print("------------------------------------------------------------------")
     for k, v in agent_stats.items():
         try:
@@ -210,5 +182,5 @@ def save_model_info(model_id, model, rewards, model_was_loaded=False):
     plt.savefig('saved_models/model_{}/learning_plot.png'.format(new_index))
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     main()
