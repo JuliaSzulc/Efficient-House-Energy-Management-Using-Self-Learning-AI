@@ -43,12 +43,12 @@ class OutsideSensor:
         """
 
         sensor_info = OrderedDict({
-            'daytime': self.daytime,
-            'actual_temp': self.weather['temperature'],
-            'light': self.weather['light'],
-            'clouds': self.weather['clouds'],
-            'rain': self.weather['rain'],
-            'wind': self.weather['wind']
+            'Daytime': self.daytime,
+            'Outside Temp': self.weather['temperature'],
+            'Outside Light': self.weather['light'],
+            'Clouds': self.weather['clouds'],
+            'Rain': self.weather['rain'],
+            'Wind': self.weather['wind']
         })
 
         return sensor_info

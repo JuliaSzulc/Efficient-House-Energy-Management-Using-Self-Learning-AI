@@ -24,10 +24,10 @@ def main():
     # TODO: write a "just run it" test, to check consistency
 
     save_experiment = True
-    run_manual_tests = False
+    run_manual_tests = True
     print_stats = True
     make_total_reward_plot = True
-    load_agent_model = True
+    load_agent_model = False
 
     # TODO: Manual testing as a separate script
     if run_manual_tests:
