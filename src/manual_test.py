@@ -210,19 +210,19 @@ class ManualTestTerminal:
                 sub_menu_actions += \
                     '| {0:2}) {1:25} | {2:2}) Exit tests {3:10} |\n' \
                         .format(i, action, j, ' ')
-            elif i == 7:
+            elif i == 8:
                 sub_menu_actions += \
                     '| {0:2}) {1:25} |---------------------------|\n' \
                         .format(i, action)
-            elif i == 8:
+            elif i == 9:
                 sub_menu_actions += \
                     '| {0:2}) {1:25} | Current step: {2:10}  |\n' \
                         .format(i, action, step)
-            elif i == 9:
+            elif i == 10:
                 sub_menu_actions += \
                     '| {0:2}) {1:25} | Current time: {2:10}  |\n' \
                         .format(i, action, ' ')
-            elif i == 10:
+            elif i == 11:
                 sub_menu_actions += \
                     '| {0:2}) {1:25} | {2}       |\n' \
                         .format(i, action, self.env.world.current_date)
