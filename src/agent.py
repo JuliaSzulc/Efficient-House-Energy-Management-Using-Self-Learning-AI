@@ -46,7 +46,7 @@ class SumTree:
         # like a binary heap in an array
         # number-of-leaves + number-of-nodes = max_size + (max_size - 1)
         self.nodes = np.zeros(2 * max_size - 1)
-        self.data = np.zeros(max_size, object)
+        self.data = np.zeros(max_size, dtype=object)
 
     def update(self, index, priority):
         change = priority - self.nodes[index]
@@ -83,7 +83,7 @@ class SumTree:
 
         data_index = index - self.max_size + 1
 
-        return index, self.nodes[index], self.data[data_index]
+        return (index, self.nodes[index], self.data[data_index])
 
     def get_priority_sum(self):
         return self.nodes[0]
@@ -103,16 +103,12 @@ class Memory:
     def __init__(self, max_size):
         self.sum_tree = SumTree(max_size)
         self.len = 0
-        self.last_transition = None
-        self.second_last_transition = None
 
     def add(self, transition, error):
         priority = self.get_priority(error)
         self.sum_tree.add(priority, transition)
 
         self.len += 1
-        self.second_last_transition = self.last_transition
-        self.last_transition = transition
 
     def get_priority(self, error):
         return (abs(error) + self.epsilon) ** self.alpha
@@ -124,14 +120,14 @@ class Memory:
     def sample(self, batch_size):
         batch = []
         indexes = []
-        priority_segment = self.sum_tree.get_priority_sum()
+        priority_segment = self.sum_tree.get_priority_sum() / batch_size
 
         for i in range(batch_size):
             a = i * priority_segment
             b = (i + 1) * priority_segment
             value = random.uniform(a, b)
 
-            index, priority, data = self.sum_tree.get(value)
+            (index, priority, data) = self.sum_tree.get(value)
             batch.append(data)
             indexes.append(index)
 
@@ -312,13 +308,12 @@ class Agent:
                 q_t1_max_with_terminal = q_next_max.mul(1 - terminal_mask_batch)
 
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
-            targets = Variable(targets)
 
             errors = torch.abs(q_values - targets).data.numpy()
 
             for i in range(self.batch_size):
                 index = indexes[i]
-            self.memory.update(index, errors[i])
+                self.memory.update(index, errors[i])
 
             self.optimizer.zero_grad()
             loss = nn.modules.SmoothL1Loss()(q_values, targets)
@@ -375,13 +370,7 @@ class Agent:
         """
 
         exp_batch = [0, 0, 0, 0, 0]
-        # 'combined experience replay'
-        # we use experience replay, but we put 2 last transitions in the batch
-        # to overcome the problem of very slow training with big memory sizes
-        # see paper "Deeper Look into Experience Replay" by G. Hinton\
-        transition_batch, indexes = self.memory.sample(self.batch_size - 2)
-        transition_batch.append(self.memory.second_last_transition)
-        transition_batch.append(self.memory.last_transition)
+        transition_batch, indexes = self.memory.sample(self.batch_size)
 
         # Float Tensors
         for i in [0, 2, 3, 4]:
@@ -390,7 +379,7 @@ class Agent:
 
         # Long Tensor for actions
         exp_batch[1] = Variable(torch.LongTensor(
-            [int(x) for x in transition_batch]))
+            [int(x[1]) for x in transition_batch]))
 
         return exp_batch, indexes
 
