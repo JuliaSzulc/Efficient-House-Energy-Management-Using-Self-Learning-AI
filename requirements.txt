@@ -3,6 +3,8 @@ pygame==1.9.3
 torch==0.3.1
 matplotlib==2.2.2
 numpy==1.14.2
+snakeviz
+
 # TODO: Make me! Read more in /requirements.txt
 # Po napisaniu dobrego readme z podręcznikiem instalacji, i byc może zrobieniu
 # setup.py (skryptu instalacyjnego),

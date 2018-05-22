@@ -214,10 +214,10 @@ class Simulation:
             )
         # text - clock
         font_mono = pygame.font.Font(
-            '../fonts/droid-sans-mono/DroidSansMono.ttf',
+            '../static/fonts/droid-sans-mono/DroidSansMono.ttf',
             int(0.05 * h)
         )
-        font_header = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_header = pygame.font.Font('../static/fonts/Lato/Lato-Regular.ttf',
                                        int(0.09 * h))
 
         time = [int(x) for x in divmod(daytime, 60)]
@@ -245,20 +245,20 @@ class Simulation:
         # weather icons
         for _off, _data in enumerate(('016-sun', '013-wind',
                                      '015-cloud', '010-raining')):
-            self.draw_icon('../icons/weather/{}.png'.format(_data),
+            self.draw_icon('../static/icons/weather/{}.png'.format(_data),
                            x + 0.1 * w, y + (0.65 + _off / 10) * h,
                            0.08 * h, 0.08 * h, self.colors['font'], True)
 
-        self.draw_icon('../icons/weather/003-temperature.png',
+        self.draw_icon('../static/icons/weather/003-temperature.png',
                        x + 0.3 * w, y + 0.49 * h,
                        0.1 * h, 0.1 * h, self.colors['weather5'], True)
 
         # day / night icon
         if 6 * 60 < daytime < 19 * 60:
-            daynight_icon = '../icons/weather/016-sun.png'
+            daynight_icon = '../static/icons/weather/016-sun.png'
             daynight_color = self.colors['weather1']
         else:
-            daynight_icon = '../icons/weather/004-moon.png'
+            daynight_icon = '../static/icons/weather/004-moon.png'
             daynight_color = self.colors['weather3']
 
         self.draw_icon(daynight_icon,
@@ -276,9 +276,9 @@ class Simulation:
         h = ymax - y
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
-        font_small = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_small = pygame.font.Font('../static/fonts/Lato/Lato-Regular.ttf',
                                       int(0.05 * h))
-        font_big = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_big = pygame.font.Font('../static/fonts/Lato/Lato-Regular.ttf',
                                     int(0.13 * h))
 
         def draw_indicator(data, x, y, w, h, name=None):
@@ -312,7 +312,7 @@ class Simulation:
                            x + x_o * w, y + 0.1 * h,
                            0.1 * w, 0.55 * h, "{}".format(ind[0]).upper())
             # indicator icon
-            self.draw_icon('../icons/house/{}.png'.format(ind[1]),
+            self.draw_icon('../static/icons/house/{}.png'.format(ind[1]),
                            x + x_o * w + 0.05 * w, y + 0.85 * h,
                            0.08 * w, 0.08 * w, self.colors['font'], True)
 
@@ -325,13 +325,13 @@ class Simulation:
 
         # energy indicator
         x_energy = 0.08
-        self.draw_icon('../icons/house/006-electric-tower.png',
+        self.draw_icon('../static/icons/house/006-electric-tower.png',
                        x + x_energy * w + 0.05 * w, y + 0.25 * h,
                        0.08 * w, 0.08 * w, self.colors['font'], True)
-        self.draw_icon('../icons/house/004-battery.png',
+        self.draw_icon('../static/icons/house/004-battery.png',
                        x + x_energy * w + 0.05 * w, y + 0.53 * h,
                        0.08 * w, 0.08 * w, self.colors['font'], True)
-        self.draw_icon('../icons/house/005-renewable-energy.png',
+        self.draw_icon('../static/icons/house/005-renewable-energy.png',
                        x + x_energy * w + 0.05 * w, y + 0.85 * h,
                        0.07 * w, 0.07 * w, self.colors['font'], True)
         self.draw_text("SOURCE",
@@ -376,7 +376,7 @@ class Simulation:
         h = 0.15 * self.height - self.margin
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
-        font_small = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_small = pygame.font.Font('../static/fonts/Lato/Lato-Regular.ttf',
                                       int(0.15 * h))
 
         # chartmode options
@@ -519,9 +519,9 @@ class Simulation:
         # bg
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
-        font_small = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_small = pygame.font.Font('../static/fonts/Lato/Lato-Regular.ttf',
                                       int(0.1 * h))
-        font_big = pygame.font.Font('../fonts/Lato/Lato-Regular.ttf',
+        font_big = pygame.font.Font('../static/fonts/Lato/Lato-Regular.ttf',
                                     int(0.2 * h))
         # title
         self.draw_text(
