@@ -63,10 +63,11 @@ class ManualTestTerminal:
                 option = input('\nSelect option:\n')
 
                 if int(option) in range(1, len(self.actions) + 1):
-                    last_state = self.env.get_current_state()
+                    last_state = curr_state
 
                     # pass the action with the step & inc step counter
                     self.env.step(self.actions[int(option) - 1])
+                    curr_state = self.env.get_current_state()
                     step += 1
 
                     if file_auto_log:
