@@ -35,7 +35,7 @@ class ManualTestTerminal:
         curr_state = last_state = self.env.get_current_state()
 
         # create len(curr_state) lists for plots
-        values_for_plt = [[] for y in curr_state.keys()]
+        values_for_plt = [[] for _ in curr_state.keys()]
 
         step = 0
         file_auto_log = False
@@ -44,8 +44,7 @@ class ManualTestTerminal:
         while True:
 
             # Print Main Menu
-            print(
-                self._draw_menu(file_auto_log, step))
+            print(self._draw_menu(file_auto_log, step))
 
             # Print State Values
             state_menu = self._draw_state(curr_state, last_state)
@@ -64,35 +63,33 @@ class ManualTestTerminal:
                 option = input('\nSelect option:\n')
 
                 if int(option) in range(1, len(self.actions) + 1):
-                    last_state = curr_state
+                    last_state = self.env.get_current_state()
+
+                    # pass the action with the step & inc step counter
+                    self.env.step(self.actions[int(option) - 1])
+                    step += 1
 
                     if file_auto_log:
                         log_file.write(
                             '\nCurrent step: {0}\n'
                             'Chosen action: {1}\n'.format(
-                                step + 1, self.actions[int(option) - 1]))
-
-                    # pass the action with the step
-                    self.env.step(self.actions[int(option) - 1])
-                    curr_state = self.env.get_current_state()
-                    step += 1
+                                step, self.actions[int(option) - 1]))
 
                 elif int(option) == len(self.actions) + 1:
                     file_auto_log = not file_auto_log
                     if file_auto_log:
-                        log_file.write('\n----- New Test ----\n\n')
-                        step = 0
-                        self.env.reset()
-                        last_state = curr_state = self.env.get_current_state()
-                        for i in values_for_plt:
-                            i.clear()
+                        log_file.write('\n----- Logging ON ----\n\n')
+                    else:
+                        log_file.write('\n----- Logging OFF ----\n\n')
 
                 elif int(option) == len(self.actions) + 2:
-                    # what to skipp on plot
+
                     skip_list = [int(x) for x in input(
                         'Enter indexes separated by space '
                         'which should be skipped on plot:\n').split()]
-                    for i, key in enumerate(curr_state.keys()):
+
+                    for i, key in enumerate(self.env.get_current_state()
+                                            .keys()):
                         if i not in skip_list:
                             plt.plot(values_for_plt[i], label=key)
                     plt.legend()
@@ -118,9 +115,22 @@ class ManualTestTerminal:
 
                         time -= self.env.world.time_step_in_minutes / 60
 
+                    if file_auto_log:
+                        log_file.write(
+                            '\nCurrent step: {0}\n'
+                            'After waiting (nop action) for: {1} hours\n'.format(
+                                step, time))
+
                 elif int(option) == len(self.actions) + 4:
                     model_id = input('Enter model number to load\n')
                     load_model(self.agent, model_id)
+
+                    print('Model {} was successfully loaded.'.format(
+                        str(model_id)))
+
+                    if file_auto_log:
+                        log_file.write('Model {} was successfully loaded.'
+                                       .format(str(model_id)))
 
                 elif int(option) == len(self.actions) + 5:
                     last_state = curr_state
@@ -139,12 +149,21 @@ class ManualTestTerminal:
                     print('Agent decided to do: {}'.format(
                         self.actions[action_index]))
 
+                    if file_auto_log:
+                        log_file.write(
+                            '\nCurrent step: {0}\n'
+                            'Agent decided to do: {1}\n'.format(
+                                step, self.actions[action_index]))
+
                 elif int(option) == len(self.actions) + 6:
                     step = 0
                     self.env.reset()
                     last_state = curr_state = self.env.get_current_state()
                     for i in values_for_plt:
                         i.clear()
+
+                    if file_auto_log:
+                        log_file.write('Reset environment.\n')
 
                 elif int(option) == len(self.actions) + 7:
                     break
@@ -154,6 +173,9 @@ class ManualTestTerminal:
 
             except ValueError:
                 print("Invalid option!")
+
+            if file_auto_log:
+                log_file.write(self._draw_state(curr_state, last_state))
 
         # while end, close file and save logs
         log_file.close()
@@ -234,7 +256,8 @@ class ManualTestTerminal:
 
         return menu
 
-    def _draw_state(self, curr_state, last_state):
+    @staticmethod
+    def _draw_state(curr_state, last_state):
 
         state_menu = 'Rendered values:\n'
         state_menu += \
