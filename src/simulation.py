@@ -24,8 +24,6 @@ have fun watching Agent being alive,
 
 RL-for-decision-process team, 2018
 """
-# TODO: write some "just run it" test, to check for basic errors
-
 import math
 import json
 import os

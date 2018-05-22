@@ -45,115 +45,6 @@ class Memory(deque):
         super().__init__(maxlen=maxlen)
 
 
-class AgentUtils:
-    """Abstract class providing save and load methods for Agent objects"""
-
-    @staticmethod
-    def load(agent, model_id):
-        """Loads network configuration and model
-
-        Loads from file into the Agent's
-        network fields.
-
-        Args:
-            agent(Agent): an Agent object, to whom we want to load
-            model_id(int): id of model which we want to load
-
-        """
-        add_path = ''
-        if 'tests' in os.getcwd():
-            add_path = '../'
-        conf_path = add_path + \
-            'saved_models/model_{}/configuration.json'.format(model_id)
-        model_path = add_path + \
-            'saved_models/model_{}/network.pt'.format(model_id)
-
-        # loading configuration file
-        try:
-            with open(conf_path) as config_file:
-                agent.config = json.load(config_file)['agent']
-            agent.reset()
-        except FileNotFoundError as exc:
-            print("Loading model failed. No model with given index, or no" + 
-                  " configuration file. Error: \n")
-            print(exc)
-            sys.exit()
-
-        # load network model
-        try:
-            agent.q_network.load_state_dict(torch.load(model_path))
-            agent.target_network.load_state_dict(torch.load(model_path))
-        except (RuntimeError, AssertionError) as exc:
-            print('Error while loading model. Wrong network size, or not' +
-                  ' an Agent? Aborting. Error:')
-            print(exc)
-            sys.exit()
-
-    @staticmethod
-    def save(model, rewards=None, old_id=None):
-        """Save model, configuration file and training rewards
-
-        Saving to files in the saved_models/{old_id} directory.
-
-        Args:
-            old_id(number): id of the model if it  was loaded, None otherwise
-            model(torch.nn.Net): neural network torch model (q_network)
-            rewards(list): list of total rewards for each episode, default None
-
-        """
-        add_path = ''
-        if 'tests' in os.getcwd():
-            add_path = '../'
-        path = add_path + 'saved_models/model_'
-
-        # create new directory with incremented id
-        new_id = 0
-        while True:
-            if not os.path.exists(path + '{}'.format(new_id)):
-                os.makedirs(path + '{}'.format(new_id))
-                break
-            new_id += 1
-
-        # copy old rewards log to append new if model was loaded
-        if old_id:
-            try:
-                copyfile(
-                    path + '{}/rewards.log'.format(old_id),
-                    path + '{}/rewards.log'.format(new_id))
-            except FileNotFoundError:
-                print('Warning: no rewards to copy found,\
-                      but OLD ID is not None.')
-
-        #  --- save new data
-        # model
-        torch.save(model.q_network.state_dict(),
-                   path + '{}/network.pt'.format(new_id))
-
-        # config
-        config_path = add_path + '../configuration.json'
-        if old_id:
-            config_path = path + "{}/configuration.json".format(old_id)
-
-        copyfile(config_path, path + "{}/configuration.json".format(new_id))
-
-        if not rewards:
-            return
-        # rewards log
-        with open(path + "{}/rewards.log".format(new_id), "a") as logfile:
-            for reward in rewards:
-                logfile.write("{}\n".format(reward))
-        # rewards chart
-        rewards = []
-        for line in open(path + '{}/rewards.log'.format(new_id), 'r'):
-            values = [float(s) for s in line.split()]
-            rewards.append(values)
-        avg_rewards = []
-        for i in range(len(rewards) // (10 or 1)):
-            avg_rewards.append(np.mean(rewards[10 * i: 10 * (i + 1)]))
-        plt.plot(avg_rewards)
-        plt.savefig(path + '{}/learning_plot.png'.format(new_id))
-
-
 class Agent:
     """Reinforcement Learning agent.
 
@@ -435,3 +326,112 @@ class Agent:
         }
 
         return aggregated
+
+
+class AgentUtils:
+    """Abstract class providing save and load methods for Agent objects"""
+
+    @staticmethod
+    def load(agent, model_id):
+        """Loads network configuration and model
+
+        Loads from file into the Agent's
+        network fields.
+
+        Args:
+            agent(Agent): an Agent object, to whom we want to load
+            model_id(int): id of model which we want to load
+
+        """
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        conf_path = add_path + \
+            'saved_models/model_{}/configuration.json'.format(model_id)
+        model_path = add_path + \
+            'saved_models/model_{}/network.pt'.format(model_id)
+
+        # loading configuration file
+        try:
+            with open(conf_path) as config_file:
+                agent.config = json.load(config_file)['agent']
+            agent.reset()
+        except FileNotFoundError as exc:
+            print("Loading model failed. No model with given index, or no" + 
+                  " configuration file. Error: \n")
+            print(exc)
+            sys.exit()
+
+        # load network model
+        try:
+            agent.q_network.load_state_dict(torch.load(model_path))
+            agent.target_network.load_state_dict(torch.load(model_path))
+        except (RuntimeError, AssertionError) as exc:
+            print('Error while loading model. Wrong network size, or not' +
+                  ' an Agent? Aborting. Error:')
+            print(exc)
+            sys.exit()
+
+    @staticmethod
+    def save(model, rewards=None, old_id=None):
+        """Save model, configuration file and training rewards
+
+        Saving to files in the saved_models/{old_id} directory.
+
+        Args:
+            old_id(number): id of the model if it  was loaded, None otherwise
+            model(torch.nn.Net): neural network torch model (q_network)
+            rewards(list): list of total rewards for each episode, default None
+
+        """
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        path = add_path + 'saved_models/model_'
+
+        # create new directory with incremented id
+        new_id = 0
+        while True:
+            if not os.path.exists(path + '{}'.format(new_id)):
+                os.makedirs(path + '{}'.format(new_id))
+                break
+            new_id += 1
+
+        # copy old rewards log to append new if model was loaded
+        if old_id:
+            try:
+                copyfile(
+                    path + '{}/rewards.log'.format(old_id),
+                    path + '{}/rewards.log'.format(new_id))
+            except FileNotFoundError:
+                print('Warning: no rewards to copy found,\
+                      but OLD ID is not None.')
+
+        #  --- save new data
+        # model
+        torch.save(model.q_network.state_dict(),
+                   path + '{}/network.pt'.format(new_id))
+
+        # config
+        config_path = add_path + '../configuration.json'
+        if old_id:
+            config_path = path + "{}/configuration.json".format(old_id)
+
+        copyfile(config_path, path + "{}/configuration.json".format(new_id))
+
+        if not rewards:
+            return
+        # rewards log
+        with open(path + "{}/rewards.log".format(new_id), "a") as logfile:
+            for reward in rewards:
+                logfile.write("{}\n".format(reward))
+        # rewards chart
+        rewards = []
+        for line in open(path + '{}/rewards.log'.format(new_id), 'r'):
+            values = [float(s) for s in line.split()]
+            rewards.append(values)
+        avg_rewards = []
+        for i in range(len(rewards) // (10 or 1)):
+            avg_rewards.append(np.mean(rewards[10 * i: 10 * (i + 1)]))
+        plt.plot(avg_rewards)
+        plt.savefig(path + '{}/learning_plot.png'.format(new_id))

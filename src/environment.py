@@ -269,10 +269,12 @@ class HouseEnergyEnvironment:
                                - state['light_desired'])
 
         if temp_difference < 2:
+            # TODO: add test for this condition
             self.temp_diff_2_count += 1
             if temp_difference < 0.5:
                 self.temp_diff_05_count += 1
         if light_difference < 0.15:
+            # TODO: add test for this condition
             self.light_diff_015_count += 1
             if light_difference < 0.05:
                 self.light_diff_005_count += 1

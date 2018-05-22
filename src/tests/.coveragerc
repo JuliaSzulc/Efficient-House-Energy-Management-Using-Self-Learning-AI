@@ -1,0 +1,6 @@
+[run]
+omit =
+    */tests/*
+	*simulation.py*
+	*manual_test*
+	*floyd*

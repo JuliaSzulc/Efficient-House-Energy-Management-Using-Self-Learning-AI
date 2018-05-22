@@ -1,7 +1,11 @@
 {
     "main": {
-        "training_episodes"          : 10000,
-        "fps"                        : 16
+        "training_episodes"          : 10,
+        "fps"                        : 16,
+        "save_experiment"            : true,
+        "print_stats"                : true,
+        "make_total_reward_plot"     : true,
+        "load_agent_model"           : false
     },
     "agent": {
         "hidden_layer_size"          : 80,

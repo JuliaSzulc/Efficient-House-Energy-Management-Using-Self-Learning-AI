@@ -5,7 +5,7 @@ logging, plotting and saving options. If 'manual' option is specified, there
 is no training.
 
 You can change the behaviour details with boolean flags at the beginning
-of the main function.
+of the main configuration file (/configuration.json).
 
 """
 import sys
@@ -20,13 +20,12 @@ from agent import Agent
 from shutil import copyfile
 
 
-def main():
-    # TODO: write a "just run it" test, to check consistency
-
-    save_experiment = True
-    print_stats = True
-    make_total_reward_plot = True
-    load_agent_model = False
+def main(config):
+    save_experiment = config['main']['save_experiment']
+    print_stats = config['main']['print_stats']
+    make_total_reward_plot = config['main']['make_total_reward_plot']
+    load_agent_model = config['main']['load_agent_model']
+    training_episodes = config['main']['training_episodes']
 
     env = HouseEnergyEnvironment(collect_stats=print_stats)
     agent = Agent(env=env)
@@ -35,11 +34,6 @@ def main():
     if load_agent_model:
         model_id = input('Enter model number to load:\n')
         AgentUtils.load(agent, model_id)
-
-    with open('../configuration.json') as config_file:
-        config = json.load(config_file)
-
-    training_episodes = config['main']['training_episodes']
 
     # --- learning ---
     rewards = []
@@ -86,4 +80,7 @@ def print_episode_stats(agent_stats, env_stats):  # pragma: no cover
 
 
 if __name__ == "__main__":  # pragma: no cover
-    main()
+    with open('../configuration.json') as config_file:
+        config = json.load(config_file)
+
+    main(config=config)

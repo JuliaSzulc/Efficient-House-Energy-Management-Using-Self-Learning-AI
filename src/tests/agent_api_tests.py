@@ -8,7 +8,7 @@ from agent import Agent, AgentUtils
 from environment import HouseEnergyEnvironment
 import numpy as np
 
-# TODO: write some Agent test! event the simple one to just RUN every method 
+# TODO: write some decent Agent tests.
 
 # class TestEnv:
     # """ Might be useful in future / side scripts for testing the agent manually
