@@ -201,8 +201,8 @@ class Agent:
             hidden1_size,
             output_size
         )
-        self.memory = Memory(config['memory_size'])
-        self.double_dqn = self.config['double_dqn']
+        self.memory = Memory(self.config['memory_size'])
+        self.double_dqn = self.config['double_dqn']git
         self.gamma = self.config['gamma']
         self.epsilon = self.config['epsilon']
         self.epsilon_decay = self.config['epsilon_decay']
@@ -412,7 +412,7 @@ class Agent:
 
         """
         try:
-            with open(path) as config_file:
+            with open('../configuration.json') as config_file:
                 self.config = json.load(config_file)['agent']
             self.reset()
         except FileNotFoundError:
