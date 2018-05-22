@@ -33,10 +33,10 @@ class ManualTestTerminal:
 
         """
 
-        curr_render = last_render = self.env.render
+        last_render = self.env.render
 
-        # create len(curr_render[0]) lists for plots
-        values_for_plt = [[] for y in range(len(curr_render[0]))]
+        # create len(self.env.render[0]) lists for plots
+        values_for_plt = [[] for y in range(len(self.env.render[0]))]
 
         step = 0
         file_auto_log = False
@@ -45,35 +45,31 @@ class ManualTestTerminal:
         while True:
 
             # Print Main Menu
-            print(self._draw_menu(curr_render, last_render, file_auto_log, step))
-            
+            print(self._draw_menu(last_render, file_auto_log, step))
+
             # Print Render Values
-            print(self._draw_render(curr_render, last_render))
+            print(self._draw_render(last_render))
 
             # Update lists for plots
-            for i in range(len(curr_render[2])):
-                values_for_plt[i].append(curr_render[2][i])
-
-            if file_auto_log:
-                log_file.write(render_menu)
+            for i in range(len(self.env.render[2])):
+                values_for_plt[i].append(self.env.render[2][i])
 
             # Selecting option
             try:
                 option = input('\nSelect option:\n')
 
                 if int(option) in range(1, len(self.actions) + 1):
-                    last_render = curr_render
+                    last_render = self.env.render
+
+                    # pass the action with the step & inc step counter
+                    self.env.step(self.actions[int(option) - 1])
+                    step += 1
 
                     if file_auto_log:
                         log_file.write(
                             '\nCurrent step: {0}\n'
                             'Chosen action: {1}\n'.format(
-                                step + 1, self.actions[int(option) - 1]))
-
-                    # pass the action with the step & inc step counter
-                    self.env.step(self.actions[int(option) - 1])
-                    curr_render = self.env.render
-                    step += 1
+                                step, self.actions[int(option) - 1]))
 
                 elif int(option) == len(self.actions) + 1:
                     file_auto_log = not file_auto_log
@@ -86,9 +82,11 @@ class ManualTestTerminal:
                     skip_list = [int(x) for x in input(
                         'Enter indexes separated by space '
                         'which should be skipped on plot:\n').split()]
-                    for i in range(len(curr_render[0])):
+
+                    for i in range(len(self.env.render[0])):
                         if i not in skip_list:
-                            plt.plot(values_for_plt[i], label=curr_render[0][i])
+                            plt.plot(values_for_plt[i], label=self.env.render[0][i])
+
                     plt.legend()
                     plt.show()
 
@@ -96,18 +94,22 @@ class ManualTestTerminal:
                     time = float(input('Pass time in hour:\n'))
                     while time - self.env.world.time_step_in_minutes / 60 >= 0:
 
-                        last_render = curr_render
+                        last_render = self.env.render
 
                         self.env.step('action_nop')
-
-                        curr_render = self.env.render
                         step += 1
 
                         # update lists for plots
-                        for i in range(len(curr_render[2])):
-                            values_for_plt[i].append(curr_render[2][i])
+                        for i in range(len(self.env.render[2])):
+                            values_for_plt[i].append(self.env.render[2][i])
 
                         time -= self.env.world.time_step_in_minutes / 60
+
+                    if file_auto_log:
+                        log_file.write(
+                            '\nCurrent step: {0}\n'
+                            'After waiting (nop action) for: {1} hours\n'.format(
+                                step, time))
 
                 elif int(option) == len(self.actions) + 4:
                     model_id = input('Enter model number to load\n')
@@ -115,27 +117,38 @@ class ManualTestTerminal:
 
                     print('Model {} was succesfully loaded.'.format(str(model_id)))
 
+                    if file_auto_log:
+                        log_file.write('Model {} was succesfully loaded.' \
+                                .format(str(model_id)))
+
                 elif int(option) == len(self.actions) + 5:
-                    last_render = curr_render
+                    last_render = self.env.render
 
                     # let agent decide here for one action
                     action_index = \
-                        self.agent.get_next_action_greedy(curr_render[2][:-1])
+                        self.agent.get_next_action_greedy(self.env.render[2][:-1])
 
                     self.env.step(self.actions[action_index])
-
-                    curr_render = self.env.render
                     step += 1
 
                     print('Agent decided to do: {}'.format(
                         self.actions[action_index]))
 
+                    if file_auto_log:
+                        log_file.write(
+                            '\nCurrent step: {0}\n'
+                            'Agent decided to do: {1}\n'.format(
+                                step, self.actions[action_index]))
+
                 elif int(option) == len(self.actions) + 6:
                     step = 0
                     self.env.reset()
-                    last_render = curr_render = self.env.render
+                    last_render = self.env.render
                     for i in values_for_plt:
                         i.clear()
+
+                    if file_auto_log:
+                        log_file.write('Reset environment.\n')
 
                 elif int(option) == len(self.actions) + 7:
                     break
@@ -145,11 +158,15 @@ class ManualTestTerminal:
 
             except ValueError:
                 print("Oops!   Invalid option!")
+                continue
+
+            if file_auto_log:
+                log_file.write(self._draw_render(last_render))
 
         # while end, close file and save logs
         log_file.close()
 
-    def _draw_menu(self, curr_render, last_render, file_auto_log, step):
+    def _draw_menu(self, last_render, file_auto_log, step):
 
         sub_menu_actions = \
             '|     Available actions menu    |          Others           |\n' \
@@ -224,51 +241,52 @@ class ManualTestTerminal:
             '{0}'.format(sub_menu_actions)
 
         return menu
-        
 
-    def _draw_render(self, curr_render, last_render):
+    def _draw_render(self, last_render):
 
         render_menu = 'Rendered values:\n'
         render_menu += \
-            '+---------------------------+------------+---+------------+\n'
-        render_menu += '| {0:25} |  {1:9} | {2} |  {3:9} |\n'. \
-            format('Value:',
+            '+--------------------------------+------------+---+------------+\n'
+        render_menu += '| {0:2} | {1:25} |  {2:9} | {3} |  {4:9} |\n'. \
+            format('ID',
+                   'Value:',
                    'Previous:',
                    '?',
                    'Current:')
         render_menu += \
-            '+---------------------------+------------+---+------------+\n'
+            '+--------------------------------+------------+---+------------+\n'
         for i in range(len(last_render[0])):
             if not isinstance(last_render[1][i], str):
-                if float(last_render[1][i]) < float(curr_render[1][i]):
+                if float(last_render[1][i]) < float(self.env.render[1][i]):
                     mark = '<'
-                elif float(last_render[1][i]) > float(curr_render[1][i]):
+                elif float(last_render[1][i]) > float(self.env.render[1][i]):
                     mark = '>'
                 else:
                     mark = '='
 
-                render_menu += '| {0:25} | {1:10.4f} | {2} | {3:10.4f} |\n'. \
-                    format(last_render[0][i], last_render[1][i], mark,
-                           curr_render[1][i])
+                render_menu += '| {0:2} | {1:25} | {2:10.4f} | {3} | {4:10.4f} |\n'. \
+                    format(i, last_render[0][i], last_render[1][i], mark,
+                           self.env.render[1][i])
             else:
                 mark = '?'
-                render_menu += '| {0:25} |    {1:7} | {2} |    {3:7} |\n'. \
-                    format(last_render[0][i], last_render[1][i], mark,
-                           curr_render[1][i])
+                render_menu += '| {0:2} | {1:25} |    {2:7} | {3} |    {4:7} |\n'. \
+                    format(i, last_render[0][i], last_render[1][i], mark,
+                           self.env.render[1][i])
 
         render_menu += \
-            '+---------------------------+------------+---+------------+\n'
+            '+--------------------------------+------------+---+------------+\n'
 
         return render_menu
 
 
 def main():
-    
-    print('### WELCOME IN MANUAL TEST MENU v2 ###\n')
-    
+
+    print('### WELCOME IN MANUAL TESTS MENU v2 ###\n')
+
     new_test = ManualTestTerminal()
     new_test.manual_testing()
 
+    print('\n### EXITING MANUAL TESTS ###')
 
 if __name__ == "__main__":
     main()
