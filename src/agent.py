@@ -7,6 +7,7 @@ environment.
 """
 import random
 import sys
+import os
 import json
 import numpy as np
 import torch
@@ -144,10 +145,13 @@ class Agent:
     """
 
     def __init__(self, env, conf=None):
-        self.CONFIG = conf
+        self.config = conf
         if not conf:
-            with open('../configuration.json') as config_file:
-                self.CONFIG = json.load(config_file)
+            add_path = ''
+            if 'tests' in os.getcwd():
+                add_path = '../'
+            with open(add_path + '../configuration.json') as config_file:
+                self.config = json.load(config_file)['agent']
 
         self.env = env
         self.actions = None
@@ -175,7 +179,6 @@ class Agent:
 
     def reset(self):
         """Initialize the networks and other parameters"""
-        config = self.CONFIG['agent']
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
 
@@ -185,7 +188,7 @@ class Agent:
                              'total_reward': 0}
 
         input_size = len(self.initial_state)
-        hidden1_size = config['hidden_layer_size']
+        hidden1_size = self.config['hidden_layer_size']
         output_size = len(self.actions)
 
         self.q_network = Net(
@@ -199,22 +202,21 @@ class Agent:
             output_size
         )
         self.memory = Memory(config['memory_size'])
-        self.double_dqn = config['double_dqn']
-        self.gamma = config['gamma']
-        self.epsilon = config['epsilon']
-        self.epsilon_decay = config['epsilon_decay']
-        self.epsilon_min = config['epsilon_min']
-        self.batch_size = config['batch_size']
-        self.l_rate = config['learning_rate']
+        self.double_dqn = self.config['double_dqn']
+        self.gamma = self.config['gamma']
+        self.epsilon = self.config['epsilon']
+        self.epsilon_decay = self.config['epsilon_decay']
+        self.epsilon_min = self.config['epsilon_min']
+        self.batch_size = self.config['batch_size']
+        self.l_rate = self.config['learning_rate']
         self.optimizer = optim.SGD(self.q_network.parameters(),
                                    lr=self.l_rate,
-                                   momentum=config['sgd_momentum'])
+                                   momentum=self.config['sgd_momentum'])
 
-        self.train_freq = config['training_freq']
+        self.train_freq = self.config['training_freq']
 
     def run(self):
-        """Main agent's function. Performs the deep q-learning algorithm"""
-        config = self.CONFIG['agent']
+        """Main agents function. Performs the deep q-learning algorithm"""
         counter = 0
         self.current_state = self.env.reset()
         total_reward = 0
@@ -224,30 +226,29 @@ class Agent:
                              'total_reward': 0}
 
         while not terminal_state:
-            counter = (counter + 1) % config['target_network_update_freq']
             action_index = \
                 self._get_next_action_epsilon_greedy(self.current_state)
 
             next_state, reward, terminal_state = \
                 self.env.step(self.actions[action_index])
 
-            if reward < config['reward_clip']:
-                reward = config['reward_clip']
+            if reward < self.config['reward_clip']:
+                reward = self.config['reward_clip']
 
-            self._update_stats(action_index, reward)
+            self._update_stats(action_index)
             self.append_sample_to_memory(self.current_state, action_index,
                                          reward, next_state, terminal_state)
 
             self.current_state = next_state
             total_reward += reward
 
+            counter = (counter + 1) % self.config['target_network_update_freq']
             train_episode = not counter % self.train_freq
-            enough_memory = self.memory.len > config['memory_size_to_start']
-            if train_episode and enough_memory:
+            if train_episode:
                 self._train()
 
             # Update the target network:
-            qt = config["q_to_target_ratio"]
+            qt = self.config["q_to_target_ratio"]
             if counter == 0:
                 qt = 1.0
             for target_param, q_param in zip(
@@ -262,9 +263,10 @@ class Agent:
         return total_reward
 
     def _train(self):
-        """Trains the underlying q_network with use of experience memory
+        """Trains the underlying q_network with use of experience memory.
 
-        Note: this method does a training *step*, not whole training
+        Training can use the advantages of DoubleDQN.
+        Note: this method does a training *step*, not the whole training.
 
         """
 
@@ -283,10 +285,11 @@ class Agent:
                 gather(1, action_batch.unsqueeze(1)).squeeze()
 
             if self.double_dqn:
+                # --- Formula:
                 # Ydouble = r +
                 # Q(s_next, argmax{a}{Q(s_next,a; q_network)}; target_network)
 
-                # PO KAWAŁKU:
+                # --- step by step explanation:
                 # q2 = Q(s_next, a; q_network)
                 # action = argmax{a}{q2}
                 # q1 = Q(s_next, action; target_network)
@@ -397,7 +400,7 @@ class Agent:
             self.q_network.load_state_dict(torch.load(path))
             self.target_network.load_state_dict(torch.load(path))
         except RuntimeError:
-            print('Wrong network size? Aborting')
+            print('Error while loading model. Wrong network size? Aborting')
             sys.exit()
 
     def load_config(self, path):
@@ -408,31 +411,36 @@ class Agent:
             path(str): path to file
 
         """
-        with open(path) as config_file:
-            self.CONFIG = json.load(config_file)
-        self.reset()
+        try:
+            with open(path) as config_file:
+                self.config = json.load(config_file)['agent']
+            self.reset()
+        except FileNotFoundError:
+            print('Configuration file doesnt exist!')
+            sys.exit()
 
-    def _update_stats(self, action_index, reward):
+    def _update_stats(self, action_index):
+        """Updates agent statistics"""
         action = self.actions[action_index]
         self.stats[action]['count'] += 1
-        self.stats[action]['total_reward'] += reward
 
     def get_episode_stats(self):
+        """Returns statistics about agent's actions.
+
+        Currently the method returns a dict with most commonly chosen action
+        name and number of times it was taken since the last reset() call.
+
+        Returns:
+            dict of statistics about agent's actions
+        """
         most_common = max(self.stats.items(), key=lambda item:
                           item[1]['count'])
-
-        # least_common = min(self.stats.items(), key=lambda item:
-        #                    item[1]['count'])
 
         aggregated = {
             'most common action': (
                 most_common[0],
                 most_common[1]['count']
             )
-            # 'least common action': (
-            #     least_common[0],
-            #     least_common[1]['count']
-            # )
         }
 
         return aggregated

@@ -3,6 +3,9 @@ import torch
 from environment import HouseEnergyEnvironment
 from agent import Agent
 
+# TODO: delete all FLoydHub related files after succesfull learning session. 
+# NOTE: This script may be not working properly (loading / saving )
+
 
 def main():
     # --- initialization ---

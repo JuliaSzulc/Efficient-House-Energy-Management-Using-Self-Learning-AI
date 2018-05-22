@@ -1,12 +1,12 @@
 {
     "main": {
-        "training_episodes"          : 1000,
-        "fps"                        : 8
+        "training_episodes"          : 15000,
+        "fps"                        : 16
     },
     "agent": {
         "hidden_layer_size"          : 80,
         "memory_size"                : 100000,
-        "memory_size_to_start"       : 100000,
+        "memory_size_to_start"       : 10,
         "double_dqn"                 : true,
         "gamma"                      : 0.9,
         "epsilon"                    : 1,
@@ -22,8 +22,23 @@
     },
     "env": {
         "timestep_in_minutes"        : 1,
-        "temperature_w_in_reward"    : 0.5,
-        "light_w_in_reward"          : 5,
-        "cost_w_in_reward"           : 0.1
+        "day_start"                  : 420,
+        "day_end"                    : 1080,
+        "devices_power": {
+            "air_conditioner": 1500,
+            "heater": 3000,
+            "light": 720
+        },
+
+        "temperature_w_in_reward"    : 0.35,
+        "light_w_in_reward"          : 0.82,
+        "cost_w_in_reward"           : 0.024,
+        "max_pv_absorption"          : 5,
+        "day_grid_cost"              : 0.5,
+        "night_grid_cost"            : 0.3,
+        "house_light_factor"         : 0.0075,
+        "house_isolation_factor"     : 0.996,
+        "battery_max"                : 14000,
+        "influence_per_min"          : 0.2
     }
 }

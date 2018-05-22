@@ -11,6 +11,11 @@ class OutsideSensor:
     """Weather sensor on the outside of the house"""
 
     def __init__(self, house_listener):
+        """
+        Args:
+            house_listener(House): House object that has the update() method
+                                   implemented
+        """
         self.daytime = None
 
         self.weather = {
@@ -37,7 +42,6 @@ class OutsideSensor:
             sensor_info(dict): weather information
         """
 
-        # actual_temp is calculated by the formula given in documentation
         sensor_info = OrderedDict({
             'daytime': self.daytime,
             'actual_temp': self.weather['temperature'],

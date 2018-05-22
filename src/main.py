@@ -1,17 +1,10 @@
 """This is the main executable module for the project.
 
 Performs training of new - or loaded - model of the RL agent and provides
-logging, plotting and saving options. If 'manual' option is specified, there
-is no training. TODO: Manual testing as a separate script
+logging, plotting and saving options.
 
-You can run this file with additional arguments:
-    manual   - enables manual test mode
-    stats    - print more stats about each episode
-    save     - saves experiment results
-    load     - load agent model from file before training
-    plot     - make plot of the total rewards of each episode (default True)
-    safemode - log total reward to rewards.log after each episode
-    quiet    - disable printing total rewards to console
+You can change the behaviour details with boolean flags at the beginning
+of the main function.
 
 """
 import sys
@@ -20,87 +13,52 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-from manual_test import ManualTestTerminal
 from environment import HouseEnergyEnvironment
 from agent import Agent
 from shutil import copyfile
 
 
 def main():
-    save_experiment = False
-    run_manual_tests = False
+    # TODO: write a "just run it" test, to check consistency
+
+    save_experiment = True
     print_stats = True
     make_total_reward_plot = True
-    load_agent_model = False
-    safemode = False
-    quiet = False
+    load_agent_model = True
 
-    if 'manual' in sys.argv:
-        run_manual_tests = True
-    if 'stats' in sys.argv:
-        print_stats = True
-    if 'save' in sys.argv:
-        save_experiment = True
-    if 'load' in sys.argv:
-        load_agent_model = True
-    if 'plot=False' in sys.argv:
-        make_total_reward_plot = False
-    if 'plot=True' in sys.argv:
-        make_total_reward_plot = True
-    if 'safemode' in sys.argv:
-        safemode = True
-    if 'quiet' in sys.argv:
-        quiet = True
-
-    if run_manual_tests:
-        tests = ManualTestTerminal()
-        tests.manual_testing()
-        return
-
-    # --- initialization ---
-    env = HouseEnergyEnvironment()
+    env = HouseEnergyEnvironment(collect_stats=print_stats)
     agent = Agent(env=env)
 
     model_id = -1
     if load_agent_model:
-        model_id = input('Enter model number to load:\n')
-        load_model(agent, model_id)
-
-    open('rewards.log', 'w').close()  # reset rewards log
+        load_model(agent, input('Enter model number to load:\n'))
 
     with open('../configuration.json') as config_file:
         config = json.load(config_file)
+
     training_episodes = config['main']['training_episodes']
+
     # --- learning ---
     rewards = []
     for i in range(training_episodes):
         t_reward = agent.run()
         rewards.append(t_reward)
 
-        if safemode:
-            with open("rewards.log", "a") as logfile:
-                logfile.write("{}\n".format(t_reward))
-
-        if not quiet:
-            print("episode {} / {} | Reward: {}".format(i, training_episodes,
-                                                        t_reward))
-            if print_stats:
-                print_episode_stats(agent.get_episode_stats(),
-                                    env.get_episode_stats())
+        print("episode {} / {} | Reward: {}".format(i, training_episodes,
+                                                    t_reward))
+        if print_stats:
+            print_episode_stats(agent.get_episode_stats(),
+                                env.get_episode_stats())
 
     if make_total_reward_plot:
         plot_total_rewards(rewards, training_episodes, avg=10)
 
     if save_experiment:
-        config =\
             save_model_info(model_id, agent.q_network,
                             rewards, load_agent_model)
 
-    for param, val in config['agent'].items():
-        print(param, val)
 
-
-def plot_total_rewards(rewards, num_episodes, avg=10):
+def plot_total_rewards(rewards, num_episodes, avg=10):  # pragma: no cover
     # Note: avg has to be a divisor of num_episodes
     avg_rewards = []
     for i in range(num_episodes // (avg or 1)):
@@ -110,7 +68,7 @@ def plot_total_rewards(rewards, num_episodes, avg=10):
     plt.show()
 
 
-def print_episode_stats(agent_stats, env_stats):
+def print_episode_stats(agent_stats, env_stats):  # pragma: no cover
     print("------------------------------------------------------------------")
     for k, v in agent_stats.items():
         try:
@@ -125,7 +83,9 @@ def print_episode_stats(agent_stats, env_stats):
     print("==================================================================")
 
 
+# FIXME move loading and saving to a separate class
 def load_model(agent, model_id):
+    # TODO: write some tests
     """
     Loads the given model to the Agent's network fields.
 
@@ -148,6 +108,7 @@ def load_model(agent, model_id):
 
 
 def save_model_info(model_id, model, rewards, model_was_loaded=False):
+    # TODO: write some tests
     """
     Method saves the model, configuration file  and training rewards to a files
     in the saved_models/{model_id} directory.
@@ -187,13 +148,17 @@ def save_model_info(model_id, model, rewards, model_was_loaded=False):
     logfile.close()
 
     # config
+    config_path = '../configuration.json'
     if model_was_loaded:
-        config = "saved_models/model_{}/configuration.json".format(model_id)
+        config_path = "saved_models/model_{}/" \
+                      "configuration.json".format(model_id)
     else:
-        config = "../configuration.json"
+        if 'tests' in os.getcwd():
+            add_path = '../'
+            config_path = add_path + '../configuration.json'
 
     copyfile(
-        config,
+        config_path,
         "saved_models/model_{}/configuration.json".format(new_index))
 
     # rewards chart
@@ -207,12 +172,6 @@ def save_model_info(model_id, model, rewards, model_was_loaded=False):
     plt.plot(avg_rewards)
     plt.savefig('saved_models/model_{}/learning_plot.png'.format(new_index))
 
-    with open(
-        "saved_models/model_{}/configuration.json".format(new_index)
-    ) as config_file:
-        CONFIG_AGENT = json.load(config_file)
-    return CONFIG_AGENT
 
-
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

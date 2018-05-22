@@ -5,6 +5,7 @@ from agent import Agent
 from environment import HouseEnergyEnvironment
 import numpy as np
 
+# TODO: write some Agent test! event the simple one to just RUN every method 
 
 class TestEnv:
     """ Might be useful in future / side scripts for testing the agent manually

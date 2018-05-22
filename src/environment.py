@@ -18,14 +18,24 @@ class HouseEnergyEnvironment:
 
     This is where we gather together our World, OutsideSensors, House,
     etc., connect each other in a proper way and basically set up a working RL
-    environment
+    environment.
 
     """
 
-    def __init__(self, world=None):
-        """Actual initialization is moved to reset() method
+    def __init__(self, world=None, collect_stats=False):
+        """
+        Declares all class' fields.
 
-        to be able to re-initialize the whole environment.
+        Initialization is moved to reset() method
+        to be able to quickly re-initialize the whole environment.
+
+        Stats-related fields describe how many times given parameter
+        was close to the desired value within a particular interval
+        in current episode (see _update_stats method)
+
+        Args:
+            world(World): (optional) a World object to be used in environment
+            collect_stats(boolean): (optional)
 
         """
 
@@ -35,6 +45,7 @@ class HouseEnergyEnvironment:
 
         self.last_reward = 0
 
+        self.collect_stats = collect_stats
         self.timesteps = 0
         self.temp_diff_2_count = 0
         self.temp_diff_05_count = 0
@@ -44,17 +55,19 @@ class HouseEnergyEnvironment:
         self.reset(world)
 
     def step(self, action_name):
-        """Step the environment by one timestep.
+        """
+        Update the environment by one timestep and update the statistics.
+        This method is the main communication point between
+        agent and the environment.
 
         Args:
             action_name(string): a name of action. For possible action names
                                  check get_actions() method
         Returns:
-            observation(dict): information about the environment. Consists of
-                               'outside' and 'inside' dictionaries.
-            reward(float): a reward for RL agent's action in the timeframe.
-            done(boolean): information if the state after the step is terminal
-                           (episode end).
+            observation(dict): serialized information about the environment
+            reward(float): a reward for RL agent's last action
+            done(boolean): information whether the new state, achieved after
+                           this update, is terminal (episode end)
 
         """
 
@@ -64,15 +77,19 @@ class HouseEnergyEnvironment:
         observation = self._serialize_state(current_state)
 
         self.last_reward = self.house.reward()
-        self._update_stats(current_state['inside'])
+        if self.collect_stats:
+            self._update_stats(current_state['inside'])
 
         return observation, self.last_reward, done
 
     def reset(self, world=None):
-        """(Re)initializes the environment
+        """(Re)initializes the environment and registers the listeners.
+
+        Should be used to start a new episode. Returns the first,
+        serialized initial state.
 
         Returns:
-            Initial state of the environment
+            Serialized initial state of the environment
         """
 
         self.world = world or World()
@@ -90,11 +107,12 @@ class HouseEnergyEnvironment:
         for outside_sensor in self.outside_sensors:
             self.world.register(outside_sensor)
 
-        # transfer initial informations to listeners
+        # transfer initial information to listeners
         self.world.update_listeners()
 
         return self._serialize_state(self._get_current_state())
 
+    # TODO: Delete this function as a part of 'state cleaning' task
     @property
     def render(self):
         """Outputs the state of environment in a human-readable format
@@ -132,37 +150,37 @@ class HouseEnergyEnvironment:
 
         # --- tags ---
         labels_names = [
-            'Daytime //OUTSIDE: ',
-            'Temperature_outside: ',
-            'Light OUT: ',
+            'Daytime outside: ',
+            'Temperature outside: ',
+            'Light outside: ',
             'Clouds: ',
             'Rain: ',
             'Wind: ',
-            'Temperature //INSIDE: ',
-            'Temperature_delta: ',
-            'Light IN: ',
-            'Temp_desired: ',
-            'Temp_epsilon: ',
-            'Light_desired: ',
-            'Light_epsilon: ',
-            'Grid_cost: ',
-            'Energy_src: ',
-            'Cooling_lvl: ',
-            'Heating_lvl: ',
-            'Light_lvl: ',
-            'Curtains_lvl: ',
-            'Battery_lvl: ',
-            'Battery_delta: ',
-            'TOTAL REWARD: '
+            'Temperature inside: ',
+            'Temperature delta: ',
+            'Light inside: ',
+            'Temp desired: ',
+            'Temp epsilon: ',
+            'Light desired: ',
+            'Light epsilon: ',
+            'Grid cost: ',
+            'Energy source: ',
+            'Cooling lvl: ',
+            'Heating lvl: ',
+            'Light lvl: ',
+            'Curtains lvl: ',
+            'Battery lvl: ',
+            'Battery delta: ',
+            'REWARD FOR STEP: '
         ]
 
         return labels_names, unnormalized_dataset, dataset
 
     def get_actions(self):
-        """Returns list of method names (possible actions)
+        """Returns list of action-method names (possible actions)
 
         Returns:
-            actions (list of strings): A list of method names
+            actions (list of strings): A list of action-method names
 
         Example:
             H = HouseEnergyEnvironment()
@@ -177,6 +195,8 @@ class HouseEnergyEnvironment:
                 if callable(getattr(self.house, action))
                 and re.match("action.*", action)]
 
+    # TODO: Zmienić tę funkcję, zaby zwracała nie-zagniezdzony OrderedDict
+    # wartości nie-normalizowanych. + testy które to weryfikuja
     def _get_current_state(self):
         outside_params = [sensor.get_info() for sensor in self.outside_sensors]
         inside_params = self.house.get_inside_params()
@@ -186,6 +206,7 @@ class HouseEnergyEnvironment:
         })
         return observation
 
+    # TODO: Zgodnie z taskiem sprzatania stanu, wywalic daytime i epsilony
     @staticmethod
     def _serialize_state(state):
         """Returns 1-dim ndarray of normalized state parameters from dict
@@ -193,7 +214,7 @@ class HouseEnergyEnvironment:
         Args:
             state(dict) - the exact product of _get_current_state method.
             Note: Method assumes all temperature indicators are from range
-            (-20, 40) C
+            (-20, 40) and this is a project global assumption.
 
         Returns(ndarray):
             Current array structure:
@@ -261,33 +282,53 @@ class HouseEnergyEnvironment:
             else:
                 observation.append(d_value)
 
-        # NOTE move the assert below to tests, (in the future)
-        # make sure that vector is normalized. no safety zone - it has to work!
-        assert all([x is not None and (0 <= x <= 1) for x in observation]), \
-            "Whoa, some of observation values are not" + \
-            "truncated to 0-1 or are None!" + \
-            "vector: " + str(observation)
-
         return np.array(observation)
 
     def get_episode_stats(self):
+        """Provides statistic info about episode.
 
-        temp_2 = 100 * self.temp_diff_2_count / self.timesteps
-        temp_05 = 100 * self.temp_diff_05_count / self.timesteps
-        light_015 = 100 * self.light_diff_015_count / self.timesteps
-        light_005 = 100 * self.light_diff_005_count / self.timesteps
+        Returns:
+            dictionary with current statistics expressed in percent of
+            current episode time.
 
-        return {'Temperature difference < 2': temp_2,
-                'Temperature difference < 0.5': temp_05,
-                'Light difference < 0.15': light_015,
-                'Light difference < 0.05': light_005}
+        Returns the correct values only if the environment works in the
+        collect_stats mode and there was at least one step taken; returns None
+        if not.
+        """
+
+        if self.collect_stats and self.timesteps != 0:
+            temp_2 = 100 * self.temp_diff_2_count / self.timesteps
+            temp_05 = 100 * self.temp_diff_05_count / self.timesteps
+            light_015 = 100 * self.light_diff_015_count / self.timesteps
+            light_005 = 100 * self.light_diff_005_count / self.timesteps
+
+            return {'Temperature difference < 2': temp_2,
+                    'Temperature difference < 0.5': temp_05,
+                    'Light difference < 0.15': light_015,
+                    'Light difference < 0.05': light_005}
+        else:
+            return None
 
     def _update_stats(self, state):
-        self.timesteps += 1
+        """Updates the statistics of fulfilling the desired values.
 
+        Updating stats is done by checking the absolute
+        difference between current and desired values.
+
+        If the difference is smaller than given value, the statistic is
+        increased. Note that the statistics are just counts - the episode
+        percents are calculated in the get_episode_stats method.
+
+        Args:
+            state(OrderedDict): dictionary in format returned by
+                                _get_current_state() method
+        """
+        # TODO don't forgot to update this method when the structure of
+        # TODO unnormalized state dict will change during the cleaning task
+
+        self.timesteps += 1
         temp_difference = abs(state['inside_sensors']['first']['temperature']
                               - state['desired']['temp_desired'])
-
         light_difference = abs(state['inside_sensors']['first']['light']
                                - state['desired']['light_desired'])
 
@@ -299,3 +340,4 @@ class HouseEnergyEnvironment:
             self.light_diff_015_count += 1
             if light_difference < 0.05:
                 self.light_diff_005_count += 1
+

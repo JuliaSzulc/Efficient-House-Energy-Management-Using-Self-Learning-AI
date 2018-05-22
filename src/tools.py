@@ -1,6 +1,6 @@
 """This module provides additional utilities, such as common functions
 
-those utilities do not have any logical depencencies on other parts
+those utilities do not have any logical dependencies on other parts
 of the project.
 
 """
