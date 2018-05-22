@@ -9,7 +9,7 @@ changes in environment, and also visualize them on a plot.
 from agent import Agent
 from environment import HouseEnergyEnvironment
 import matplotlib.pyplot as plt
-
+from main import load_model
 
 class ManualTestTerminal:
     """This class builds menu in terminal,
@@ -32,7 +32,6 @@ class ManualTestTerminal:
         system correct behaviour through making logs into console/file.
 
         """
-        from main import load_model
 
         curr_render = last_render = self.env.render
 
@@ -41,122 +40,24 @@ class ManualTestTerminal:
 
         step = 0
         file_auto_log = False
-        log_file = open("Manual_Tests_v1.log", "a")
+        log_file = open("Manual_Tests_v2.log", "a")
+
         while True:
 
-            # ---------- build menu ----------
-            sub_menu_actions = \
-                '|     Available actions menu    |          Others           |\n' \
-                '|-------------------------------+---------------------------|\n'
+            # Print Main Menu
+            print(self._draw_menu(curr_render, last_render, file_auto_log, step))
+            
+            # Print Render Values
+            print(self._draw_render(curr_render, last_render))
 
-            # dynamic build depends on actions count
-            i = 1
-            j = len(self.actions) + 1
-            for action in self.actions:
-                if i == 1:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) File auto log: {3:5}  |\n' \
-                            .format(i, action, j, str(file_auto_log))
-                    j += 1
-                elif i == 2:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Show plots {3:10} |\n' \
-                            .format(i, action, j, ' ')
-                    j += 1
-                elif i == 3:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Nop act. for time     |\n' \
-                            .format(i, action, j)
-                    j += 1
-                elif i == 4:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Load agents model     |\n' \
-                            .format(i, action, j)
-                    j += 1
-                elif i == 5:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Let agent decide      |\n' \
-                            .format(i, action, j)
-                    j += 1
-                elif i == 6:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2:2}) Exit tests {3:10} |\n' \
-                            .format(i, action, j, ' ')
-                elif i == 7:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} |---------------------------|\n' \
-                            .format(i, action)
-                elif i == 8:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | Current step: {2:10}  |\n' \
-                            .format(i, action, step)
-                elif i == 9:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | Current time: {2:10}  |\n' \
-                            .format(i, action, ' ')
-                elif i == 10:
-                    sub_menu_actions += \
-                        '| {0:2}) {1:25} | {2}       |\n' \
-                            .format(i, action, self.env.world.current_date)
-                else:
-                    sub_menu_actions += '| {0:2}) {1:25} | {2:25} |\n' \
-                        .format(i, action, ' ')
-                i += 1
-            sub_menu_actions += \
-                '+-------------------------------+---------------------------+\n'
-
-            # add main menu tag
-            menu = \
-                '+-----------------------------------------------------------+\n' \
-                '|                       Testing menu                        |\n' \
-                '|-----------------------------------------------------------|\n' \
-                '{0}'.format(sub_menu_actions)
-
-            render_menu = 'Rendered values:\n'
-            render_menu += \
-                '+---------------------------+------------+---+------------+\n'
-            render_menu += '| {0:25} |  {1:9} | {2} |  {3:9} |\n'. \
-                format('Value:',
-                       'Previous:',
-                       '?',
-                       'Current:')
-            render_menu += \
-                '+---------------------------+------------+---+------------+\n'
-            for i in range(len(last_render[0])):
-                if not isinstance(last_render[1][i], str):
-                    if float(last_render[1][i]) < float(curr_render[1][i]):
-                        mark = '<'
-                    elif float(last_render[1][i]) > float(curr_render[1][i]):
-                        mark = '>'
-                    else:
-                        mark = '='
-
-                    render_menu += '| {0:25} | {1:10.4f} | {2} | {3:10.4f} |\n'. \
-                        format(last_render[0][i], last_render[1][i], mark,
-                               curr_render[1][i])
-                else:
-                    mark = '?'
-                    render_menu += '| {0:25} |    {1:7} | {2} |    {3:7} |\n'. \
-                        format(last_render[0][i], last_render[1][i], mark,
-                               curr_render[1][i])
-
-            render_menu += \
-                '+---------------------------+------------+---+------------+\n'
-
-            menu += render_menu
-
-            # print build menu
-            print(menu)
-
-            # update lists for plots
+            # Update lists for plots
             for i in range(len(curr_render[2])):
                 values_for_plt[i].append(curr_render[2][i])
 
             if file_auto_log:
                 log_file.write(render_menu)
 
-            # ---------- build menu end ----------
-
+            # Selecting option
             try:
                 option = input('\nSelect option:\n')
 
@@ -169,7 +70,7 @@ class ManualTestTerminal:
                             'Chosen action: {1}\n'.format(
                                 step + 1, self.actions[int(option) - 1]))
 
-                    # pass the action with the step
+                    # pass the action with the step & inc step counter
                     self.env.step(self.actions[int(option) - 1])
                     curr_render = self.env.render
                     step += 1
@@ -177,15 +78,11 @@ class ManualTestTerminal:
                 elif int(option) == len(self.actions) + 1:
                     file_auto_log = not file_auto_log
                     if file_auto_log:
-                        log_file.write('\n----- New Test ----\n\n')
-                        step = 0
-                        self.env.reset()
-                        last_render = curr_render = self.env.render
-                        for i in values_for_plt:
-                            i.clear()
+                        log_file.write('\n----- Logging ON ----\n\n')
+                    else:
+                        log_file.write('\n----- Logging OFF ----\n\n')
 
                 elif int(option) == len(self.actions) + 2:
-                    # what to skipp on plot
                     skip_list = [int(x) for x in input(
                         'Enter indexes separated by space '
                         'which should be skipped on plot:\n').split()]
@@ -201,7 +98,6 @@ class ManualTestTerminal:
 
                         last_render = curr_render
 
-                        # pass the action with the step
                         self.env.step('action_nop')
 
                         curr_render = self.env.render
@@ -216,6 +112,8 @@ class ManualTestTerminal:
                 elif int(option) == len(self.actions) + 4:
                     model_id = input('Enter model number to load\n')
                     load_model(self.agent, model_id)
+
+                    print('Model {} was succesfully loaded.'.format(str(model_id)))
 
                 elif int(option) == len(self.actions) + 5:
                     last_render = curr_render
@@ -233,6 +131,13 @@ class ManualTestTerminal:
                         self.actions[action_index]))
 
                 elif int(option) == len(self.actions) + 6:
+                    step = 0
+                    self.env.reset()
+                    last_render = curr_render = self.env.render
+                    for i in values_for_plt:
+                        i.clear()
+
+                elif int(option) == len(self.actions) + 7:
                     break
 
                 else:
@@ -243,3 +148,127 @@ class ManualTestTerminal:
 
         # while end, close file and save logs
         log_file.close()
+
+    def _draw_menu(self, curr_render, last_render, file_auto_log, step):
+
+        sub_menu_actions = \
+            '|     Available actions menu    |          Others           |\n' \
+            '|-------------------------------+---------------------------|\n'
+
+        # dynamic build depends on actions count
+        i = 1
+        j = len(self.actions) + 1
+        for action in self.actions:
+            if i == 1:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2:2}) File auto log: {3:5}  |\n' \
+                        .format(i, action, j, str(file_auto_log))
+                j += 1
+            elif i == 2:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2:2}) Show plots {3:10} |\n' \
+                        .format(i, action, j, ' ')
+                j += 1
+            elif i == 3:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2:2}) Nop act. for time     |\n' \
+                        .format(i, action, j)
+                j += 1
+            elif i == 4:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2:2}) Load agents model     |\n' \
+                        .format(i, action, j)
+                j += 1
+            elif i == 5:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2:2}) Let agent decide      |\n' \
+                        .format(i, action, j)
+                j += 1
+            elif i == 6:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2:2}) Reset Environment     |\n' \
+                        .format(i, action, j)
+                j += 1
+            elif i == 7:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2:2}) Exit tests {3:10} |\n' \
+                        .format(i, action, j, ' ')
+            elif i == 7:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} |---------------------------|\n' \
+                        .format(i, action)
+            elif i == 8:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | Current step: {2:10}  |\n' \
+                        .format(i, action, step)
+            elif i == 9:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | Current time: {2:10}  |\n' \
+                        .format(i, action, ' ')
+            elif i == 10:
+                sub_menu_actions += \
+                    '| {0:2}) {1:25} | {2}       |\n' \
+                        .format(i, action, self.env.world.current_date)
+            else:
+                sub_menu_actions += '| {0:2}) {1:25} | {2:25} |\n' \
+                    .format(i, action, ' ')
+            i += 1
+        sub_menu_actions += \
+            '+-------------------------------+---------------------------+\n'
+
+        # add main menu tag
+        menu = \
+            '+-----------------------------------------------------------+\n' \
+            '|                       Testing menu                        |\n' \
+            '|-----------------------------------------------------------|\n' \
+            '{0}'.format(sub_menu_actions)
+
+        return menu
+        
+
+    def _draw_render(self, curr_render, last_render):
+
+        render_menu = 'Rendered values:\n'
+        render_menu += \
+            '+---------------------------+------------+---+------------+\n'
+        render_menu += '| {0:25} |  {1:9} | {2} |  {3:9} |\n'. \
+            format('Value:',
+                   'Previous:',
+                   '?',
+                   'Current:')
+        render_menu += \
+            '+---------------------------+------------+---+------------+\n'
+        for i in range(len(last_render[0])):
+            if not isinstance(last_render[1][i], str):
+                if float(last_render[1][i]) < float(curr_render[1][i]):
+                    mark = '<'
+                elif float(last_render[1][i]) > float(curr_render[1][i]):
+                    mark = '>'
+                else:
+                    mark = '='
+
+                render_menu += '| {0:25} | {1:10.4f} | {2} | {3:10.4f} |\n'. \
+                    format(last_render[0][i], last_render[1][i], mark,
+                           curr_render[1][i])
+            else:
+                mark = '?'
+                render_menu += '| {0:25} |    {1:7} | {2} |    {3:7} |\n'. \
+                    format(last_render[0][i], last_render[1][i], mark,
+                           curr_render[1][i])
+
+        render_menu += \
+            '+---------------------------+------------+---+------------+\n'
+
+        return render_menu
+
+
+def main():
+    
+    print('### WELCOME IN MANUAL TEST MENU v2 ###\n')
+    
+    new_test = ManualTestTerminal()
+    new_test.manual_testing()
+
+
+if __name__ == "__main__":
+    main()

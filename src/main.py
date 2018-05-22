@@ -14,7 +14,6 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-from manual_test import ManualTestTerminal
 from environment import HouseEnergyEnvironment
 from agent import Agent
 from shutil import copyfile
@@ -24,16 +23,9 @@ def main():
     # TODO: write a "just run it" test, to check consistency
 
     save_experiment = True
-    run_manual_tests = False
     print_stats = True
     make_total_reward_plot = True
     load_agent_model = True
-
-    # TODO: Manual testing as a separate script
-    if run_manual_tests:
-        tests = ManualTestTerminal()
-        tests.manual_testing()
-        return
 
     env = HouseEnergyEnvironment(collect_stats=print_stats)
     agent = Agent(env=env)
