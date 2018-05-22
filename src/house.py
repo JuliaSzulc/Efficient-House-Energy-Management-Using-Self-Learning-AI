@@ -83,9 +83,7 @@ class House:
 
         self.user_requests = OrderedDict({
                 'temp_desired': 18,
-                'temp_epsilon': 1,
-                'light_desired': 0.0,
-                'light_epsilon': 0.05
+                'light_desired': 0.0
         })
 
         self.inside_sensors = OrderedDict({
@@ -211,12 +209,12 @@ class House:
                                    outside sensor
         """
 
-        self.daytime = sensor_out_info['daytime']
+        self.daytime = sensor_out_info['Daytime']
         self._update_grid_cost()
         self._update_user_requests()
-        self._calculate_accumulated_energy(sensor_out_info['light'])
-        self._calculate_temperature(sensor_out_info['actual_temp'])
-        self._calculate_light(sensor_out_info['light']
+        self._calculate_accumulated_energy(sensor_out_info['Outside Light'])
+        self._calculate_temperature(sensor_out_info['Outside Temp'])
+        self._calculate_light(sensor_out_info['Outside Light']
                               * self.max_outside_illumination)
 
     def get_inside_params(self):
@@ -241,7 +239,8 @@ class House:
             'grid_cost': self.grid_cost,
             'devices_settings': self.devices_settings,
             'battery_level': self.battery['current'],
-            'battery_delta': self.battery['delta']
+            'battery_delta': self.battery['delta'],
+            'battery_max': self.battery['max']
         })
 
         return inside_params
@@ -284,7 +283,7 @@ class House:
         )
 
         if self.devices_settings['energy_src'] == 'battery':
-            if self.battery['current'] > usage:
+            if self.battery['current'] >= usage:
                 self.battery['current'] -= usage
                 return 0
             else:

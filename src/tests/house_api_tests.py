@@ -365,19 +365,19 @@ class HouseUpdateTestCase(unittest.TestCase):
         self.house = House(1)
 
         self.sensor_out_info = {
-            'daytime': 12 * 60,
-            'actual_temp': 15,
-            'light': 0.4,
-            'illumination': 10000,
-            'clouds': 0.4,
-            'rain': 0,
-            'wind': 0.7
+            'Daytime': 12 * 60,
+            'Outside Temp': 15,
+            'Outside Light': 0.4,
+            'Illumination': 10000,
+            'Clouds': 0.4,
+            'Rain': 0,
+            'Wind': 0.7
         }
 
         self.house.update(self.sensor_out_info)
 
     def test_compare_daytime(self):
-        self.assertEqual(self.house.daytime, self.sensor_out_info['daytime'],
+        self.assertEqual(self.house.daytime, self.sensor_out_info['Daytime'],
                          "Daytime is different in house and outside sensor!")
 
 

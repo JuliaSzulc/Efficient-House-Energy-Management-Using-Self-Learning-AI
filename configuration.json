@@ -1,12 +1,12 @@
 {
     "main": {
-        "training_episodes"          : 15000,
+        "training_episodes"          : 10000,
         "fps"                        : 16
     },
     "agent": {
         "hidden_layer_size"          : 80,
-        "memory_size"                : 100000,
-        "memory_size_to_start"       : 10,
+        "memory_size"                : 10000,
+        "memory_size_to_start"       : 32,
         "double_dqn"                 : true,
         "gamma"                      : 0.9,
         "epsilon"                    : 1,

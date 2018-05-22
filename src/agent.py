@@ -73,18 +73,20 @@ class AgentUtils:
             with open(conf_path) as config_file:
                 agent.config = json.load(config_file)['agent']
             agent.reset()
-        except FileNotFoundError:
-            print("Loading model failed. No model with given index, or no\
-                  configuration file")
+        except FileNotFoundError as exc:
+            print("Loading model failed. No model with given index, or no" + 
+                  " configuration file. Error: \n")
+            print(exc)
             sys.exit()
 
         # load network model
         try:
             agent.q_network.load_state_dict(torch.load(model_path))
             agent.target_network.load_state_dict(torch.load(model_path))
-        except (RuntimeError, AssertionError):
-            print('Error while loading model. Wrong network size, or not\
-                  an Agent? Aborting')
+        except (RuntimeError, AssertionError) as exc:
+            print('Error while loading model. Wrong network size, or not' +
+                  ' an Agent? Aborting. Error:')
+            print(exc)
             sys.exit()
 
     @staticmethod

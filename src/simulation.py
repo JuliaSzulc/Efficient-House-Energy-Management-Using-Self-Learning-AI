@@ -41,22 +41,22 @@ from world import World
 
 class Simulation:
 
-    def __init__(self, width=None, height=None, MODEL=1):
+    def __init__(self, width=None, height=None, model=1):
         """Configuration for simulation object
 
         This method is divided into two parts, the "view" and the "model",
         roughly resembling view and model responsibilities in MVC model.
         Since pygame doesn't allow complicated design pattern and introduces
-        its own event-render-loop mechanism, this is only for cleariness.
+        its own event-render-loop mechanism, this is only for clearness.
 
         Args:
             width(int) = simulation width in pixels.
             height(int) = simulation height in pixels.
             fps(int) = frames per second, which is also the rate of making
                        world steps.
-            MODEL(int) = number of model to be used.
+            model(int) = number of model to be used.
 
-        To apply fulscreen, simply leave width and height unmodified to None.
+        To apply fullscreen, simply leave width and height unmodified to None.
         Using different values is discouraged and could potentially cause
         errors.
 
@@ -117,7 +117,7 @@ class Simulation:
         self.env = HouseEnergyEnvironment()
         self.agent = Agent(env=self.env)
 
-        AgentUtils.load(self.agent, MODEL)
+        AgentUtils.load(self.agent, model)
 
         self.actions = self.env.get_actions()
         self.current_state = self.env.reset(
@@ -144,9 +144,7 @@ class Simulation:
 
     def update_data(self):
         """Updates simulation with data from environment"""
-        labels, values = self.env.render[:-1]
-        labels = [label.strip().strip(':') for label in labels]
-        self.data = dict(zip(labels, values))
+        self.data = self.env.get_current_state()
 
     def make_world_step(self):
         """Computes world events and moves forward for one timestep"""
@@ -201,7 +199,7 @@ class Simulation:
              int(circle_center_y + radius * h * 0.7),
              0.02 * w, 0.035 * h)
         )
-        daytime = self.data['Daytime //OUTSIDE']
+        daytime = self.data['Daytime']
         _phi = (daytime / 1440) * 2 * math.pi + math.pi / 2
         x_indicator = radius * math.cos(_phi)
         y_indicator = radius * math.sin(_phi)
@@ -229,20 +227,20 @@ class Simulation:
         self.draw_text(time, circle_center_x, circle_center_y,
                        self.colors['weather5'], font_header, True)
         # text - blocks
-        for _off, _data in enumerate(('Light OUT', 'Wind', 'Clouds', 'Rain')):
+        for _off, _data in enumerate(('Outside Light', 'Wind',
+                                      'Clouds', 'Rain')):
             _label = _data.upper()
-            if _data == 'Light OUT':
+            if _data == 'Outside Light':
                 _label = 'SUN'
 
             self.draw_text("{:<13}{:>5.0f}%".format(
-                _label,
-                self.data[_data] * 100
-            ), x + 0.57 * w, y + (0.65 + _off / 10) * h,
-            self.colors['font'], font_mono, True)
+                _label, self.data[_data] * 100),
+                x + 0.57 * w, y + (0.65 + _off / 10) * h,
+                self.colors['font'], font_mono, True)
 
         # text - temperature
         self.draw_text("{:<3.1f}°C".format(
-                            self.data['Temperature_outside']
+                            self.data['Outside Temp']
                        ), x + 0.55 * w, y + 0.5 * h,
                        self.colors['weather5'], font_header, True)
 
@@ -305,10 +303,10 @@ class Simulation:
 
         x_begin = 0.35
         indicators = {
-            x_begin: ('Heating', '001-heater'),
-            x_begin + 0.15: ('Cooling', '002-machine'),
-            x_begin + 0.30: ('Light', '008-light-bulb'),
-            x_begin + 0.45: ('Curtains', '003-blinds'),
+            x_begin: ('heating', '001-heater'),
+            x_begin + 0.15: ('cooling', '002-machine'),
+            x_begin + 0.30: ('light', '008-light-bulb'),
+            x_begin + 0.45: ('curtains', '003-blinds'),
         }
 
         for x_o, ind in indicators.items():
@@ -343,7 +341,7 @@ class Simulation:
                        self.colors['font'], font_small, True)
 
         triangle_y = 0.5
-        if self.data['Energy_src'] == 'grid':
+        if self.data['energy_src'] == 'grid':
             triangle_y = 0.2
 
         pygame.draw.polygon(
@@ -355,8 +353,8 @@ class Simulation:
                 [x + x_energy / 2 * w, (triangle_y + 0.1) * h + y],
             ]
         )
-        batt = self.data['Battery_lvl'] / self.env.house.battery['max']
-        self.draw_text('{:2.0f}%'.format(batt * 100),
+        battery = self.data['battery_level'] / self.data['battery_max']
+        self.draw_text('{:2.0f}%'.format(battery * 100),
                        x + (x_energy + 0.16) * w,
                        y + 0.54 * h,
                        self.colors['font'], font_big, True)
@@ -386,13 +384,13 @@ class Simulation:
         # chartmode options
         if chartmode == 'light':
             soft_color = 'soft2'
-            level = self.data['Light IN']
-            desired = self.data['Light_desired']
+            level = self.data['first.light']
+            desired = self.data['light_desired']
 
         elif chartmode == 'temperature':
             soft_color = 'soft1'
-            level = (self.data['Temperature //INSIDE'] + 20) / 60
-            desired = (self.data['Temp_desired'] + 20) / 60
+            level = (self.data['first.temperature'] + 20) / 60
+            desired = (self.data['temp_desired'] + 20) / 60
         else:
             raise AttributeError('wrong chartmode')
         # title
@@ -486,8 +484,8 @@ class Simulation:
         if chartmode == 'light':
             main_color = 'weather1'
             scnd_color = 'weather2'
-            level = self.data['Light IN'] * 100
-            desired = self.data['Light_desired'] * 100
+            level = self.data['first.light'] * 100
+            desired = self.data['light_desired'] * 100
             level_normalized = level * 180 / 100
             desired_normalized = desired * 180 / 100
             lvl_format = "{:.0f}%"
@@ -495,9 +493,9 @@ class Simulation:
         elif chartmode == 'temperature':
             main_color = 'intense1'
             scnd_color = 'intense2'
-            level = self.data['Temperature //INSIDE']
+            level = self.data['first.temperature']
             level_normalized = (level + 20) * 180 / 60
-            desired = self.data['Temp_desired']
+            desired = self.data['temp_desired']
             desired_normalized = (desired + 20) * 180 / 60
             lvl_format = "{:.1f}°C"
 
@@ -706,4 +704,4 @@ if __name__ == '__main__':
         model = int(input("Enter model number to execute: "))
     except ValueError:
         print('model number should be an integer')
-    Simulation(MODEL=model).run()
+    Simulation(model=model).run()
