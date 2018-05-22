@@ -262,14 +262,16 @@ class ManualTestTerminal:
 
         state_menu = 'Rendered values:\n'
         state_menu += \
-            '+---------------------------+------------+---+------------+\n'
-        state_menu += '| {0:25} |  {1:9} | {2} |  {3:9} |\n'. \
-            format('Value:',
+            '+--------------------------------+------------+---+------------+\n'
+        state_menu += '| {0:2} | {1:25} |  {2:9} | {3} |  {4:9} |\n'. \
+            format('ID',
+                   'Value:',
                    'Previous:',
                    '?',
                    'Current:')
         state_menu += \
-            '+---------------------------+------------+---+------------+\n'
+            '+--------------------------------+------------+---+------------+\n'
+        i = 0
         for key, value in last_state.items():
             if not isinstance(value, str):
                 if float(value) < float(curr_state[key]):
@@ -279,17 +281,17 @@ class ManualTestTerminal:
                 else:
                     mark = '='
 
-                state_menu += '| {0:25} | {1:10.4f} | {2} | {3:10.4f} |\n'. \
-                    format(key, value, mark,
+                state_menu += '| {0:2} | {1:25} | {2:10.4f} | {3} | {4:10.4f} |\n'. \
+                    format(i, key, value, mark,
                            curr_state[key])
             else:
                 mark = '?'
-                state_menu += '| {0:25} |    {1:7} | {2} |    {3:7} |\n'. \
-                    format(key, value, mark,
+                state_menu += '| {0:2} | {1:25} |    {2:7} | {3} |    {4:7} |\n'. \
+                    format(i, key, value, mark,
                            curr_state[key])
-
+            i += 1
         state_menu += \
-            '+---------------------------+------------+---+------------+\n'
+            '+--------------------------------+------------+---+------------+\n'
 
         return state_menu
 
