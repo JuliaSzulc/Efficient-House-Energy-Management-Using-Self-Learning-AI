@@ -202,7 +202,7 @@ class Agent:
             output_size
         )
         self.memory = Memory(self.config['memory_size'])
-        self.double_dqn = self.config['double_dqn']git
+        self.double_dqn = self.config['double_dqn']
         self.gamma = self.config['gamma']
         self.epsilon = self.config['epsilon']
         self.epsilon_decay = self.config['epsilon_decay']
