@@ -1,8 +1,7 @@
 """This is the main executable module for the project.
 
 Performs training of new - or loaded - model of the RL agent and provides
-logging, plotting and saving options. If 'manual' option is specified, there
-is no training.
+logging, plotting and saving options.
 
 You can change the behaviour details with boolean flags at the beginning
 of the main function.
