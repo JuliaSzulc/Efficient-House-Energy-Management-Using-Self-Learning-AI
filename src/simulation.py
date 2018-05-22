@@ -33,7 +33,7 @@ from collections import deque
 import pygame
 import pygame.gfxdraw
 from PIL import Image, ImageDraw
-from main import load_model
+from agent import AgentUtils
 from agent import Agent
 from environment import HouseEnergyEnvironment
 from world import World
@@ -117,7 +117,7 @@ class Simulation:
         self.env = HouseEnergyEnvironment()
         self.agent = Agent(env=self.env)
 
-        load_model(self.agent, MODEL)
+        AgentUtils.load(self.agent, MODEL)
 
         self.actions = self.env.get_actions()
         self.current_state = self.env.reset(

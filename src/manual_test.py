@@ -8,6 +8,7 @@ changes in environment, and also visualize them on a plot.
 
 from agent import Agent
 from environment import HouseEnergyEnvironment
+from agent import AgentUtils
 import matplotlib.pyplot as plt
 
 
@@ -32,7 +33,6 @@ class ManualTestTerminal:
         system correct behaviour through making logs into console/file.
 
         """
-        from main import load_model
 
         curr_render = last_render = self.env.render
 
@@ -215,7 +215,7 @@ class ManualTestTerminal:
 
                 elif int(option) == len(self.actions) + 4:
                     model_id = input('Enter model number to load\n')
-                    load_model(self.agent, model_id)
+                    AgentUtils.load(self.agent, model_id)
 
                 elif int(option) == len(self.actions) + 5:
                     last_render = curr_render
