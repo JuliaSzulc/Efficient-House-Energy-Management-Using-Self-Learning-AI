@@ -150,28 +150,28 @@ class HouseEnergyEnvironment:
 
         # --- tags ---
         labels_names = [
-            'Daytime //OUTSIDE: ',
-            'Temperature_outside: ',
-            'Light OUT: ',
+            'Daytime outside: ',
+            'Temperature outside: ',
+            'Light outside: ',
             'Clouds: ',
             'Rain: ',
             'Wind: ',
-            'Temperature //INSIDE: ',
-            'Temperature_delta: ',
-            'Light IN: ',
-            'Temp_desired: ',
-            'Temp_epsilon: ',
-            'Light_desired: ',
-            'Light_epsilon: ',
-            'Grid_cost: ',
-            'Energy_src: ',
-            'Cooling_lvl: ',
-            'Heating_lvl: ',
-            'Light_lvl: ',
-            'Curtains_lvl: ',
-            'Battery_lvl: ',
-            'Battery_delta: ',
-            'TOTAL REWARD: '
+            'Temperature inside: ',
+            'Temperature delta: ',
+            'Light inside: ',
+            'Temp desired: ',
+            'Temp epsilon: ',
+            'Light desired: ',
+            'Light epsilon: ',
+            'Grid cost: ',
+            'Energy source: ',
+            'Cooling lvl: ',
+            'Heating lvl: ',
+            'Light lvl: ',
+            'Curtains lvl: ',
+            'Battery lvl: ',
+            'Battery delta: ',
+            'REWARD FOR STEP: '
         ]
 
         return labels_names, unnormalized_dataset, dataset
