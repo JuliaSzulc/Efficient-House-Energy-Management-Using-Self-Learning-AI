@@ -6,6 +6,8 @@ and provides a nice facade for a model.
 
 """
 import re
+import os
+import json
 from collections import OrderedDict
 import numpy as np
 from world import World
@@ -39,6 +41,12 @@ class HouseEnergyEnvironment:
 
         """
 
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        with open(add_path + '../configuration.json') as config_file:
+            self.config = json.load(config_file)['env']
+
         self.world = None
         self.outside_sensors = None
         self.house = None
@@ -47,10 +55,10 @@ class HouseEnergyEnvironment:
 
         self.collect_stats = collect_stats
         self.timesteps = 0
-        self.temp_diff_2_count = 0
-        self.temp_diff_05_count = 0
-        self.light_diff_015_count = 0
-        self.light_diff_005_count = 0
+        self.temp_diff_ok_count = 0
+        self.temp_diff_perfect_count = 0
+        self.light_diff_ok_count = 0
+        self.light_diff_perfect_count = 0
 
         self.reset(world)
 
@@ -68,7 +76,6 @@ class HouseEnergyEnvironment:
             reward(float): a reward for RL agent's last action
             done(boolean): information whether the new state, achieved after
                            this update, is terminal (episode end)
-
         """
 
         getattr(self.house, action_name)()
@@ -96,10 +103,10 @@ class HouseEnergyEnvironment:
         self.world = world or World()
 
         self.timesteps = 0
-        self.temp_diff_2_count = 0
-        self.temp_diff_05_count = 0
-        self.light_diff_015_count = 0
-        self.light_diff_005_count = 0
+        self.temp_diff_ok_count = 0
+        self.temp_diff_perfect_count = 0
+        self.light_diff_ok_count = 0
+        self.light_diff_perfect_count = 0
 
         self.house = House(self.world.time_step_in_minutes)
         self.outside_sensors = [OutsideSensor(self.house) for _ in range(1)]
@@ -221,7 +228,7 @@ class HouseEnergyEnvironment:
         return np.array(list(state.values()))
 
     def get_episode_stats(self):
-        """Provides statistic info about episode.
+        """Provides statistic comfort-related info about episode.
 
         Returns:
             dictionary with current statistics expressed in percent of
@@ -234,15 +241,19 @@ class HouseEnergyEnvironment:
         """
 
         if self.collect_stats and self.timesteps != 0:
-            temp_2 = 100 * self.temp_diff_2_count / self.timesteps
-            temp_05 = 100 * self.temp_diff_05_count / self.timesteps
-            light_015 = 100 * self.light_diff_015_count / self.timesteps
-            light_005 = 100 * self.light_diff_005_count / self.timesteps
+            t_ok = 100 * self.temp_diff_ok_count / self.timesteps
+            t_perf = 100 * self.temp_diff_perfect_count / self.timesteps
+            l_ok = 100 * self.light_diff_ok_count / self.timesteps
+            l_perf = 100 * self.light_diff_perfect_count / self.timesteps
 
-            return {'Temperature difference < 2': temp_2,
-                    'Temperature difference < 0.5': temp_05,
-                    'Light difference < 0.15': light_015,
-                    'Light difference < 0.05': light_005}
+            return {'Temperature difference < {}'
+                    .format(self.config['stats']["temp_ok_diff"]): t_ok,
+                    'Temperature difference < {}'
+                    .format(self.config['stats']["temp_perfect_diff"]): t_perf,
+                    'Light difference < {}'
+                    .format(self.config['stats']["light_ok_diff"]): l_ok,
+                    'Light difference < {}'
+                    .format(self.config['stats']["light_perfect_diff"]): l_perf}
         else:
             return None
 
@@ -251,7 +262,8 @@ class HouseEnergyEnvironment:
 
         Updating stats is done by checking the absolute
         difference between current and desired values. Current values are
-        taken from the first, main sensor in the house.
+        taken from the first, main sensor in the house. You can change the
+        "ok" and "perfect" difference values in the global configuration.
 
         If the difference is smaller than given value, the statistic is
         increased. Note that the statistics are just counts - the episode
@@ -268,13 +280,11 @@ class HouseEnergyEnvironment:
         light_difference = abs(state['first.light']
                                - state['light_desired'])
 
-        if temp_difference < 2:
-            # TODO: add test for this condition
-            self.temp_diff_2_count += 1
-            if temp_difference < 0.5:
-                self.temp_diff_05_count += 1
-        if light_difference < 0.15:
-            # TODO: add test for this condition
-            self.light_diff_015_count += 1
-            if light_difference < 0.05:
-                self.light_diff_005_count += 1
+        if temp_difference < self.config['stats']["temp_ok_diff"]:
+            self.temp_diff_ok_count += 1
+            if temp_difference < self.config['stats']["temp_perfect_diff"]:
+                self.temp_diff_perfect_count += 1
+        if light_difference < self.config['stats']["light_ok_diff"]:
+            self.light_diff_ok_count += 1
+            if light_difference < self.config['stats']["light_perfect_diff"]:
+                self.light_diff_perfect_count += 1
