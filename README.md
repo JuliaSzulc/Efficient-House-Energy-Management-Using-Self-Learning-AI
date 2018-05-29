@@ -67,6 +67,6 @@ For more info please refer to [**documentation**](https://github.com/JuliaSzulc/
   
 :bear: Dawid Czarneta  
 :tiger2: Jakub Frąckiewicz  
-:wolf: Filip Olszewski  
+:squirrel: Filip Olszewski  
 :boar: Michał Popiel  
 :cat: Julia Szulc  
