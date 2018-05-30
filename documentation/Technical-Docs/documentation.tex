@@ -1,0 +1,80 @@
+\documentclass{article}
+
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{amsmath} % Required for some math elements
+\usepackage{graphicx} 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{fullpage}
+
+% \setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\title{Effective House Energy Management Using Reinforcement Learning Technical Documentation} % Title
+
+\author{Dawid Czarneta, Jakub Frąckiewicz, Filip Olszewski, Michał Popiel, Julia Szulc}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+\begin{abstract}
+This is a technical documentation of our university project developed with cooperation and
+guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introduction and overview of main concepts, milestones, goals and effects of this project. It is followed by a technical part, that contains a setup guide, code and tests overviews, explanation of used algorithms and concepts (including the Reinforcement Learning part) and details about the development process, providing useful insights, experiences and lessons we have learned the hard way.
+\end{abstract}
+
+\section{Introduction}
+% wstęp, idea, kontekst
+\subsection{Goals and milestones}
+% jak w nazwie
+\subsection{Results}
+% jak w nazwie
+
+\section{Reinforcement Learning}
+% co to, gdzie sukcesy, czym się różni od dotychczasowych rozwiązań
+\subsection{What have we used?}
+% opis rozwiązań użytych w obecnym agencie. Q/Target split, Double DQN, PER, reward clipping
+% architektura sieci (tylko ile warstw), więcej o sieci jeszcze będzie w sekcji agenta
+\subsection{PyTorch Framework}
+% kontekst, dlaczego go użyliśmy, do czego go użyliśmy - więcej w sekcji o Agencie
+\section{Getting Started}
+\subsection{Setup and Requirements}
+% Co zainstalować, jaka wersja Pythona, wszyściutko
+\subsection{Learning and Simulation}
+% Tutaj opis możliwych trybów uruchomienia. Main/learning na start, potem symulacja. Zaznaczyć już tutaj istotność configuration.json itd.
+\subsection{Testing}
+% Opis testowania projektu. Testy jednostkowe wraz ze sposobem generowania coverage.
+% Do tego manual testing - testowanie środowiska (może być jako subsubsection, a może być jako osobne subsection)
+\section{Code overview}
+% wstępniaczek co znajdziemy w tej sekcji.
+\subsection{HouseEnergyEnvironment module}
+% opis środowiska. Tutaj chyba najlepiej podzielić to na subsubsections, House / World / Environment
+
+\subsection{Agent module}
+% tutaj ogarnę jeszcze jak to podzielę, bo jeszcze nie wiem // filip
+
+\subsection{Configuration file}
+% Tutaj ładnie wylistowane parametry z dosyć dokładnym wytłumaczeniem - czego dotyczą, gdzie są używane, poziom istotności parametru
+% na końcu może być wrzucona obecna konfiguracja z jakąś adnotacją, że dla tej konfiguracji generowaliśmy/uczyliśmy ostateczny model agenta
+
+\section{Accuracy measures and tempo of learning}
+% tutaj trochę o statystykach które pokazujemy w mainie, jakie wyniki uznajemy za agenta nauczonego, jaki procent odpalonych agentów uczy się wszystkiego, ile średnio epizodów zajmuje osiągnięcie akceptowalnego poziomu. Chciałoby się, żeby ta sekcja była zrobiona bardzo obszernie, ale nie mamy czasu żeby przeprowadzić nie wiadomo jaką ilość testów - i o tym też wspomnijmy. 
+
+% Uwaga - Tutaj powinna znaleźć się subsekcja o wpływie parametrów z configuraiton.json na uczenie - głównie tych od strony agenta, ale też nie mamy danych żeby tworzyć tutaj jakieś pewniki i pisać tutaj, że 'na 100%' większy batch size daje gorsze wyniki itd. Z umiarem :p
+\section{Development Process}
+% wstępniak - z racji, że to projekt badawczy a nie gotowy produkt, to zamieszczamy tutaj informacje o tym, jak szły prace, co jest trudne, co nie poszło, co poszło superancko itd.
+\subsection{Chronology}
+% Rafał sugerował coś takiego, myślę że nie ma co wypisywać tasków po kolei od lutego, ale przydałoby się zrobić listę mniej więcej jak to po kolei powstawało. Być może osobne dla enva i agenta.
+\subsection{What Failed}
+% zmienić nazwę tej sekcji na jakąś ładniejszą!
+% które założenia 'podupadły', które rozwiązania okazały się nieskuteczne / za trudne itd.
+% zarówno rzeczy typu Sparse Rewards (koncepcja zawiodła), jak i skalowalność projektu (nie jest zapewniona idealnie, my zawiedliśmy z braku enterpris'owego doświadczenia)
+
+\section{Conclusions}
+% tutaj zarówno wnioski mocno badawcze o RL, jak i o rozwoju projektu. Myślę, że potencjalne kierunki rozwoju projektu należy wpisać jako subsekcję tej sekcji.
+
+\section{Bibliography and Useful Sources}
+% papery do użytych konceptów, źródła z których się uczyliśmy, linki do bibliotek i te de
+\end{document}

@@ -8,16 +8,13 @@ You can change the behaviour details with boolean flags at the beginning
 of the main configuration file (/configuration.json).
 
 """
-import sys
-import os
 import json
-import numpy as np
+
 import matplotlib.pyplot as plt
-import torch
-from environment import HouseEnergyEnvironment
-from agent import AgentUtils
+import numpy as np
 from agent import Agent
-from shutil import copyfile
+from agent import AgentUtils
+from environment import HouseEnergyEnvironment
 
 
 def main(config):

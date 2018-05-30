@@ -84,9 +84,9 @@ class Simulation:
         if 'tests' in os.getcwd():
             add_path = '../'
         with open(add_path + '../configuration.json') as config_file:
-            self.CONFIG = json.load(config_file)
+            self.config = json.load(config_file)
 
-        self.fps = self.CONFIG['main']['fps']
+        self.fps = self.config['simulation']['fps']
         self.font = pygame.font.SysFont('mono', 10, bold=True)
         self.data = dict()
         self.colors = {

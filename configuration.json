@@ -1,11 +1,14 @@
 {
     "main": {
-        "training_episodes"          : 10,
+        "training_episodes"          : 10000,
         "fps"                        : 16,
         "save_experiment"            : true,
         "print_stats"                : true,
         "make_total_reward_plot"     : true,
         "load_agent_model"           : false
+    },
+    "simulation": {
+        "fps"                        : 16
     },
     "agent": {
         "hidden_layer_size"          : 80,
@@ -43,6 +46,12 @@
         "house_light_factor"         : 0.0075,
         "house_isolation_factor"     : 0.996,
         "battery_max"                : 14000,
-        "influence_per_min"          : 0.2
+        "influence_per_min"          : 0.2,
+        "stats": {
+            "temp_ok_diff": 2,
+            "temp_perfect_diff": 0.5,
+            "light_ok_diff": 0.15,
+            "light_perfect_diff": 0.05
+        }
     }
 }
