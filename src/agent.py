@@ -9,7 +9,6 @@ import random
 import sys
 import os
 import json
-from collections import deque
 from shutil import copyfile
 import torch
 import matplotlib.pyplot as plt
@@ -41,17 +40,16 @@ class Memory:
 
     """
 
-    def __init__(self, max_size, alpha, epsilon):
+    def __init__(self, max_size, alpha, epsilon, beta, beta_increment):
         self.sum_tree = SumTree(max_size)
-        self.len = 0
         self.alpha = alpha
         self.epsilon = epsilon
+        self.beta = beta
+        self.beta_increment = beta_increment
 
     def add(self, transition, error):
         priority = self.get_priority(error)
         self.sum_tree.add(priority, transition)
-
-        self.len += 1
 
     def get_priority(self, error):
         return (abs(error) + self.epsilon) ** self.alpha
@@ -63,7 +61,10 @@ class Memory:
     def sample(self, batch_size):
         batch = []
         indexes = []
+        priorities = []
         priority_segment = self.sum_tree.get_priority_sum() / batch_size
+
+        self.beta = np.min([1., self.beta + self.beta_increment])
 
         for i in range(batch_size):
             a = i * priority_segment
@@ -73,8 +74,17 @@ class Memory:
             (index, priority, data) = self.sum_tree.get(value)
             batch.append(data)
             indexes.append(index)
+            priorities.append(priority)
 
-        return batch, indexes
+        probabilities = priorities / self.sum_tree.get_priority_sum()
+        importance_sampling_weights = np.power(self.sum_tree.counter *
+                                              probabilities, -self.beta)
+        importance_sampling_weights /= importance_sampling_weights.max()
+
+        return batch, indexes, importance_sampling_weights
+
+    def len(self):
+        return self.sum_tree.counter
 
 
 class Agent:
@@ -148,7 +158,9 @@ class Agent:
         )
         self.memory = Memory(self.config['memory_size'],
                              self.config["memory_alpha"],
-                             self.config["memory_epsilon"])
+                             self.config["memory_epsilon"],
+                             self.config["memory_beta"],
+                             self.config["memory_beta_increment"])
         self.double_dqn = self.config['double_dqn']
         self.gamma = self.config['gamma']
         self.epsilon = self.config['epsilon']
@@ -217,8 +229,9 @@ class Agent:
 
         """
 
-        if self.memory.len > self.batch_size:
-            exp_batch, indexes = self.get_experience_batch()
+        if self.memory.len() > self.batch_size:
+            exp_batch, indexes, importance_sampling_weights =\
+                self.get_experience_batch()
 
             input_state_batch = exp_batch[0]
             action_batch = exp_batch[1]
@@ -266,7 +279,8 @@ class Agent:
                 self.memory.update(index, errors[i])
 
             self.optimizer.zero_grad()
-            loss = nn.modules.SmoothL1Loss()(q_values, targets)
+            loss = self.huber_loss(q_values, targets,
+                              importance_sampling_weights)
             loss.backward()
             for param in self.q_network.parameters():
                 param.grad.data.clamp_(-1, 1)
@@ -308,7 +322,7 @@ class Agent:
         Retrieves a random batch of transitions from memory and transforms it
         to separate PyTorch Variables.
 
-        Transition is a tuple in form of:
+        Transition is a tuple in fimportance_sampling_weightorm of:
         (state, action, reward, next_state, terminal_state)
         Returns:
             exp_batch - list of Variables in given order:
@@ -320,7 +334,8 @@ class Agent:
         """
 
         exp_batch = [0, 0, 0, 0, 0]
-        transition_batch, indexes = self.memory.sample(self.batch_size)
+        transition_batch, indexes, importance_sampling_weights =\
+            self.memory.sample(self.batch_size)
 
         # Float Tensors
         for i in [0, 2, 3, 4]:
@@ -331,7 +346,7 @@ class Agent:
         exp_batch[1] = Variable(torch.LongTensor(
             [int(x[1]) for x in transition_batch]))
 
-        return exp_batch, indexes
+        return exp_batch, indexes, importance_sampling_weights
 
     # --- Define utility methods below ---
 
@@ -378,6 +393,17 @@ class Agent:
 
         self.memory.add((current_state, action_index, reward, next_state,
                          terminal_state), error)
+
+    def huber_loss(self, values, target, weights):
+        loss = (torch.abs(values - target) < 1).float() *\
+               0.5 * (values - target) ** 2 + \
+               (torch.abs(values - target) >= 1).float() *\
+               (torch.abs(values - target) - 0.5)
+
+        weighted_loss = weights * loss
+
+        return weighted_loss.sum()
+
 
 class AgentUtils:
     """Abstract class providing save and load methods for Agent objects"""

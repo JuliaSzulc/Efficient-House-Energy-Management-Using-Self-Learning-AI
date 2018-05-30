@@ -41,6 +41,7 @@ class SumTree:
         # number-of-leaves + number-of-nodes = max_size + (max_size - 1)
         self.nodes = np.zeros(2 * max_size - 1)
         self.data = np.zeros(max_size, dtype=object)
+        self.counter = 0
 
     def update(self, index, priority):
         change = priority - self.nodes[index]
@@ -54,6 +55,9 @@ class SumTree:
         index = self.pointer + self.max_size - 1
         self.data[self.pointer] = data
         self.update(index, priority)
+
+        if self.counter < self.max_size:
+            self.counter += 1
 
     def get_leaves(self):
         return self.nodes[-self.max_size:]

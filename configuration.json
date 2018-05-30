@@ -11,11 +11,12 @@
         "fps"                        : 16
     },
     "agent": {
-        "memory_alpha"               : 0.5,
+        "memory_alpha"               : 0.6,
         "memory_epsilon"             : 0.01,
+        "memory_beta"                : 0.4,
+        "memory_beta_increment"      : 0.001,
         "hidden_layer_size"          : 80,
         "memory_size"                : 10000,
-        "memory_size_to_start"       : 32,
         "double_dqn"                 : true,
         "gamma"                      : 0.9,
         "epsilon"                    : 1,
