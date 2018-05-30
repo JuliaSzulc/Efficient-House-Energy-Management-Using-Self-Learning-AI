@@ -1,7 +1,7 @@
 """This module provides the clue of the project - RL agent.
 
 It works with environment by taking actions and gaining observations and
-reward, and its objective is to maximalize cost function in a continuous
+reward, and its objective is to maximize cost function in a continuous
 environment.
 
 """
@@ -91,11 +91,16 @@ class Agent:
         return 'RL_Agent Object'
 
     def reset(self):
-        """Initialize the networks and other parameters"""
+        """Initialize the networks, stats dictionary and other parameters
+
+        Note that all of the network/learning parameters are either
+        set as values from the configuration files or derived from environment
+        characteristics - state and action space shapes.
+        """
+
         self.initial_state = self.env.reset()
         self.actions = self.env.get_actions()
 
-        # initialize stats dictionary
         for a in self.actions:
             self.stats[a] = {'count': 0,
                              'total_reward': 0}
@@ -129,7 +134,21 @@ class Agent:
         self.train_freq = self.config['training_freq']
 
     def run(self):
-        """Main agents function. Performs the deep q-learning algorithm"""
+        """Main function of the agent, performs the episode and learning
+
+        Lets the agent make steps in the environment, saves the observed
+        transitions to memory, updates the stats and calls the _train() method.
+        During the run, the target_network of the agent is slightly
+        ("q_to_target_ratio") updated towards the q_network weights and is
+        updated fully after every "target_network_update_freq".
+        You can set these parameters in the configuration file.
+
+        Please note that this method decays the epsilon value after the episode
+        finishes.
+
+        This method should be called in the outer training loop, as it performs
+        one episode of training.
+        """
         counter = 0
         self.current_state = self.env.reset()
         total_reward = 0
