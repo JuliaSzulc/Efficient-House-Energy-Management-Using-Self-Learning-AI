@@ -9,12 +9,15 @@ import random
 import sys
 import os
 import json
-import numpy as np
-import torch
 from collections import deque
+from shutil import copyfile
+import torch
+import matplotlib.pyplot as plt
 from torch import optim, nn
 from torch.autograd import Variable
 import torch.nn.functional as F
+import numpy as np
+from tools import SumTree
 
 
 class Net(torch.nn.Module):
@@ -33,77 +36,16 @@ class Net(torch.nn.Module):
         x = self.fc2(x)
         return x
 
-
-class SumTree:
-    """Structure used for storing priorities of the transitions.
-
-    Used for PER (prioritized experience replay) implementation in Memory
-    """
-    pointer = 0
-
-    def __init__(self, max_size):
-        # number of leaves
-        self.max_size = max_size
-        # like a binary heap in an array
-        # number-of-leaves + number-of-nodes = max_size + (max_size - 1)
-        self.nodes = np.zeros(2 * max_size - 1)
-        self.data = np.zeros(max_size, dtype=object)
-
-    def update(self, index, priority):
-        change = priority - self.nodes[index]
-        self.nodes[index] = priority
-
-        while index != 0:
-            index = (index - 1) // 2
-            self.nodes[index] += change
-
-    def add(self, priority, data):
-        index = self.pointer + self.max_size - 1
-        self.data[self.pointer] = data
-        self.update(index, priority)
-
-    def get_leaves(self):
-        return self.nodes[-self.max_size:]
-
-    def get(self, value):
-        parent_index = 0
-
-        while True:
-            left_child_index = 2 * parent_index + 1
-            right_child_index = 2 * parent_index + 2
-
-            if left_child_index >= len(self.nodes):
-                index = parent_index
-                break
-            else:
-                if value <= self.nodes[left_child_index]:
-                    parent_index = left_child_index
-                else:
-                    value -= self.nodes[left_child_index]
-                    parent_index = right_child_index
-
-        data_index = index - self.max_size + 1
-
-        return (index, self.nodes[index], self.data[data_index])
-
-    def get_priority_sum(self):
-        return self.nodes[0]
-
-
 class Memory:
     """Based on a SumTree, storing transitions batches for Agent.
 
     """
 
-    # [0, 1] - prioritization factor that determines how much
-    # prioritization is used( if 0 -> uniform case)
-    alpha = 0.5
-    # constant that prevents the transition to have 0 priority
-    epsilon = 0.01
-
-    def __init__(self, max_size):
+    def __init__(self, max_size, alpha, epsilon):
         self.sum_tree = SumTree(max_size)
         self.len = 0
+        self.alpha = alpha
+        self.epsilon = epsilon
 
     def add(self, transition, error):
         priority = self.get_priority(error)
@@ -177,6 +119,9 @@ class Agent:
 
         self.reset()
 
+    def __str__(self):
+        return 'RL_Agent Object'
+
     def reset(self):
         """Initialize the networks and other parameters"""
         self.initial_state = self.env.reset()
@@ -201,7 +146,9 @@ class Agent:
             hidden1_size,
             output_size
         )
-        self.memory = Memory(self.config['memory_size'])
+        self.memory = Memory(self.config['memory_size'],
+                             self.config["memory_alpha"],
+                             self.config["memory_epsilon"])
         self.double_dqn = self.config['double_dqn']
         self.gamma = self.config['gamma']
         self.epsilon = self.config['epsilon']
@@ -388,37 +335,6 @@ class Agent:
 
     # --- Define utility methods below ---
 
-    def load_network_model(self, path):
-        """
-        Loads network model from given file into the Agent's network fields.
-
-        Args:
-            path(str): path to file
-
-        """
-        try:
-            self.q_network.load_state_dict(torch.load(path))
-            self.target_network.load_state_dict(torch.load(path))
-        except RuntimeError:
-            print('Error while loading model. Wrong network size? Aborting')
-            sys.exit()
-
-    def load_config(self, path):
-        """
-        Loads configuration from given file.
-
-        Args:
-            path(str): path to file
-
-        """
-        try:
-            with open('../configuration.json') as config_file:
-                self.config = json.load(config_file)['agent']
-            self.reset()
-        except FileNotFoundError:
-            print('Configuration file doesnt exist!')
-            sys.exit()
-
     def _update_stats(self, action_index):
         """Updates agent statistics"""
         action = self.actions[action_index]
@@ -462,3 +378,111 @@ class Agent:
 
         self.memory.add((current_state, action_index, reward, next_state,
                          terminal_state), error)
+
+class AgentUtils:
+    """Abstract class providing save and load methods for Agent objects"""
+
+    @staticmethod
+    def load(agent, model_id):
+        """Loads network configuration and model
+
+        Loads from file into the Agent's
+        network fields.
+
+        Args:
+            agent(Agent): an Agent object, to whom we want to load
+            model_id(int): id of model which we want to load
+
+        """
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        conf_path = add_path + \
+            'saved_models/model_{}/configuration.json'.format(model_id)
+        model_path = add_path + \
+            'saved_models/model_{}/network.pt'.format(model_id)
+
+        # loading configuration file
+        try:
+            with open(conf_path) as config_file:
+                agent.config = json.load(config_file)['agent']
+            agent.reset()
+        except FileNotFoundError as exc:
+            print("Loading model failed. No model with given index, or no" + 
+                  " configuration file. Error: \n")
+            print(exc)
+            sys.exit()
+
+        # load network model
+        try:
+            agent.q_network.load_state_dict(torch.load(model_path))
+            agent.target_network.load_state_dict(torch.load(model_path))
+        except (RuntimeError, AssertionError) as exc:
+            print('Error while loading model. Wrong network size, or not' +
+                  ' an Agent? Aborting. Error:')
+            print(exc)
+            sys.exit()
+
+    @staticmethod
+    def save(model, rewards=None, old_id=None):
+        """Save model, configuration file and training rewards
+
+        Saving to files in the saved_models/{old_id} directory.
+
+        Args:
+            old_id(number): id of the model if it  was loaded, None otherwise
+            model(torch.nn.Net): neural network torch model (q_network)
+            rewards(list): list of total rewards for each episode, default None
+
+        """
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        path = add_path + 'saved_models/model_'
+
+        # create new directory with incremented id
+        new_id = 0
+        while True:
+            if not os.path.exists(path + '{}'.format(new_id)):
+                os.makedirs(path + '{}'.format(new_id))
+                break
+            new_id += 1
+
+        # copy old rewards log to append new if model was loaded
+        if old_id:
+            try:
+                copyfile(
+                    path + '{}/rewards.log'.format(old_id),
+                    path + '{}/rewards.log'.format(new_id))
+            except FileNotFoundError:
+                print('Warning: no rewards to copy found,\
+                      but OLD ID is not None.')
+
+        #  --- save new data
+        # model
+        torch.save(model.q_network.state_dict(),
+                   path + '{}/network.pt'.format(new_id))
+
+        # config
+        config_path = add_path + '../configuration.json'
+        if old_id:
+            config_path = path + "{}/configuration.json".format(old_id)
+
+        copyfile(config_path, path + "{}/configuration.json".format(new_id))
+
+        if not rewards:
+            return
+        # rewards log
+        with open(path + "{}/rewards.log".format(new_id), "a") as logfile:
+            for reward in rewards:
+                logfile.write("{}\n".format(reward))
+        # rewards chart
+        rewards = []
+        for line in open(path + '{}/rewards.log'.format(new_id), 'r'):
+            values = [float(s) for s in line.split()]
+            rewards.append(values)
+        avg_rewards = []
+        for i in range(len(rewards) // (10 or 1)):
+            avg_rewards.append(np.mean(rewards[10 * i: 10 * (i + 1)]))
+        plt.plot(avg_rewards)
+        plt.savefig(path + '{}/learning_plot.png'.format(new_id))

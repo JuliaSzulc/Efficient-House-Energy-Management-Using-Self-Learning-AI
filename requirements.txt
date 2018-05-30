@@ -1,10 +1,6 @@
-Pillow==5.1.0
+PIL==5.1.0
 pygame==1.9.3
 torch==0.3.1
 matplotlib==2.2.2
 numpy==1.14.2
-# TODO: Make me! Read more in /requirements.txt
-# Po napisaniu dobrego readme z podręcznikiem instalacji, i byc może zrobieniu
-# setup.py (skryptu instalacyjnego),
-# jedna osoba (mogę to być ja, M) powinna odpalić czyste ubuntu na virtualboxie
-# i sprawdzić, czy wszystko da się ładnie wg instrukcji postawić
+snakeviz

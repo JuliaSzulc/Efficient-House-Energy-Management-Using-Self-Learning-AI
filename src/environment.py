@@ -6,6 +6,8 @@ and provides a nice facade for a model.
 
 """
 import re
+import os
+import json
 from collections import OrderedDict
 import numpy as np
 from world import World
@@ -39,6 +41,12 @@ class HouseEnergyEnvironment:
 
         """
 
+        add_path = ''
+        if 'tests' in os.getcwd():
+            add_path = '../'
+        with open(add_path + '../configuration.json') as config_file:
+            self.config = json.load(config_file)['env']
+
         self.world = None
         self.outside_sensors = None
         self.house = None
@@ -47,10 +55,10 @@ class HouseEnergyEnvironment:
 
         self.collect_stats = collect_stats
         self.timesteps = 0
-        self.temp_diff_2_count = 0
-        self.temp_diff_05_count = 0
-        self.light_diff_015_count = 0
-        self.light_diff_005_count = 0
+        self.temp_diff_ok_count = 0
+        self.temp_diff_perfect_count = 0
+        self.light_diff_ok_count = 0
+        self.light_diff_perfect_count = 0
 
         self.reset(world)
 
@@ -68,17 +76,17 @@ class HouseEnergyEnvironment:
             reward(float): a reward for RL agent's last action
             done(boolean): information whether the new state, achieved after
                            this update, is terminal (episode end)
-
         """
 
         getattr(self.house, action_name)()
         done = self.world.step()
-        current_state = self._get_current_state()
-        observation = self._serialize_state(current_state)
+        current_state = self.get_current_state()
 
-        self.last_reward = self.house.reward()
         if self.collect_stats:
-            self._update_stats(current_state['inside'])
+            self._update_stats(current_state)
+
+        observation = self.serialize_state(current_state)
+        self.last_reward = self.house.reward()
 
         return observation, self.last_reward, done
 
@@ -95,10 +103,10 @@ class HouseEnergyEnvironment:
         self.world = world or World()
 
         self.timesteps = 0
-        self.temp_diff_2_count = 0
-        self.temp_diff_05_count = 0
-        self.light_diff_015_count = 0
-        self.light_diff_005_count = 0
+        self.temp_diff_ok_count = 0
+        self.temp_diff_perfect_count = 0
+        self.light_diff_ok_count = 0
+        self.light_diff_perfect_count = 0
 
         self.house = House(self.world.time_step_in_minutes)
         self.outside_sensors = [OutsideSensor(self.house) for _ in range(1)]
@@ -110,71 +118,7 @@ class HouseEnergyEnvironment:
         # transfer initial information to listeners
         self.world.update_listeners()
 
-        return self._serialize_state(self._get_current_state())
-
-    # TODO: Delete this function as a part of 'state cleaning' task
-    @property
-    def render(self):
-        """Outputs the state of environment in a human-readable format
-
-        Returns:
-            labels(list) - names for each value in data
-            data(numpy array) - values of environment parameters
-        """
-
-        reward = self.last_reward
-
-        # --- unnormalized ---
-        unnormalized_dataset = []
-        d = self._get_current_state()
-
-        for sensor in d['outside']:
-            for key, value in sensor.items():
-                unnormalized_dataset.append(value)
-
-        for d_key, d_value in d['inside'].items():
-            if d_key == 'inside_sensors':
-                for sensor in d_value.values():
-                    for key, value in sensor.items():
-                        unnormalized_dataset.append(value)
-            elif d_key == 'desired' or d_key == 'devices_settings':
-                for key, value in d_value.items():
-                    unnormalized_dataset.append(value)
-            else:
-                unnormalized_dataset.append(d_value)
-        unnormalized_dataset.append(reward)
-
-        # --- normalized ---
-        dataset = self._serialize_state(self._get_current_state())
-        dataset = np.append(dataset, reward)
-
-        # --- tags ---
-        labels_names = [
-            'Daytime outside: ',
-            'Temperature outside: ',
-            'Light outside: ',
-            'Clouds: ',
-            'Rain: ',
-            'Wind: ',
-            'Temperature inside: ',
-            'Temperature delta: ',
-            'Light inside: ',
-            'Temp desired: ',
-            'Temp epsilon: ',
-            'Light desired: ',
-            'Light epsilon: ',
-            'Grid cost: ',
-            'Energy source: ',
-            'Cooling lvl: ',
-            'Heating lvl: ',
-            'Light lvl: ',
-            'Curtains lvl: ',
-            'Battery lvl: ',
-            'Battery delta: ',
-            'REWARD FOR STEP: '
-        ]
-
-        return labels_names, unnormalized_dataset, dataset
+        return self.serialize_state(self.get_current_state())
 
     def get_actions(self):
         """Returns list of action-method names (possible actions)
@@ -195,43 +139,70 @@ class HouseEnergyEnvironment:
                 if callable(getattr(self.house, action))
                 and re.match("action.*", action)]
 
-    # TODO: Zmienić tę funkcję, zaby zwracała nie-zagniezdzony OrderedDict
-    # wartości nie-normalizowanych. + testy które to weryfikuja
-    def _get_current_state(self):
+    def get_current_state(self):
+        """Returns a dicitonary of unnormalized environment state values.
+
+        Use this method to gather human-readable information about the state.
+        This method shouldn't be used by the reinforcement learning agent, as
+        the values aren't normalized. Normalized state is returned by the step
+        method, which uses _serialize_state() method to normalize this dict.
+
+        Returns(OrderedDict):
+            Current outside and inside sensor values, user
+            desired values, action-controllable settings of devices,
+            daytime and reward for the last timeframe.
+        """
         outside_params = [sensor.get_info() for sensor in self.outside_sensors]
         inside_params = self.house.get_inside_params()
-        observation = OrderedDict({
-            'outside': outside_params,
-            'inside': inside_params
-        })
-        return observation
 
-    # TODO: Zgodnie z taskiem sprzatania stanu, wywalic daytime i epsilony
+        current_state = OrderedDict([])
+
+        for sensor_info in outside_params:
+            current_state.update(sensor_info)
+
+        for param_key, param_value in inside_params.items():
+            if param_key == 'inside_sensors':
+                for sensor_key, sensor_values in param_value.items():
+                    for key, value in sensor_values.items():
+                        current_state[sensor_key + "." + key] = value
+            elif param_key == "desired" or param_key == "devices_settings":
+                for key, value in param_value.items():
+                    current_state[key] = value
+            else:
+                current_state[param_key] = param_value
+
+        current_state['Reward'] = self.last_reward
+
+        return current_state
+
     @staticmethod
-    def _serialize_state(state):
+    def serialize_state(state):
         """Returns 1-dim ndarray of normalized state parameters from dict
 
         Args:
-            state(dict) - the exact product of _get_current_state method.
-            Note: Method assumes all temperature indicators are from range
-            (-20, 40) and this is a project global assumption.
+            state(OrderedDict) - the exact product of _get_current_state method.
+
+        Note: Method assumes all temperature indicators are from range
+        (-20, 40) + every temperature indicator contains 'temp' in the key name
+        - and this is a project global assumption.
+
+        Notice that this method gets deletes the daytime entry and any constant
+        values.
 
         Returns(ndarray):
-            Current array structure:
+            Normalized, 'neural-net ready' state 1-dim array.
 
-        [0] daytime // from Outside Sensor
-        [1] temperature_outside
-        [2] light
-        [.] clouds
-        [.] rain
-        [ ] wind
-        [ ] temperature // from House
+        Current array structure:
+        [0] Outside Temperature
+        [1] Outside Light
+        [2] Clouds
+        [.] Rain
+        [.] Wind
+        [.] temperature
         [ ] temperature_delta
         [ ] light
         [ ] temp_desired
-        [ ] temp_epsilon
         [ ] light_desired
-        [ ] light_epsilon
         [ ] grid_cost
         [ ] energy_src
         [ ] cooling_lvl
@@ -242,50 +213,22 @@ class HouseEnergyEnvironment:
         [ ] battery_delta
         """
 
-        observation = []
-        for sensor in state['outside']:
-            for key, value in sensor.items():
-                if key == 'actual_temp':
-                    value = (value + 20) / 60
-                elif key == 'daytime':
-                    # time in range (0, 1440) min
-                    value /= 1440
-                observation.append(value)
+        del state['Daytime']
+        del state['Reward']
 
-        for d_key, d_value in state['inside'].items():
-            if d_key == 'inside_sensors':
-                for sensor in d_value.values():
-                    for key, value in sensor.items():
-                        if re.match('temp.*', key):
-                            value = (value + 20) / 60
-                        observation.append(value)
+        for key, value in state.items():
+            if re.match('.*temp.*', key, re.IGNORECASE):
+                state[key] = (value + 20) / 60
 
-            elif d_key == 'desired':
-                for key, value in d_value.items():
-                    if re.match('temp.*', key):
-                        value = (value + 20) / 60
-                    observation.append(value)
+        state['energy_src'] = 1 if state['energy_src'] is 'grid' else 0
+        state['battery_level'] /= state['battery_max']
+        del state['battery_max']
+        state['battery_delta'] /= 10
 
-            elif d_key == 'devices_settings':
-                for setting_key, setting_value in d_value.items():
-                    if setting_key == 'energy_src':
-                        setting_value = 1 if setting_value is 'grid' else 0
-                    observation.append(setting_value)
-
-            elif d_key == 'battery_level':
-                d_value /= 14000
-                observation.append(d_value)
-
-            elif d_key == 'battery_delta':
-                d_value /= 10
-                observation.append(d_value)
-            else:
-                observation.append(d_value)
-
-        return np.array(observation)
+        return np.array(list(state.values()))
 
     def get_episode_stats(self):
-        """Provides statistic info about episode.
+        """Provides statistic comfort-related info about episode.
 
         Returns:
             dictionary with current statistics expressed in percent of
@@ -293,19 +236,24 @@ class HouseEnergyEnvironment:
 
         Returns the correct values only if the environment works in the
         collect_stats mode and there was at least one step taken; returns None
-        if not.
+        if not. The stats functionality works only for one sensor version
+        of the environment
         """
 
         if self.collect_stats and self.timesteps != 0:
-            temp_2 = 100 * self.temp_diff_2_count / self.timesteps
-            temp_05 = 100 * self.temp_diff_05_count / self.timesteps
-            light_015 = 100 * self.light_diff_015_count / self.timesteps
-            light_005 = 100 * self.light_diff_005_count / self.timesteps
+            t_ok = 100 * self.temp_diff_ok_count / self.timesteps
+            t_perf = 100 * self.temp_diff_perfect_count / self.timesteps
+            l_ok = 100 * self.light_diff_ok_count / self.timesteps
+            l_perf = 100 * self.light_diff_perfect_count / self.timesteps
 
-            return {'Temperature difference < 2': temp_2,
-                    'Temperature difference < 0.5': temp_05,
-                    'Light difference < 0.15': light_015,
-                    'Light difference < 0.05': light_005}
+            return {'Temperature difference < {}'
+                    .format(self.config['stats']["temp_ok_diff"]): t_ok,
+                    'Temperature difference < {}'
+                    .format(self.config['stats']["temp_perfect_diff"]): t_perf,
+                    'Light difference < {}'
+                    .format(self.config['stats']["light_ok_diff"]): l_ok,
+                    'Light difference < {}'
+                    .format(self.config['stats']["light_perfect_diff"]): l_perf}
         else:
             return None
 
@@ -313,7 +261,9 @@ class HouseEnergyEnvironment:
         """Updates the statistics of fulfilling the desired values.
 
         Updating stats is done by checking the absolute
-        difference between current and desired values.
+        difference between current and desired values. Current values are
+        taken from the first, main sensor in the house. You can change the
+        "ok" and "perfect" difference values in the global configuration.
 
         If the difference is smaller than given value, the statistic is
         increased. Note that the statistics are just counts - the episode
@@ -323,21 +273,18 @@ class HouseEnergyEnvironment:
             state(OrderedDict): dictionary in format returned by
                                 _get_current_state() method
         """
-        # TODO don't forgot to update this method when the structure of
-        # TODO unnormalized state dict will change during the cleaning task
 
         self.timesteps += 1
-        temp_difference = abs(state['inside_sensors']['first']['temperature']
-                              - state['desired']['temp_desired'])
-        light_difference = abs(state['inside_sensors']['first']['light']
-                               - state['desired']['light_desired'])
+        temp_difference = abs(state['first.temperature']
+                              - state['temp_desired'])
+        light_difference = abs(state['first.light']
+                               - state['light_desired'])
 
-        if temp_difference < 2:
-            self.temp_diff_2_count += 1
-            if temp_difference < 0.5:
-                self.temp_diff_05_count += 1
-        if light_difference < 0.15:
-            self.light_diff_015_count += 1
-            if light_difference < 0.05:
-                self.light_diff_005_count += 1
-
+        if temp_difference < self.config['stats']["temp_ok_diff"]:
+            self.temp_diff_ok_count += 1
+            if temp_difference < self.config['stats']["temp_perfect_diff"]:
+                self.temp_diff_perfect_count += 1
+        if light_difference < self.config['stats']["light_ok_diff"]:
+            self.light_diff_ok_count += 1
+            if light_difference < self.config['stats']["light_perfect_diff"]:
+                self.light_diff_perfect_count += 1

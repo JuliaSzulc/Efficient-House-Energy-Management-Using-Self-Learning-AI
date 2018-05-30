@@ -1,42 +1,36 @@
 """This is the main executable module for the project.
 
 Performs training of new - or loaded - model of the RL agent and provides
-logging, plotting and saving options.
+logging, plotting and saving options. If 'manual' option is specified, there
+is no training.
 
 You can change the behaviour details with boolean flags at the beginning
-of the main function.
+of the main configuration file (/configuration.json).
 
 """
-import sys
-import os
 import json
-import numpy as np
+
 import matplotlib.pyplot as plt
-import torch
-from environment import HouseEnergyEnvironment
+import numpy as np
 from agent import Agent
-from shutil import copyfile
+from agent import AgentUtils
+from environment import HouseEnergyEnvironment
 
 
-def main():
-    # TODO: write a "just run it" test, to check consistency
-
-    save_experiment = True
-    print_stats = True
-    make_total_reward_plot = True
-    load_agent_model = True
+def main(config):
+    save_experiment = config['main']['save_experiment']
+    print_stats = config['main']['print_stats']
+    make_total_reward_plot = config['main']['make_total_reward_plot']
+    load_agent_model = config['main']['load_agent_model']
+    training_episodes = config['main']['training_episodes']
 
     env = HouseEnergyEnvironment(collect_stats=print_stats)
     agent = Agent(env=env)
 
-    model_id = -1
+    model_id = None
     if load_agent_model:
-        load_model(agent, input('Enter model number to load:\n'))
-
-    with open('../configuration.json') as config_file:
-        config = json.load(config_file)
-
-    training_episodes = config['main']['training_episodes']
+        model_id = input('Enter model number to load:\n')
+        AgentUtils.load(agent, model_id)
 
     # --- learning ---
     rewards = []
@@ -54,8 +48,7 @@ def main():
         plot_total_rewards(rewards, training_episodes, avg=10)
 
     if save_experiment:
-            save_model_info(model_id, agent.q_network,
-                            rewards, load_agent_model)
+        AgentUtils.save(agent, rewards, model_id)
 
 
 def plot_total_rewards(rewards, num_episodes, avg=10):  # pragma: no cover
@@ -83,95 +76,8 @@ def print_episode_stats(agent_stats, env_stats):  # pragma: no cover
     print("==================================================================")
 
 
-# FIXME move loading and saving to a separate class
-def load_model(agent, model_id):
-    # TODO: write some tests
-    """
-    Loads the given model to the Agent's network fields.
-
-    Args:
-        agent(Agent): agent object which we want to load
-        model_id(number): model's number used to find the corresponding file
-
-    """
-
-    try:
-        agent.load_config('saved_models/model_{}/configuration.json'.
-                          format(model_id))
-    except FileNotFoundError:
-        print("Loading model failed. No model with given index, or no\
-              configuration file")
-        sys.exit()
-
-    agent.load_network_model('saved_models/model_{}/network.pt'.
-                             format(model_id))
-
-
-def save_model_info(model_id, model, rewards, model_was_loaded=False):
-    # TODO: write some tests
-    """
-    Method saves the model, configuration file  and training rewards to a files
-    in the saved_models/{model_id} directory.
-
-    Args:
-        model_id(number): id of the model (should be -1 if it's a new model)
-        model(torch.nn.Net): neural network torch model (q_network)
-        rewards(list): list of total rewards for each episode
-        model_was_loaded(bool): determine if model was loaded or created
-    """
-
-    # create new directory with incremented id
-    new_index = 0
-    while True:
-        if not os.path.exists('saved_models/model_{}'.format(new_index)):
-            os.makedirs('saved_models/model_{}'.format(new_index))
-            break
-        new_index += 1
-
-    # copy old rewards log to append new if model was loaded
-    # model_was_loaded = (model_id != -1) and os.path.isfile(
-        # 'saved_models/model_{}/rewards.log'.format(model_id))
-    if model_was_loaded:
-        copyfile(
-            'saved_models/model_{}/rewards.log'.format(model_id),
-            'saved_models/model_{}/rewards.log'.format(new_index))
-
-    #  --- save new data
-    # model
-    torch.save(model.state_dict(), 'saved_models/model_{}/network.pt'
-               .format(new_index))
-
-    # rewards log
-    logfile = open("saved_models/model_{}/rewards.log".format(new_index), "a")
-    for reward in rewards:
-        logfile.write("{}\n".format(reward))
-    logfile.close()
-
-    # config
-    config_path = '../configuration.json'
-    if model_was_loaded:
-        config_path = "saved_models/model_{}/" \
-                      "configuration.json".format(model_id)
-    else:
-        if 'tests' in os.getcwd():
-            add_path = '../'
-            config_path = add_path + '../configuration.json'
-
-    copyfile(
-        config_path,
-        "saved_models/model_{}/configuration.json".format(new_index))
-
-    # rewards chart
-    rewards = []
-    for line in open('saved_models/model_{}/rewards.log'.format(new_index), 'r'):
-        values = [float(s) for s in line.split()]
-        rewards.append(values)
-    avg_rewards = []
-    for i in range(len(rewards) // (10 or 1)):
-        avg_rewards.append(np.mean(rewards[10 * i: 10 * (i + 1)]))
-    plt.plot(avg_rewards)
-    plt.savefig('saved_models/model_{}/learning_plot.png'.format(new_index))
-
-
 if __name__ == "__main__":  # pragma: no cover
-    main()
+    with open('../configuration.json') as config_file:
+        config = json.load(config_file)
+
+    main(config=config)

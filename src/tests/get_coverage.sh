@@ -2,7 +2,7 @@
 coverage erase
 for file in $(ls | grep -v '.*~\|__.*' | grep ".*_tests.py"); do
     echo "running" $file "with coverage.py..."
-    coverage run -a --source .. --omit */tests/* $file
+    coverage run -a --source .. --rcfile=.coveragerc $file
 done
 echo "Coverage report from tests:"
 coverage report -m
