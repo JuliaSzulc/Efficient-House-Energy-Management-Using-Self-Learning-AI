@@ -111,6 +111,9 @@ src/*.log
 # *.log (already defined higher)
 # texowe smieci
 *.aux
+*.fls
+*.out
+*.fdb_latexmk
 *.synctex.gz
 *.profile
 # modele

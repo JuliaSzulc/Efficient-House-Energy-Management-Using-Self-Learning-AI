@@ -7,6 +7,15 @@
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage{fullpage}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage[bottom]{footmisc}
+\usepackage{listings}
+\lstset{basicstyle=\fontfamily{fvm}\selectfont\footnotesize,
+    showstringspaces=false,
+    commentstyle=\color{red},
+    keywordstyle=\color{blue}
+}
 
 % \setlength\parindent{0pt} % Removes all indentation from paragraphs
 
@@ -27,6 +36,7 @@ guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introductio
 
 \section{Introduction}
 % wstęp, idea, kontekst
+
 \subsection{Goals and milestones}
 % jak w nazwie
 \subsection{Results}
@@ -42,8 +52,116 @@ guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introductio
 \section{Getting Started}
 \subsection{Setup and Requirements}
 % Co zainstalować, jaka wersja Pythona, wszyściutko
-\subsection{Learning and Simulation}
+This project was made on Debian based Linux distributions. We strongly 
+recommend it in similar environment. 
+\\\\
+Firstly, install Python 3.6.5. You can do it via apt package manager from command line
+\begin{lstlisting}[language=bash]
+$ sudo apt-get install python3.6 
+\end{lstlisting}
+or by downloading it from producent's page
+\footnote{\url{https://www.python.org/downloads/release/python-365/}}
+ and performing manual installation.
+\\ \\ 
+Secondly, go to main project directory and install required Python libraries:
+\begin{lstlisting}[language=bash]
+$ pip3 install -r requirements.txt
+\end{lstlisting}
+From now on, you should be able to use our project by running different source scripts.
+
+\subsection{Usage: Learning and Simulation}
 % Tutaj opis możliwych trybów uruchomienia. Main/learning na start, potem symulacja. Zaznaczyć już tutaj istotność configuration.json itd.
+Our project can be run in different modes. These can be configured by changing contents of 
+\textbf{configuration.json} file, located in main project directory. This directory will be referred to as 
+\textbf{TOP} in this section.
+
+\subsubsection{Learning mode}
+This mode can be run by going into source files directory and launching \textbf{main.py}
+ with python3 interpreter. 
+\begin{lstlisting}
+$ cd TOP/src
+$ python3 main.py
+\end{lstlisting}
+In learning mode, Reinforcement Learning Agent model is learning for a given number of episodes.
+One episode is typically one day in randomly generated environment. Agent is performing action every few minutes, trying to get perfect balance between required conditions (light, temperature) and energy cost; he is also drawing conslusions from his mistakes. As the time passes, Agent is getting better; we can roughly say
+that in the long term, a longer trained Agent will perform better than the one after shorter training session,
+with the same training configuration.
+\\\\
+After training session, model is typically saved in
+\begin{lstlisting}
+$ TOP/src/saved_models/
+\end{lstlisting}
+directory, within a separate folder with new index (indexes start at 0). Model is saved along with its configuration file, graph presenting learning curve and log with rewards from 
+every step.
+\\\\
+Existing agent model can also be loaded into training session. In this case, you will be prompted
+to insert existing model's index number.
+\\\\ Basic configuration for this mode can be modified by changing contents of configuration.json, a part
+called \textbf{main}. Precise documentation of the whole configuration file can be found later in documentation. 
+\\\\
+\textit{NOTE:} Altough basic configuration for main (learning) mode is fairly limited, succesfull learning is built upon all environment / agent settings in configuration file. Default ones are based on our research in order to provide the best and most meaningful learning results.
+
+\subsubsection{Simulation mode}
+This mode can be run by going into source files directory and launching \textbf{simulation.py}
+ with python3 interpreter. 
+\begin{lstlisting}
+$ cd TOP/src
+$ python3 simulation.py
+\end{lstlisting}
+After launching, you will be prompted to insert existing model's number to use in simulation. 
+\\\\
+\textit{NOTE:} Simulation will start in full screen, be sure to have only one monitor connected - otherwise, simulation will span across all monitors.
+\\\\
+In simulation mode, user is presented to graphical interface representing Reinforcement Learning
+Agent in action. 
+There is a continuous environment, inside which Agent is trying to make his best decisions. No
+learning process included.  \\\\
+\textbf{Key mapping scheme}: \\
+\begin{center}
+\begin{tabular}{c | c }
+\textbf{key} & \textbf{action} \\ \hline
+ESC & exit simulation \\ \hline
+SPACEBAR & toggle pause / play \\ \hline
+- & slow down simulation \\ \hline
+= & speed up simulation \\ \hline
+z & toggle charts zoom \\ 
+\end{tabular}
+\end{center}
+\textbf{Widgets}
+\begin{itemize}
+    \item Weather widget \\\\
+    Located on the left side of the screen. This widget presents current time and weather informations outside of the house in form of a timer animation and five weather indicators: 
+    \begin{itemize}
+        \item temperature
+        \item sun intensity
+        \item wind intensity
+        \item clouds intensity
+        \item rain intensity
+    \end{itemize}
+    \item Devices widget \\\\
+    Located on the right bottom of the screen. This widget presents current house devices settings. Those include:
+    \begin{itemize}
+       \item Energy source (icons) and battery level (percentage)
+       \item Cooling, heating, light and curtains level (leveled bar chart) 
+    \end{itemize}
+    \item Charts widget \\\\
+    Located on the right center of the screen. This widget presents last 100 levels of light / degrees of temperature inside the house, along with users required level at given time. \\\\
+    These two charts can be zoomed by pressing ''z'' on the keyboard. Zooming centers chart in a way that required level is placed directly at half of the charts height and the visible range is between $-0.1 * max$ and $+0.1 * max$ for maximum light / temperature levels respectively.
+    \item Gauges widget \\\\
+    Located on the right top of the screen. This widget presents current and desired level of light / temperature in form of a gauge chart.
+\end{itemize}
+
+Default speed of simulation can be set in \textbf{configuration.json} file, in module ''simulation'', item ''fps''.
+\subsubsection{Manual testing mode}
+This mode can be run by going into source files directory and launching \textbf{manual\_test.py} with python3 interpreter. 
+\begin{lstlisting}
+$ cd TOP/src
+$ python3 manual_test.py
+\end{lstlisting}
+This mode is a command-line interface for manual testing of Reinforcement Learning Agent behaviour. User can manually test agent-environment connection by deciding which action to make, or can load existing model to be able to use its choice in particular moment. The whole process is done one step at the time.\\\\
+All actions are made by entering a number specific for a certain command. Commands and numbers are visible all the time on top of the rendered text. \\\\
+\textit{NOTE:} This mode was made mainly for testing purposes, and should be treated as additional, not main functionality.
+
 \subsection{Testing}
 % Opis testowania projektu. Testy jednostkowe wraz ze sposobem generowania coverage.
 % Do tego manual testing - testowanie środowiska (może być jako subsubsection, a może być jako osobne subsection)
