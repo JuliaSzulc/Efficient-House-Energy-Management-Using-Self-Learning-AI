@@ -1,0 +1,345 @@
+\documentclass{article}
+
+\usepackage{graphicx} % Required for the inclusion of images
+\usepackage{amsmath} % Required for some math elements
+\usepackage{graphicx} 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{fullpage}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage[bottom]{footmisc}
+\usepackage{listings}
+\lstset{basicstyle=\fontfamily{fvm}\selectfont\footnotesize,
+    showstringspaces=false,
+    commentstyle=\color{red},
+    keywordstyle=\color{blue}
+}
+
+\title{Effective House Energy Management Using Reinforcement Learning Technical Documentation} % Title
+
+\author{Dawid Czarneta, Jakub Frąckiewicz, Filip Olszewski, Michał Popiel, Julia Szulc}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This is a technical documentation of our university project developed with cooperation and guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introduction and overview of main concepts, milestones, goals and results of this project. It is followed by a technical part, that contains a setup guide, code and tests overviews, explanation of used algorithms and concepts. Last part provides details about the development process, including useful insights, experiences, further research suggestions and lessons we have learned the hard way.
+\end{abstract}
+
+\section{Introduction}
+% wstęp, idea, kontekst
+
+\subsection{Goals and milestones}
+% jak w nazwie
+\subsection{Results}
+% jak w nazwie
+
+\section{Reinforcement Learning}
+The project is based on one of the machine learning areas called reinforcement learning. The research and development of this field has been rising as of late, because of, among others, the improvements in deep learning methods and constantly increasing computing power that is available to human. Combined with concepts like convolutional neural networks, RL algorithms achieve super-human performance in a variety of tasks. The main field of success is probably the gaming world, including both the traditional games like Chess or Go, and computer games, where, for example, classic Atari games are learned and solved by RL agents taking the input directly from raw pixels.
+
+Reinforcement learning is often explained by comparison to supervised learning, which is usually named the most successful field of Machine Learning. It is based on datasets, which consist of both the observations and the correct labels (answers, classes). For example, the dataset consists of images, and each image has it is correct label as well - a word that describes the object on the image. In Reinforcement Learning, on the other hand, there is no 'supervisor'. Instead, the environment returns a reward signal, which indicates how good or bad the current situation is. The main goal of the agent is to maximize the cumulative reward.
+
+There is a common vocabulary that is used to describe this setup. The \textbf{agent} (RL algorithm) has to interact with the \textbf{environment}, by performing \textbf{actions}. Environment gives the agent information about the \textbf{current state}, as well as the \textbf{reward signal} for the last time-frame. Agent has to choose the best one from the given set of possible actions. This is usually happening until the environment reaches a \textbf{terminal state}. Simulation from the start to terminal state is called an \textbf{episode}. A \textbf{transition} is defined as a sequence - state, action, reward and next state - and is used as a single 'experience' unit in agent's memory. 
+
+To put this into perspective: In our project, the smart house manager is the agent. The simulated world is the environment. Actions are used to control devices such as heating or light. The state is a collection of information about the weather, inside parameters, current devices settings and user requests - everything that is needed for agent to perform rational decisions. The episode can be defined as - for example - one single day, where the terminal state is when the world clock reaches midnight.
+\subsection{What have we used?}
+Our agent uses Double DQN with Prioritized Experience Replay. This is a combination of recent developments in the field, which improve the speed, quality and stability of learning, and sometimes are essential for solving particular tasks. The neural network model is a fully connected feedforward network with one hidden layer. It uses ReLU activation function on hidden layer neurons and linear activation function on the output layer. For an explanation of these concepts and more detailed information about the agent, please see the Agent module section (4.2).
+\subsection{PyTorch Framework}
+To implement the agent and the concepts named above, we have used the PyTorch framework. It is now commonly believed, that this frameworks becomes the go-to Python framework used for Deep Learning, with some essential advantages when compared to the - currently most popular - TensorFlow framework. While this is still a matter of loud discussions, we have chosen the framework more out of curiosity, and because it is often called 'more Pythonic'. We will talk more about our experiences and conclusions about that choice later in the documentation, but the short story is - we are satisfied with it.
+
+We are using PyTorch for a very clear neural network model declaration, ready-to-use optimizers like SGD or Adagrad and loss functions, automatic computation of the gradients of network's parameters, and to perform the Double DQN learning process. It also provides a clear way to use GPUs for the computations. 
+
+We have used the version 0.3.1 and it is important to note, that the newest version of the framework (0.4.0 on the day of this documentation's publication) requires some changes to the code.
+\section{Getting Started}
+\subsection{Setup and Requirements}
+% Co zainstalować, jaka wersja Pythona, wszyściutko
+This project was made on Debian based Linux distributions. We strongly 
+recommend it in similar environment. 
+\\\\
+Firstly, install Python 3.6.5. You can do it via apt package manager from command line
+\begin{lstlisting}[language=bash]
+$ sudo apt-get install python3.6 
+\end{lstlisting}
+or by downloading it from producent's page
+\footnote{\url{https://www.python.org/downloads/release/python-365/}}
+ and performing manual installation.
+\\ \\ 
+Secondly, go to main project directory and install required Python libraries:
+\begin{lstlisting}[language=bash]
+$ pip3 install -r requirements.txt
+\end{lstlisting}
+From now on, you should be able to use our project by running different source scripts.
+
+\subsection{Usage: Learning and Simulation}
+% Tutaj opis możliwych trybów uruchomienia. Main/learning na start, potem symulacja. Zaznaczyć już tutaj istotność configuration.json itd.
+Our project can be run in different modes. These can be configured by changing contents of 
+\textbf{configuration.json} file, located in main project directory. This directory will be referred to as 
+\textbf{TOP} in this section. 
+
+\subsubsection{Learning mode}
+This mode can be run by going into source files directory and launching \textbf{main.py}
+ with python3 interpreter. 
+\begin{lstlisting}
+$ cd TOP/src
+$ python3 main.py
+\end{lstlisting}
+In learning mode, Reinforcement Learning Agent model is learning for a given number of episodes.
+One episode is typically one day in randomly generated environment. Agent is performing action every few minutes, trying to get perfect balance between required conditions (light, temperature) and energy cost; he is also drawing conslusions from his mistakes. As the time passes, Agent is getting better; we can roughly say
+that in the long term, a longer trained Agent will perform better than the one after shorter training session,
+with the same training configuration.
+\\\\
+After training session, model is typically saved in
+\begin{lstlisting}
+$ TOP/src/saved_models/
+\end{lstlisting}
+directory, within a separate folder with new index (indexes start at 0). Model is saved along with its configuration file, graph presenting learning curve and log with rewards from 
+every step.
+\\\\
+Existing agent model can also be loaded into training session. In this case, you will be prompted
+to insert existing model's index number.
+\\\\ Basic configuration for this mode can be modified by changing contents of configuration.json, a part
+called \textbf{main}. Precise documentation of the whole configuration file can be found later in documentation. 
+\\\\
+\textit{NOTE:} Altough basic configuration for main (learning) mode is fairly limited, succesfull learning is built upon all environment / agent settings in configuration file. Default ones are based on our research in order to provide the best and most meaningful learning results.
+
+\subsubsection{Simulation mode}
+This mode can be run by going into source files directory and launching \textbf{simulation.py}
+ with python3 interpreter. 
+\begin{lstlisting}
+$ cd TOP/src
+$ python3 simulation.py
+\end{lstlisting}
+After launching, you will be prompted to insert existing model's number to use in simulation. 
+\\\\
+\textit{NOTE:} Simulation will start in full screen, be sure to have only one monitor connected - otherwise, simulation will span across all monitors.
+\\\\
+In simulation mode, user is presented to graphical interface representing Reinforcement Learning
+Agent in action. 
+There is a continuous environment, inside which Agent is trying to make his best decisions. No
+learning process included.  \\\\
+\textbf{Key mapping scheme}: \\
+\begin{center}
+\begin{tabular}{c | c }
+\textbf{key} & \textbf{action} \\ \hline
+ESC & exit simulation \\ \hline
+SPACEBAR & toggle pause / play \\ \hline
+- & slow down simulation \\ \hline
+= & speed up simulation \\ \hline
+z & toggle charts zoom \\ 
+\end{tabular}
+\end{center}
+\textbf{Widgets}
+\begin{itemize}
+    \item Weather widget \\\\
+    Located on the left side of the screen. This widget presents current time and weather informations outside of the house in form of a timer animation and five weather indicators: 
+    \begin{itemize}
+        \item temperature
+        \item sun intensity
+        \item wind intensity
+        \item clouds intensity
+        \item rain intensity
+    \end{itemize}
+    \item Devices widget \\\\
+    Located on the right bottom of the screen. This widget presents current house devices settings. Those include:
+    \begin{itemize}
+       \item Energy source (icons) and battery level (percentage)
+       \item Cooling, heating, light and curtains level (leveled bar chart) 
+    \end{itemize}
+    \item Charts widget \\\\
+    Located on the right center of the screen. This widget presents last 100 levels of light / degrees of temperature inside the house, along with users required level at given time. \\\\
+    These two charts can be zoomed by pressing ''z'' on the keyboard. Zooming centers chart in a way that required level is placed directly at half of the charts height and the visible range is between $-0.1 * max$ and $+0.1 * max$ for maximum light / temperature levels respectively.
+    \item Gauges widget \\\\
+    Located on the right top of the screen. This widget presents current and desired level of light / temperature in form of a gauge chart.
+\end{itemize}
+
+Default speed of simulation can be set in \textbf{configuration.json} file, in module ''simulation'', item ''fps''.
+\subsubsection{Manual testing mode}
+This mode can be run by going into source files directory and launching \textbf{manual\_test.py} with python3 interpreter. 
+\begin{lstlisting}
+$ cd TOP/src
+$ python3 manual_test.py
+\end{lstlisting}
+This mode is a command-line interface for manual testing of Reinforcement Learning Agent behavior. User can manually test agent-environment connection by deciding which action to make, or can load existing model to be able to use its choice in particular moment. The whole process is done one step at the time.\\\\
+All actions are made by entering a number specific for a certain command. Commands and numbers are visible all the time on top of the rendered text. \\\\
+\textit{NOTE:} This mode was made mainly for testing purposes, and should be treated as additional, not main functionality.
+
+\subsection{Testing}
+% Opis testowania projektu. Testy jednostkowe wraz ze sposobem generowania coverage.
+% Do tego manual testing - testowanie środowiska (może być jako subsubsection, a może być jako osobne subsection)
+\section{Code overview}
+% wstępniaczek co znajdziemy w tej sekcji.
+\subsection{HouseEnergyEnvironment module}
+% opis środowiska. Tutaj chyba najlepiej podzielić to na subsubsections, House / World / Environment
+
+\subsection{Agent module}
+The agent module is where all the reinforcement learning mechanisms are implemented and used. To get the idea of how to use it and how it works, we split the module into small components and explain each one by one.
+\subsubsection{Neural Network}
+The neural network model used in learning and choosing the actions is modeled as the \textbf{Net} class. It is fairly simple thanks to PyTorch and the code pretty much speaks for itself. The forward function defines the forward pass.
+
+\subsubsection{Agent class}
+The main class of the module is the Agent class and it is essential to know how to use this class. Most of the code is much more easier to read and understand with beginner knowledge in the RL field. Here are the descriptions of the central methods of the class:
+
+\begin{itemize}
+\item \textit{reset()} - method used to reinitialize the agent. It is called from the constructor, but you can call it separately if there is a need.
+\item \textit{run()} - most essential method, called to perform a full episode on the environment - with learning. This method resets the environment, and perform a loop in which the agent chooses an action, receives feedback, performs \textit{reward clipping}, updates statistics, saves the observed transition into the memory, calls the training function and then, in the end, slightly \textit{updates the target network}. Reward clipping is one of the normalization methods and we are using it because of the commonly accepted suggestions to do so. The updates to the target networks are another concept that is used to stabilize the learning process and is explained in more detail in the next section.
+\item \textit{learn()} - this is the method that performs training of agent's q-network. It is a single training iteration, which samples a batch of transitions from memory and, based on Double DQN approach, performs the training on given batch. Training is explained in the next section. 
+\item \textit{get\_next\_action\_greedy()} - returns next action given a state with use of the target network using a greedy policy. Greedy means that agent return the action with the biggest q-function estimate. This function should be used if an outside object wants to know the agent's action for the given state.
+\item \textit{get\_episode\_stats()} - they implement the idea that is currently not used extensively. We are using these to register counts of each action to allow external object to analyze it.
+\end{itemize}
+
+\subsubsection{Double DQN}
+
+
+\subsubsection{Memory class}
+
+\subsubsection{AgentUtils class}
+This class provides methods for saving and loading the models of networks and configuration parameters. We have separated it from the Agent class for readability and file-based operations separate from the learning functionality of Agent class.
+
+\subsection{Configuration file}
+% Tutaj ładnie wylistowane parametry z dosyć dokładnym wytłumaczeniem - czego dotyczą, gdzie są używane, poziom istotności parametru
+% na końcu może być wrzucona obecna konfiguracja z jakąś adnotacją, że dla tej konfiguracji generowaliśmy/uczyliśmy ostateczny model agenta
+
+\section{Accuracy measures and tempo of learning}
+% tutaj trochę o statystykach które pokazujemy w mainie, jakie wyniki uznajemy za agenta nauczonego, jaki procent odpalonych agentów uczy się wszystkiego, ileśrednio epizodów zajmuje osiągnięcie akceptowalnego poziomu. Chciałoby się, żeby ta sekcja była zrobiona bardzo obszernie, ale nie mamy czasu żeby przeprowadzić nie wiadomo jaką ilość testów - i o tym też wspomnijmy. 
+
+\subsection{Parameters impact on the agent learning}
+Once the final version of the neural network has been implemented,
+we have calibrated all its parameters in such a way that the agent's learning was as efficient as possible.
+The word "efficient" is understood as the most accurate teaching of all the functions performed by the agent.
+
+Parameters were selected by repeatedly learning the network again and again, each time with different parameter values.
+So to test a particular set of values, we had to repeat the entire learning process of the agent.
+Due to the inability to perform these processes on a strong machine or computing cloud using the GPU calculations,
+we could not carry out many tests.
+
+Parameters that affect the learning of the network are included in the configuration json file.
+Belong to them the fields inside the label "agent" and the fields from the label "env"; weight of temperature, light and energy consumption.\\
+
+Parameters descriptions:
+\begin{itemize}
+\item Hidden layer size specifies the number of neurons in the inner layer of the neural network.
+The more neurons, the more states of the agent's science can be determined. 
+If the value is too small, it can be shown that the agent will not be able to learn all the required functions.
+However, when this value will be too much, then created redundant neurons will slow down the propagation process inside the network, and thus the learning process.
+
+\item The memory size specifies the amount of recent Agent transitions batches.
+A priority is given for each written transitions to the memory. 
+The bigger the penalty caused the transition, the higher the priority is set for it.
+Then, when selecting another action, the Agent searches the memory and selects transition from it. 
+The greater the priority given to a transition, the more likely it is that the agent chooses it.
+Thus, the Agent can focus more on these elements during the learning, 
+which generate a larger penalty, that is, those who have learned less.
+
+\item Double dqn determines whether during the training of the agent we use the second network in accordance with the double q learning algorithm.
+Using this algorithm makes learning more stable, as opposed to using only one network, where its values are burdened with larger noises.
+
+\item The gamma parameter determines to what extent the reward for a new change is important to us. 
+The smaller the parameter, the more we rely on the temporary reward, the one we get from the current stage, and less on the previous stage.
+
+\item In its basic setting, the decision maker takes and action, and gets a reward from the environment, and the environment changes its state. Then the decision maker senses the state of the environment, takes an action, gets a reward, and so on so forth. The state transitions are probabilistic and depend solely on the actual state and the action taken by the decision maker. The reward obtained by the decision maker depends on the action taken, and on both the original and the new state of the environment.
+
+\item Epsilon specifies the probability of selecting a random action by an agent in a given episode.
+Because the learning process consists in maximizing the reward function, it can result in getting stuck inside a one from many locals minimum.
+So epsilon provides that there is a probability when the agent will choose a random action that will make it jump out of this minimum. In accordance with the papers for learning to proceed correctly,
+the chance of selecting a random action should be decreased with the duration of the study,
+so that more often perform actions in accordance with the acquired knowledge, rather than try to perform random actions again.
+\newpage 
+With each next episode the actual value of epsilon is reduced by the formula:
+
+epsilon = epsilon * epsilon decay, where epsilon decay belongs to (0,1).
+
+The minimum chance to select a random action is determined by the value of epsilon min.
+
+\item Batch size defines number of samples that going to be propagated through the network.
+The smaller the batch size, the faster the values propagate over the network and the estimate of the gradient is less accurate.
+
+\item Learning rate determines the Agent's learning speed. 
+The larger the model values, the greater the gradient value is added to the model parameters. 
+Choosing the value of the learning rate depends on the type of the problem. 
+However, according to the papers, this value should be very small.
+
+\item Freq training defines what episodes we actually do Agent training.
+According to the reviewed papers, it turns out that when the actual training will not take place during the episode, 
+the agent learning process will be more stable. It is better to do the learning in one episode, and in the next few make decisions based on this earlier learning, without further learning, until the next number of episodes determined by the training freq parameter. Furthermore, the Agent's training with a specific frequency, we accelerate the overall process of learning the agent.
+
+\item Target network update freq specifies the number of episodes after which the target network is fully updated.
+We ignore the Q to the target ratio parameter and the whole target network refreshes by changing the values of its parameters to the value of q network parameters.
+
+\item Reward cliping is a parameter that is the lower limit of the reward received by the agent during learning. When an agent chooses his actions,
+he receives penalties for bad decisions. Sometimes these penalties can be very large, so when they exceed the critical value set by reward cliping, they are cut off to that particular minimum value, which says that "it is already so bad, that it can not be worse".
+
+\item Sgd momentum value specifies how the previous update parameter affects the new, just performed update.
+Is a response to the disadvantages of the standard descent gradient. Momentum proposes the following tweak to a gradient descent.
+It gives a gradient descent a short-term memory, so the improved descent gradient more effectively finds the function optima. 
+According to the papers, in order for the momentum to bring the greatest benefit, it should have values from the 0.99 to 0.999 range.
+
+\item Q to the target ratio is the parameter determining the importance of changes in the target network when we combine it with the q network. This subroutine determines how big part of the q network parameter values should be summed with the remaining value of the target network parameters.
+
+\item The weight of temperature, light and the cost of consumed energy are some of the values set by the user. They say about whether he prefers to have, lower bills at the end of the month, with less accuracy in maintaining the set parameters, or maybe he does not, and he prefers more accurate holding set temperature or light, with a minimum bigger energy consumption.
+If we significantly increase the cost of energy consumption, it may turn out that the agent determines that it is better not to keep the temperature set by the user at all, because the more it will enjoy lower energy costs than freezing at home.
+\end{itemize}
+
+\section{Development Process}
+% wstępniak - z racji, że to projekt badawczy a nie gotowy produkt, to zamieszczamy tutaj informacje o tym, jak szły prace, co jest trudne, co nie poszło, co poszło superancko itd.
+\subsection{Chronology}
+% Rafał sugerował coś takiego, myślę że nie ma co wypisywać tasków po kolei od lutego, ale przydałoby się zrobić listę mniej więcej jak to po kolei powstawało. Być może osobne dla enva i agenta.
+\subsection{What Has Failed}
+As a young team of developers, we are very happy to work on an exciting field of research, but we have to admit that some of the things about developing a solid, consistent code base for a team project turned out to be very challenging. Additionally, working with Reinforcement Learning agents and environments can be very tricky. In this section we are going to name some of the things that did not work out at all, including both our failures and concepts that have not improved the RL agent. 
+
+\begin{itemize}
+\item The first thing that we have failed in, is to maintain a full scalability of the environment. While there are some mechanisms that make it easier to add a feature to the simulator, like automatic action-methods detection, we feel that with more of an 'enterprise' approach to code architecture or more abstraction would make it even easier. The simulation and manual testing modes are designed more or less for the current state shape. The good news might be that the agent's class does not need any code tweaks during a state shape change.
+
+\item We have not tried to compare the Q-Learning method with the other well known approach called Policy Gradient methods. These methods try to directly estimate the policy instead of Q function values, and, considering the characteristics of our environment, this could work even better. It might be harder to estimate a pretty complicated function, but fairly easy to find out about rules like 'turn heating on when it is too cold'. We list these methods as one of the possible further research suggestions.
+
+\item One of the research fields in reinforcement learning is to allow development of RL environments to be easier by using a sparse reward function. This means that the agent receives a 0 signal, when the goal is achieved, and -1 otherwise. We have tried out this approach, using function similar to that described, and it drastically decreased performance of the agent. There are some recent improvements in the field, probably the loudest was the Hindsight Experience Replay concept, which was proven to, in some cases, condition the solving of a task, in which the reward function is sparse. We have not tried to implement this feature.
+
+\item Another thing that made the learning process harder was the way we modeled the reward function at first. Both quadratic functions for penalties and concept of 'acceptance intervals' for light and temperature differences made the learning harder, as the resulting Q function, that our model had to estimate, got much more complicated that it needed to be. The lesson here was to keep the reward function simple, and to not introduce any constructs that might be rational to a human, but do no good for the agent. 
+
+\item While this might not be a proper failure, we are aware that the project - or this documentation - lacks statistics about the experiments, including results that would suggest the impact of certain parameters to quality of learning. We explain this by very broad space of possible configurations and limited computing power available during the development. It is also worth to come back to the project's main ideas and goals - as these were not strictly about extensive research on how to make the learning the fastest, but more to check the overall potential of reinforcement learning methods. 
+\end{itemize}
+
+ 
+
+\section{Conclusions}
+% tutaj zarówno wnioski mocno badawcze o RL, jak i o rozwoju projektu. Myślę, że potencjalne kierunki rozwoju projektu należy wpisać jako subsekcję tej sekcji.
+While working on the project, we learned a lot of things in the field of reinforcement learning, which is part of the wider section of artificial intelligence. We had the opportunity to learn how to work with the PyTorch computing package, which was created not only to work on artificial intelligence, but it can also be used for complex matrix calculations, which have nothing to do with machine learning. Lot of this things we learned during the previous research and others during the implementation. In addition to the items related to reinforcement learning, we also learned how to collaborate in a team and plan progress in the project, sharing its implementation into smaller parts, which we solved in accordance with the kanban system.
+\subsection{Further Development}
+Based on what we have not tried out yet and what have we read during the project development, we would like to list some of the potential improvements and further research directories.
+
+\begin{itemize}
+\item First, the alpha version of the house simulation treated as a single room, with only one sensor. Thus, in subsequent versions, it would be possible to give a greater reality by introducing further sensors and rooms, and then model the heat flow between the rooms.
+
+\item We could add more factors that an agent would deal with, such as humidity or pollution.
+\end{itemize}
+\newpage
+\section{Bibliography and Useful Sources}
+\subsection{Reinforcement Learning - Getting Started}
+\begin{itemize}
+\item Richard S. Sutton and Andrew G. Barto. 1998. Introduction to Reinforcement Learning. MIT Press, Cambridge, MA, USA.
+\item Reinforcement Learning Course by David Silver - http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html
+\end{itemize}
+\subsection{Reinforcement Learning - Papers on improvements to basic methods}
+\begin{itemize}
+\item Playing Atari with Deep Reinforcement Learning - https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf
+\item 
+Deep Reinforcement Learning with Double Q-learning - https://arxiv.org/abs/1509.06461
+\item Prioritized Experience Replay - https://arxiv.org/abs/1511.05952
+\end{itemize}
+\subsection{Reinforcement Learning - Useful Sources}
+\begin{itemize}
+\item https://github.com/dennybritz/reinforcement-learning
+\item 
+Rainbow: Combining Improvements in Deep Reinforcement Learning - https://arxiv.org/abs/1710.02298
+\item https://jaromiru.com/2016/11/07/lets-make-a-dqn-double-learning-and-prioritized-experience-replay/
+\end{itemize}
+\subsection{PyTorch}
+\begin{itemize}
+\item https://pytorch.org/tutorials/
+\end{itemize}
+\end{document}
+

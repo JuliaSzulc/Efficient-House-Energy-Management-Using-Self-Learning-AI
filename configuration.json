@@ -1,7 +1,6 @@
 {
     "main": {
         "training_episodes"          : 10000,
-        "fps"                        : 16,
         "save_experiment"            : true,
         "print_stats"                : true,
         "make_total_reward_plot"     : true,
@@ -20,10 +19,10 @@
         "double_dqn"                 : true,
         "gamma"                      : 0.9,
         "epsilon"                    : 1,
-        "epsilon_decay"              : 0.995,
+        "epsilon_decay"              : 0.999,
         "epsilon_min"                : 0.1,
-        "batch_size"                 : 32,
-        "learning_rate"              : 0.0004,
+        "batch_size"                 : 16,
+        "learning_rate"              : 0.0001,
         "training_freq"              : 4,
         "target_network_update_freq" : 500,
         "reward_clip"                : -2,

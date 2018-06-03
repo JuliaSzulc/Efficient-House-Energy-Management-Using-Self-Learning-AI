@@ -35,7 +35,7 @@ from agent import AgentUtils
 from agent import Agent
 from environment import HouseEnergyEnvironment
 from world import World
-
+from tools import truncate
 
 class Simulation:
 
@@ -171,6 +171,7 @@ class Simulation:
         ymax = self.height - self.margin
         w = xmax - x
         h = ymax - y
+
         pygame.draw.rect(self.screen, self.colors['white'], (x, y, w, h))
 
         # small rects
@@ -182,11 +183,21 @@ class Simulation:
         circle_center_x = x + 0.5 * w
         circle_center_y = y + 0.22 * h
 
-        for _radius, _color in ((radius + 0.01, 'weather1'),
-                                (radius - 0.01, 'white')):
+        cur_time = self.data['Daytime']
+        time_color_factor = cur_time / 720 if cur_time <= 720 else\
+            2 - cur_time / 720
+
+        color_daytime = pygame.Color(
+            truncate(int(time_color_factor * 45 + 235), 0, 255),
+            truncate(int(time_color_factor * 30 + 235), 0, 255),
+            truncate(int(time_color_factor * 30 + 235), 0, 255)
+        )
+
+        for _radius, _color in ((radius + 0.01, self.colors['weather1']),
+                                (radius - 0.01, color_daytime)):
             pygame.draw.circle(
                 self.screen,
-                self.colors[_color],
+                _color, 
                 (int(circle_center_x), int(circle_center_y)),
                 int(_radius * w)
             )
@@ -217,13 +228,19 @@ class Simulation:
             '../static/fonts/droid-sans-mono/DroidSansMono.ttf',
             int(0.05 * h)
         )
+        color_daytime_clock = pygame.Color(
+            truncate(200 - int(time_color_factor * (200 - 221)), 0, 255),
+            truncate(200 - int(time_color_factor * (200 - 207)), 0, 255),
+            truncate(200 - int(time_color_factor * (200 - 179)), 0, 255),
+        )
+        
         font_header = pygame.font.Font('../static/fonts/Lato/Lato-Regular.ttf',
                                        int(0.09 * h))
 
         time = [int(x) for x in divmod(daytime, 60)]
         time = "{:02}:{:02}".format(*time)
         self.draw_text(time, circle_center_x, circle_center_y,
-                       self.colors['weather5'], font_header, True)
+                       color_daytime_clock, font_header, True)
         # text - blocks
         for _off, _data in enumerate(('Outside Light', 'Wind',
                                       'Clouds', 'Rain')):
