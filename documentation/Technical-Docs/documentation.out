@@ -1,0 +1,28 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Goals and milestones}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{Results}{section.1}% 3
+\BOOKMARK [1][-]{section.2}{Reinforcement Learning}{}% 4
+\BOOKMARK [2][-]{subsection.2.1}{What have we used?}{section.2}% 5
+\BOOKMARK [2][-]{subsection.2.2}{PyTorch Framework}{section.2}% 6
+\BOOKMARK [1][-]{section.3}{Getting Started}{}% 7
+\BOOKMARK [2][-]{subsection.3.1}{Setup and Requirements}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.2}{Usage: Learning and Simulation}{section.3}% 9
+\BOOKMARK [3][-]{subsubsection.3.2.1}{Learning mode}{subsection.3.2}% 10
+\BOOKMARK [3][-]{subsubsection.3.2.2}{Simulation mode}{subsection.3.2}% 11
+\BOOKMARK [3][-]{subsubsection.3.2.3}{Manual testing mode}{subsection.3.2}% 12
+\BOOKMARK [2][-]{subsection.3.3}{Testing}{section.3}% 13
+\BOOKMARK [1][-]{section.4}{Code overview}{}% 14
+\BOOKMARK [2][-]{subsection.4.1}{HouseEnergyEnvironment module}{section.4}% 15
+\BOOKMARK [2][-]{subsection.4.2}{Agent module}{section.4}% 16
+\BOOKMARK [2][-]{subsection.4.3}{Configuration file}{section.4}% 17
+\BOOKMARK [1][-]{section.5}{Accuracy measures and tempo of learning}{}% 18
+\BOOKMARK [1][-]{section.6}{Development Process}{}% 19
+\BOOKMARK [2][-]{subsection.6.1}{Chronology}{section.6}% 20
+\BOOKMARK [2][-]{subsection.6.2}{What Has Failed}{section.6}% 21
+\BOOKMARK [1][-]{section.7}{Conclusions}{}% 22
+\BOOKMARK [2][-]{subsection.7.1}{Further Development}{section.7}% 23
+\BOOKMARK [1][-]{section.8}{Bibliography and Useful Sources}{}% 24
+\BOOKMARK [2][-]{subsection.8.1}{Reinforcement Learning - Getting Started}{section.8}% 25
+\BOOKMARK [2][-]{subsection.8.2}{Reinforcement Learning - Papers on improvements to basic methods}{section.8}% 26
+\BOOKMARK [2][-]{subsection.8.3}{Reinforcement Learning - Useful Sources}{section.8}% 27
+\BOOKMARK [2][-]{subsection.8.4}{PyTorch}{section.8}% 28

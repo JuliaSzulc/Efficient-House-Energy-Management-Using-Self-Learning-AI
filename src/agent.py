@@ -12,7 +12,7 @@ import json
 from shutil import copyfile
 import torch
 import matplotlib.pyplot as plt
-from torch import optim, nn
+from torch import optim
 from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
@@ -35,10 +35,9 @@ class Net(torch.nn.Module):
         x = self.fc2(x)
         return x
 
-class Memory:
-    """Based on a SumTree, storing transitions batches for Agent.
 
-    """
+class Memory:
+    """Based on a SumTree, storing transitions batches for Agent."""
 
     def __init__(self, max_size, alpha, epsilon, beta, beta_increment):
         self.sum_tree = SumTree(max_size)
@@ -78,10 +77,11 @@ class Memory:
 
         probabilities = priorities / self.sum_tree.get_priority_sum()
         importance_sampling_weights = np.power(self.sum_tree.counter *
-                                              probabilities, -self.beta)
+                                               probabilities, -self.beta)
         importance_sampling_weights /= importance_sampling_weights.max()
 
-        return batch, indexes, importance_sampling_weights
+        return batch, indexes, Variable(torch.Tensor(
+            importance_sampling_weights))
 
     def len(self):
         return self.sum_tree.counter
@@ -280,7 +280,7 @@ class Agent:
 
             self.optimizer.zero_grad()
             loss = self.huber_loss(q_values, targets,
-                              importance_sampling_weights)
+                                   importance_sampling_weights)
             loss.backward()
             for param in self.q_network.parameters():
                 param.grad.data.clamp_(-1, 1)
@@ -322,7 +322,7 @@ class Agent:
         Retrieves a random batch of transitions from memory and transforms it
         to separate PyTorch Variables.
 
-        Transition is a tuple in fimportance_sampling_weightorm of:
+        Transition is a tuple in form of:
         (state, action, reward, next_state, terminal_state)
         Returns:
             exp_batch - list of Variables in given order:
@@ -400,9 +400,7 @@ class Agent:
                (torch.abs(values - target) >= 1).float() *\
                (torch.abs(values - target) - 0.5)
 
-        weighted_loss = weights * loss
-
-        return weighted_loss.sum()
+        return (weights * loss).sum()
 
 
 class AgentUtils:
