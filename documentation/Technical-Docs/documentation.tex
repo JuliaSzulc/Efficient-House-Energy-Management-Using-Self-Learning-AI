@@ -205,9 +205,85 @@ This class provides methods for saving and loading the models of networks and co
 % na końcu może być wrzucona obecna konfiguracja z jakąś adnotacją, że dla tej konfiguracji generowaliśmy/uczyliśmy ostateczny model agenta
 
 \section{Accuracy measures and tempo of learning}
-% tutaj trochę o statystykach które pokazujemy w mainie, jakie wyniki uznajemy za agenta nauczonego, jaki procent odpalonych agentów uczy się wszystkiego, ile średnio epizodów zajmuje osiągnięcie akceptowalnego poziomu. Chciałoby się, żeby ta sekcja była zrobiona bardzo obszernie, ale nie mamy czasu żeby przeprowadzić nie wiadomo jaką ilość testów - i o tym też wspomnijmy. 
+% tutaj trochę o statystykach które pokazujemy w mainie, jakie wyniki uznajemy za agenta nauczonego, jaki procent odpalonych agentów uczy się wszystkiego, ileśrednio epizodów zajmuje osiągnięcie akceptowalnego poziomu. Chciałoby się, żeby ta sekcja była zrobiona bardzo obszernie, ale nie mamy czasu żeby przeprowadzić nie wiadomo jaką ilość testów - i o tym też wspomnijmy. 
 
-% Uwaga - Tutaj powinna znaleźć się subsekcja o wpływie parametrów z configuraiton.json na uczenie - głównie tych od strony agenta, ale też nie mamy danych żeby tworzyć tutaj jakieś pewniki i pisać tutaj, że 'na 100%' większy batch size daje gorsze wyniki itd. Z umiarem :p
+\subsection{Parameters impact on the agent learning}
+Once the final version of the neural network has been implemented,
+we have calibrated all its parameters in such a way that the agent's learning was as efficient as possible.
+The word "efficient" is understood as the most accurate teaching of all the functions performed by the agent.
+
+Parameters were selected by repeatedly learning the network again and again, each time with different parameter values.
+So to test a particular set of values, we had to repeat the entire learning process of the agent.
+Due to the inability to perform these processes on a strong machine or computing cloud using the GPU calculations,
+we could not carry out many tests.
+
+Parameters that affect the learning of the network are included in the configuration json file.
+Belong to them the fields inside the label "agent" and the fields from the label "env"; weight of temperature, light and energy consumption.\\
+
+Parameters descriptions:
+\begin{itemize}
+\item Hidden layer size specifies the number of neurons in the inner layer of the neural network.
+The more neurons, the more states of the agent's science can be determined. 
+If the value is too small, it can be shown that the agent will not be able to learn all the required functions.
+However, when this value will be too much, then created redundant neurons will slow down the propagation process inside the network, and thus the learning process.
+
+\item The memory size specifies the amount of recent Agent transitions batches.
+A priority is given for each written transitions to the memory. 
+The bigger the penalty caused the transition, the higher the priority is set for it.
+Then, when selecting another action, the Agent searches the memory and selects transition from it. 
+The greater the priority given to a transition, the more likely it is that the agent chooses it.
+Thus, the Agent can focus more on these elements during the learning, 
+which generate a larger penalty, that is, those who have learned less.
+
+\item Double dqn determines whether during the training of the agent we use the second network in accordance with the double q learning algorithm.
+Using this algorithm makes learning more stable, as opposed to using only one network, where its values are burdened with larger noises.
+
+\item The gamma parameter determines to what extent the reward for a new change is important to us. 
+The smaller the parameter, the more we rely on the temporary reward, the one we get from the current stage, and less on the previous stage.
+
+\item In its basic setting, the decision maker takes and action, and gets a reward from the environment, and the environment changes its state. Then the decision maker senses the state of the environment, takes an action, gets a reward, and so on so forth. The state transitions are probabilistic and depend solely on the actual state and the action taken by the decision maker. The reward obtained by the decision maker depends on the action taken, and on both the original and the new state of the environment.
+
+\item Epsilon specifies the probability of selecting a random action by an agent in a given episode.
+Because the learning process consists in maximizing the reward function, it can result in getting stuck inside a one from many locals minimum.
+So epsilon provides that there is a probability when the agent will choose a random action that will make it jump out of this minimum. In accordance with the papers for learning to proceed correctly,
+the chance of selecting a random action should be decreased with the duration of the study,
+so that more often perform actions in accordance with the acquired knowledge, rather than try to perform random actions again.
+\newpage 
+With each next episode the actual value of epsilon is reduced by the formula:
+
+epsilon = epsilon * epsilon decay, where epsilon decay belongs to (0,1).
+
+The minimum chance to select a random action is determined by the value of epsilon min.
+
+\item Batch size defines number of samples that going to be propagated through the network.
+The smaller the batch size, the faster the values propagate over the network and the estimate of the gradient is less accurate.
+
+\item Learning rate determines the Agent's learning speed. 
+The larger the model values, the greater the gradient value is added to the model parameters. 
+Choosing the value of the learning rate depends on the type of the problem. 
+However, according to the papers, this value should be very small.
+
+\item Freq training defines what episodes we actually do Agent training.
+According to the reviewed papers, it turns out that when the actual training will not take place during the episode, 
+the agent learning process will be more stable. It is better to do the learning in one episode, and in the next few make decisions based on this earlier learning, without further learning, until the next number of episodes determined by the training freq parameter. Furthermore, the Agent's training with a specific frequency, we accelerate the overall process of learning the agent.
+
+\item Target network update freq specifies the number of episodes after which the target network is fully updated.
+We ignore the Q to the target ratio parameter and the whole target network refreshes by changing the values of its parameters to the value of q network parameters.
+
+\item Reward cliping is a parameter that is the lower limit of the reward received by the agent during learning. When an agent chooses his actions,
+he receives penalties for bad decisions. Sometimes these penalties can be very large, so when they exceed the critical value set by reward cliping, they are cut off to that particular minimum value, which says that "it is already so bad, that it can not be worse".
+
+\item Sgd momentum value specifies how the previous update parameter affects the new, just performed update.
+Is a response to the disadvantages of the standard descent gradient. Momentum proposes the following tweak to a gradient descent.
+It gives a gradient descent a short-term memory, so the improved descent gradient more effectively finds the function optima. 
+According to the papers, in order for the momentum to bring the greatest benefit, it should have values from the 0.99 to 0.999 range.
+
+\item Q to the target ratio is the parameter determining the importance of changes in the target network when we combine it with the q network. This subroutine determines how big part of the q network parameter values should be summed with the remaining value of the target network parameters.
+
+\item The weight of temperature, light and the cost of consumed energy are some of the values set by the user. They say about whether he prefers to have, lower bills at the end of the month, with less accuracy in maintaining the set parameters, or maybe he does not, and he prefers more accurate holding set temperature or light, with a minimum bigger energy consumption.
+If we significantly increase the cost of energy consumption, it may turn out that the agent determines that it is better not to keep the temperature set by the user at all, because the more it will enjoy lower energy costs than freezing at home.
+\end{itemize}
+
 \section{Development Process}
 % wstępniak - z racji, że to projekt badawczy a nie gotowy produkt, to zamieszczamy tutaj informacje o tym, jak szły prace, co jest trudne, co nie poszło, co poszło superancko itd.
 \subsection{Chronology}
@@ -231,11 +307,14 @@ As a young team of developers, we are very happy to work on an exciting field of
 
 \section{Conclusions}
 % tutaj zarówno wnioski mocno badawcze o RL, jak i o rozwoju projektu. Myślę, że potencjalne kierunki rozwoju projektu należy wpisać jako subsekcję tej sekcji.
+While working on the project, we learned a lot of things in the field of reinforcement learning, which is part of the wider section of artificial intelligence. We had the opportunity to learn how to work with the PyTorch computing package, which was created not only to work on artificial intelligence, but it can also be used for complex matrix calculations, which have nothing to do with machine learning. Lot of this things we learned during the previous research and others during the implementation. In addition to the items related to reinforcement learning, we also learned how to collaborate in a team and plan progress in the project, sharing its implementation into smaller parts, which we solved in accordance with the kanban system.
 \subsection{Further Development}
 Based on what we have not tried out yet and what have we read during the project development, we would like to list some of the potential improvements and further research directories.
 
 \begin{itemize}
-\item
+\item First, the alpha version of the house simulation treated as a single room, with only one sensor. Thus, in subsequent versions, it would be possible to give a greater reality by introducing further sensors and rooms, and then model the heat flow between the rooms.
+
+\item We could add more factors that an agent would deal with, such as humidity or pollution.
 \end{itemize}
 \newpage
 \section{Bibliography and Useful Sources}
@@ -263,3 +342,4 @@ Rainbow: Combining Improvements in Deep Reinforcement Learning - https://arxiv.o
 \item https://pytorch.org/tutorials/
 \end{itemize}
 \end{document}
+
