@@ -17,8 +17,6 @@
     keywordstyle=\color{blue}
 }
 
-% \setlength\parindent{0pt} % Removes all indentation from paragraphs
-
 \title{Effective House Energy Management Using Reinforcement Learning Technical Documentation} % Title
 
 \author{Dawid Czarneta, Jakub Frąckiewicz, Filip Olszewski, Michał Popiel, Julia Szulc}
@@ -27,7 +25,7 @@
 
 \begin{document}
 
-\maketitle % Insert the title, author and date
+\maketitle
 
 \begin{abstract}
 This is a technical documentation of our university project developed with cooperation and guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introduction and overview of main concepts, milestones, goals and results of this project. It is followed by a technical part, that contains a setup guide, code and tests overviews, explanation of used algorithms and concepts. Last part provides details about the development process, including useful insights, experiences, further research suggestions and lessons we have learned the hard way.
@@ -166,7 +164,7 @@ This mode can be run by going into source files directory and launching \textbf{
 $ cd TOP/src
 $ python3 manual_test.py
 \end{lstlisting}
-This mode is a command-line interface for manual testing of Reinforcement Learning Agent behaviour. User can manually test agent-environment connection by deciding which action to make, or can load existing model to be able to use its choice in particular moment. The whole process is done one step at the time.\\\\
+This mode is a command-line interface for manual testing of Reinforcement Learning Agent behavior. User can manually test agent-environment connection by deciding which action to make, or can load existing model to be able to use its choice in particular moment. The whole process is done one step at the time.\\\\
 All actions are made by entering a number specific for a certain command. Commands and numbers are visible all the time on top of the rendered text. \\\\
 \textit{NOTE:} This mode was made mainly for testing purposes, and should be treated as additional, not main functionality.
 
@@ -179,7 +177,28 @@ All actions are made by entering a number specific for a certain command. Comman
 % opis środowiska. Tutaj chyba najlepiej podzielić to na subsubsections, House / World / Environment
 
 \subsection{Agent module}
-% tutaj ogarnę jeszcze jak to podzielę, bo jeszcze nie wiem // filip
+The agent module is where all the reinforcement learning mechanisms are implemented and used. To get the idea of how to use it and how it works, we split the module into small components and explain each one by one.
+\subsubsection{Neural Network}
+The neural network model used in learning and choosing the actions is modeled as the \textbf{Net} class. It is fairly simple thanks to PyTorch and the code pretty much speaks for itself. The forward function defines the forward pass.
+
+\subsubsection{Agent class}
+The main class of the module is the Agent class and it is essential to know how to use this class. Most of the code is much more easier to read and understand with beginner knowledge in the RL field. Here are the descriptions of the central methods of the class:
+
+\begin{itemize}
+\item \textit{reset()} - method used to reinitialize the agent. It is called from the constructor, but you can call it separately if there is a need.
+\item \textit{run()} - most essential method, called to perform a full episode on the environment - with learning. This method resets the environment, and perform a loop in which the agent chooses an action, receives feedback, performs \textit{reward clipping}, updates statistics, saves the observed transition into the memory, calls the training function and then, in the end, slightly \textit{updates the target network}. Reward clipping is one of the normalization methods and we are using it because of the commonly accepted suggestions to do so. The updates to the target networks are another concept that is used to stabilize the learning process and is explained in more detail in the next section.
+\item \textit{learn()} - this is the method that performs training of agent's q-network. It is a single training iteration, which samples a batch of transitions from memory and, based on Double DQN approach, performs the training on given batch. Training is explained in the next section. 
+\item \textit{get\_next\_action\_greedy()} - returns next action given a state with use of the target network using a greedy policy. Greedy means that agent return the action with the biggest q-function estimate. This function should be used if an outside object wants to know the agent's action for the given state.
+\item \textit{get\_episode\_stats()} - they implement the idea that is currently not used extensively. We are using these to register counts of each action to allow external object to analyze it.
+\end{itemize}
+
+\subsubsection{Double DQN}
+
+
+\subsubsection{Memory class}
+
+\subsubsection{AgentUtils class}
+This class provides methods for saving and loading the models of networks and configuration parameters. We have separated it from the Agent class for readability and file-based operations separate from the learning functionality of Agent class.
 
 \subsection{Configuration file}
 % Tutaj ładnie wylistowane parametry z dosyć dokładnym wytłumaczeniem - czego dotyczą, gdzie są używane, poziom istotności parametru
