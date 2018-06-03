@@ -11,6 +11,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage[bottom]{footmisc}
 \usepackage{listings}
+\usepackage{longtable}
 \lstset{basicstyle=\fontfamily{fvm}\selectfont\footnotesize,
     showstringspaces=false,
     commentstyle=\color{red},
@@ -203,8 +204,154 @@ One of the concepts that is essential for Deep Q Networks to work is the \textbf
 This class provides methods for saving and loading the models of networks and configuration parameters. We have separated it from the Agent class for readability and file-based operations separate from the learning functionality of Agent class.
 
 \subsection{Configuration file}
-% Tutaj ładnie wylistowane parametry z dosyć dokładnym wytłumaczeniem - czego dotyczą, gdzie są używane, poziom istotności parametru
-% na końcu może być wrzucona obecna konfiguracja z jakąś adnotacją, że dla tej konfiguracji generowaliśmy/uczyliśmy ostateczny model agenta
+The project allows user to adjust values of some of the key parameters such as training settings or environment specifications. The whole list can be found in configuration.json file in the main project directory. All of the available parameters are listed below along with their types and brief descriptions.
+
+\begin{longtable}{l|c|p{9cm}}
+	\hline
+	{bold}parameter name & type & description \\
+	\hline
+    training\_episodes & integer & Number of episodes in training process.\\
+    \hline
+    save\_experiment & boolean & Determines whether the model has to be saved after the experiment or not.\\
+    \hline
+    print\_stats & boolean & Decides whether the current statistics has to be printed after each episode or not. The statistics are current most common action and how different are the current light and temperature values compared to their expected rate.\\
+    \hline
+    make\_total\_reward\_plot & boolean & Determines whether the plot depicting the reward changes should be generated at the end or not.\\
+    \hline
+    load\_agent\_model & boolean & Decides whether the ready model should be loaded beforehand or not.\\
+    \hline
+    fps & integer & Number of frames per second in the simulation.\\
+    \hline
+    hidden\_layer\_size & integer & Size of the neural network hidden layer.\\
+    \hline
+    memory\_alpha & float & Agent memory factor that determines how much prioritization is used (0 is uniform case)\\
+    \hline
+    memory\_beta & float & Agent memory parameter used in weighted importance sampling.\\
+    \hline
+    memory\_beta\_increment & float & The value by which the memory\_beta is gradually incremented during memory sampling.\\
+    \hline
+    memory\_epsilon & float & Agent memory constant that prevents the transition from having zero-valued priority\\
+    \hline
+    memory\_size & integer & Size of the agent memory.\\
+    \hline
+    double\_dqn & boolean & Determines whether DQN or Double DQN has to be used.\\
+    \hline
+    gamma & float & The discount factor in learning algorithm.\\
+    \hline
+    epsilon & float & Controls the exploration rate in the learning process (probability of choosing random action).\\
+    \hline
+    epsilon\_decay & float & The value by which the epsilon is gradually decremented.\\
+    \hline
+    epsilon\_min & float & The minimum value of epsilon.\\
+    \hline
+    batch\_size & integer & Size of transition batch retrieved from agent memory.\\
+    \hline
+    learning\_rate & float & Value of learning rate in learning process.\\
+    \hline
+    training\_freq & integer & The frequency with which the target network is slightly updated towards the q-network weights.\\
+    \hline
+    target\_network\_update\_freq & integer & The frequency with which the target network is fully updated.\\
+    \hline
+    reward\_clip & integer & Value of parameter used in the reward clipping.\\
+    \hline
+    sgd\_momentum & float & Parameter used for stochastic gradient descent algorithm with momentum.\\
+    \hline
+    q\_to\_target\_ratio & float & Value of which the target-network is updated during the learning process.\\
+    \hline
+    timestep\_in\_minutes & integer & Number of minutes in each world step.\\
+    \hline
+    day\_start & integer & Number of minutes after midnight when the daytime begins.\\
+    \hline
+    day\_end & integer & Number of minutes after midnight when the nighttime begins.\\
+    \hline
+    devices\_power & integers & Power of the devices in the house (watt).\\
+    \hline
+    temperature\_w\_in\_reward & float & Weight of the temperature penalty in reward calculation.\\
+    \hline
+    light\_w\_in\_reward & float & Weight of the light penalty in reward calculation.\\
+    \hline
+    cost\_w\_in\_reward & float & Weight of the cost of the energy penalty in reward calculation.\\
+    \hline
+    max\_pv\_absorption & integer & Maximum absorption of photovoltaics.\\
+    \hline
+    day\_grid\_cost & float & Energy price during the daytime.\\
+    \hline
+    night\_grid\_cost & float & Energy price during the nighttime.\\
+    \hline
+    house\_light\_factor & float & Determines how much of outside light is in the house.\\
+    \hline
+    house\_isolation\_factor & float & Parameter used in outdoor-to-indoor temperature calculation.\\
+    \hline
+    battery\_max & integer & Amount of energy in fully charged photovoltaics.\\
+    \hline
+    influence\_per\_min & float & Describes how large is the change of device setting when action is executed\\
+    \hline
+    stats & floats & Maximum differences between measured stats and expected. These constants tell which temperature and light level are described as “perfect” and “ok” compared to the expected values.
+\end{longtable}
+
+This is the configuration we used to generate the final agent and make it learn:
+
+\begin{lstlisting}
+{
+    "main": {
+        "training_episodes"          : 10000,
+        "save_experiment"            : true,
+        "print_stats"                : true,
+        "make_total_reward_plot"     : true,
+        "load_agent_model"           : false
+    },
+    "simulation": {
+        "fps"                        : 16
+    },
+    "agent": {
+    	"memory_alpha"               : 0.6,
+        "memory_epsilon"             : 0.01,
+        "memory_beta"                : 0.4,
+        "memory_beta_increment"      : 0.001,
+        "hidden_layer_size"          : 80,
+        "memory_size"                : 10000,
+        "double_dqn"                 : true,
+        "gamma"                      : 0.9,
+        "epsilon"                    : 1,
+        "epsilon_decay"              : 0.999,
+        "epsilon_min"                : 0.1,
+        "batch_size"                 : 16,
+        "learning_rate"              : 0.0001,
+        "training_freq"              : 4,
+        "target_network_update_freq" : 500,
+        "reward_clip"                : -2,
+        "sgd_momentum"               : 0.9,
+        "q_to_target_ratio"          : 0.1
+    },
+    "env": {
+        "timestep_in_minutes"        : 1,
+        "day_start"                  : 420,
+        "day_end"                    : 1080,
+        "devices_power": {
+            "air_conditioner": 1500,
+            "heater": 3000,
+            "light": 720
+        },
+
+        "temperature_w_in_reward"    : 0.35,
+        "light_w_in_reward"          : 0.82,
+        "cost_w_in_reward"           : 0.024,
+        "max_pv_absorption"          : 5,
+        "day_grid_cost"              : 0.5,
+        "night_grid_cost"            : 0.3,
+        "house_light_factor"         : 0.0075,
+        "house_isolation_factor"     : 0.996,
+        "battery_max"                : 14000,
+        "influence_per_min"          : 0.2,
+        "stats": {
+            "temp_ok_diff": 2,
+            "temp_perfect_diff": 0.5,
+            "light_ok_diff": 0.15,
+            "light_perfect_diff": 0.05
+        }
+    }
+}
+\end{lstlisting}
 
 \section{Accuracy measures and tempo of learning}
 % tutaj trochę o statystykach które pokazujemy w mainie, jakie wyniki uznajemy za agenta nauczonego, jaki procent odpalonych agentów uczy się wszystkiego, ileśrednio epizodów zajmuje osiągnięcie akceptowalnego poziomu. Chciałoby się, żeby ta sekcja była zrobiona bardzo obszernie, ale nie mamy czasu żeby przeprowadzić nie wiadomo jaką ilość testów - i o tym też wspomnijmy. 
