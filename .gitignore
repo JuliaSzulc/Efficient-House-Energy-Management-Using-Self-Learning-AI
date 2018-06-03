@@ -100,6 +100,7 @@ ENV/
 .mypy_cache/
 
 # nasze wlasne projektowe wykluczenia:
+.vscode
 .idea/
 /src/saved_models/
 src/agent_test.py
@@ -110,6 +111,9 @@ src/*.log
 # *.log (already defined higher)
 # texowe smieci
 *.aux
+*.fls
+*.out
+*.fdb_latexmk
 *.synctex.gz
 *.profile
 # modele
@@ -118,3 +122,6 @@ src/*.log
 # floydhub
 .floydexpt
 .floydignore
+
+# dokumentacja ktora wciaz sie zmienia, a jest binarka
+documentation.pdf
