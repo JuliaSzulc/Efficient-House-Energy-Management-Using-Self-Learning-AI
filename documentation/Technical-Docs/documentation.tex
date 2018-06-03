@@ -175,7 +175,23 @@ All actions are made by entering a number specific for a certain command. Comman
 \section{Code overview}
 % wstępniaczek co znajdziemy w tej sekcji.
 \subsection{HouseEnergyEnvironment module}
-% opis środowiska. Tutaj chyba najlepiej podzielić to na subsubsections, House / World / Environment
+The environment where agent is put consists of a few separate classes that depend of each other and allow to create complex working setting that imitates the actual weather and the building.
+\subsubsection{House}
+This is where the agent is “placed” and where he operates. This class is responsible for generating the proper reaction after every timeframe based on the agent’s action and outside world changes.
+
+After every timeframe it receives the data from outside sensors and updates its parameters. During the update the temperature and light level are recalculated, energy cost increases and the energy stored in photovoltaics changes depending on the outside light and current energy source at home.
+
+The House class contains a few methods used to calculate present environmental conditions. All of them implement the mechanisms that are meant to be as similar to the real world and its physics as possible. This way we could place the agent in the lifelike scenery and mimic its use in real life.
+
+The vital part of the House is reward-calculating method. It is called after every timeframe. The important thing about the reward is the fact that it is always a negative value - that is why it can be treated as a “penalty”. The agent’s goal is to learn to minimize this penalty as much as possible. The reward formula is simply a weighted sum of penalties (temperature, light, energy cost) plus additional action penalty (for pointless or illogical actions like for example trying to switch powersource for the one that is already used). 
+
+\subsubsection{World}
+This class represents the model of the outside world. Its main purpose is to compute time and weather. Each time the method step is called, the world adds fixed timeframe value to the current time, updates weather and sends information about the changes to the listeners.
+
+The weather changes are computed using the random values as well as fixed dependencies between specific components. Most of the weights and biases connected to weather were determined experimentally. The main goal was to provide natural-looking weather with varied rain periods, clouds, occasional storms etc.In order to achieve this, in some places a modified version of Gillbert-Elliotchannel model was used to simulate constant periods of given weather phenomena.
+
+\subsubsection{HouseEnergyEnvironment}
+Environment is indispensable part of the project. It connects smaller parts of the simulation like House and World into one working model. The class contains methods used to communicate with the agent as well as the ones that create human-readable information about current state.    Basing on the received information from the lower components, Environment is in charge of notifying their listeners about the events such as another step or finishing the episode.
 
 \subsection{Agent module}
 The agent module is where all the reinforcement learning mechanisms are implemented and used. To get the idea of how to use it and how it works, we split the module into small components and explain each one by one.
