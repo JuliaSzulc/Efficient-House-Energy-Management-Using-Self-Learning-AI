@@ -61,7 +61,7 @@ class Memory:
         batch = []
         indexes = []
         priorities = []
-        priority_segment = self.sum_tree.get_priority_sum() / batch_size
+        priority_segment = self.sum_tree.total() / batch_size
 
         self.beta = np.min([1., self.beta + self.beta_increment])
 
@@ -75,8 +75,8 @@ class Memory:
             indexes.append(index)
             priorities.append(priority)
 
-        probabilities = priorities / self.sum_tree.get_priority_sum()
-        importance_sampling_weights = np.power(self.sum_tree.counter *
+        probabilities = priorities / self.sum_tree.total()
+        importance_sampling_weights = np.power(self.sum_tree.n_entries *
                                                probabilities, -self.beta)
         importance_sampling_weights /= importance_sampling_weights.max()
 
@@ -84,7 +84,7 @@ class Memory:
             importance_sampling_weights))
 
     def len(self):
-        return self.sum_tree.counter
+        return self.sum_tree.n_entries
 
 
 class Agent:

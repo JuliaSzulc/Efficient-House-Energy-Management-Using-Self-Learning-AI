@@ -5,7 +5,7 @@ of the project.
 
 """
 
-import numpy as np
+import numpy
 
 
 def truncate(arg, lower=0, upper=1):
@@ -28,60 +28,63 @@ def truncate(arg, lower=0, upper=1):
 
 
 class SumTree:
-    """Structure used in agent for storing priorities of the transitions.
+    write = 0
 
-    Used for PER (prioritized experience replay) implementation in Memory
-    """
-    pointer = 0
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.tree = numpy.zeros(2 * capacity - 1)
+        self.data = numpy.zeros(capacity, dtype=object)
+        self.n_entries = 0
 
-    def __init__(self, max_size):
-        # number of leaves
-        self.max_size = max_size
-        # like a binary heap in an array
-        # number-of-leaves + number-of-nodes = max_size + (max_size - 1)
-        self.nodes = np.zeros(2 * max_size - 1)
-        self.data = np.zeros(max_size, dtype=object)
-        self.counter = 0
+    # update to the root node
+    def _propagate(self, idx, change):
+        parent = (idx - 1) // 2
 
-    def update(self, index, priority):
-        change = priority - self.nodes[index]
-        self.nodes[index] = priority
+        self.tree[parent] += change
 
-        while index != 0:
-            index = (index - 1) // 2
-            self.nodes[index] += change
+        if parent != 0:
+            self._propagate(parent, change)
 
-    def add(self, priority, data):
-        index = self.pointer + self.max_size - 1
-        self.data[self.pointer] = data
-        self.update(index, priority)
+    # find sample on leaf node
+    def _retrieve(self, idx, s):
+        left = 2 * idx + 1
+        right = left + 1
 
-        if self.counter < self.max_size:
-            self.counter += 1
+        if left >= len(self.tree):
+            return idx
 
-    def get_leaves(self):
-        return self.nodes[-self.max_size:]
+        if s <= self.tree[left]:
+            return self._retrieve(left, s)
+        else:
+            return self._retrieve(right, s - self.tree[left])
 
-    def get(self, value):
-        parent_index = 0
+    def total(self):
+        return self.tree[0]
 
-        while True:
-            left_child_index = 2 * parent_index + 1
-            right_child_index = 2 * parent_index + 2
+    # store priority and sample
+    def add(self, p, data):
+        idx = self.write + self.capacity - 1
 
-            if left_child_index >= len(self.nodes):
-                index = parent_index
-                break
-            else:
-                if value <= self.nodes[left_child_index]:
-                    parent_index = left_child_index
-                else:
-                    value -= self.nodes[left_child_index]
-                    parent_index = right_child_index
+        self.data[self.write] = data
+        self.update(idx, p)
 
-        data_index = index - self.max_size + 1
+        self.write += 1
+        if self.write >= self.capacity:
+            self.write = 0
 
-        return (index, self.nodes[index], self.data[data_index])
+        if self.n_entries < self.capacity:
+            self.n_entries += 1
 
-    def get_priority_sum(self):
-        return self.nodes[0]
+    # update priority
+    def update(self, idx, p):
+        change = p - self.tree[idx]
+
+        self.tree[idx] = p
+        self._propagate(idx, change)
+
+    # get priority and sample
+    def get(self, s):
+        idx = self._retrieve(0, s)
+        data_idx = idx - self.capacity + 1
+
+        return idx, self.tree[idx], self.data[data_idx]
