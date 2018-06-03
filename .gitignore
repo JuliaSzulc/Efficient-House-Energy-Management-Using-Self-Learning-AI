@@ -100,6 +100,7 @@ ENV/
 .mypy_cache/
 
 # nasze wlasne projektowe wykluczenia:
+.vscode
 .idea/
 /src/saved_models/
 src/agent_test.py
@@ -118,3 +119,4 @@ src/*.log
 # floydhub
 .floydexpt
 .floydignore
+
