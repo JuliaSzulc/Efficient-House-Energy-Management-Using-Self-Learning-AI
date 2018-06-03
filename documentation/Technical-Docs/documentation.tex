@@ -189,13 +189,15 @@ The main class of the module is the Agent class and it is essential to know how 
 \item \textit{run()} - most essential method, called to perform a full episode on the environment - with learning. This method resets the environment, and perform a loop in which the agent chooses an action, receives feedback, performs \textit{reward clipping}, updates statistics, saves the observed transition into the memory, calls the training function and then, in the end, slightly \textit{updates the target network}. Reward clipping is one of the normalization methods and we are using it because of the commonly accepted suggestions to do so. The updates to the target networks are another concept that is used to stabilize the learning process and is explained in more detail in the next section.
 \item \textit{learn()} - this is the method that performs training of agent's q-network. It is a single training iteration, which samples a batch of transitions from memory and, based on Double DQN approach, performs the training on given batch. Training is explained in the next section. 
 \item \textit{get\_next\_action\_greedy()} - returns next action given a state with use of the target network using a greedy policy. Greedy means that agent return the action with the biggest q-function estimate. This function should be used if an outside object wants to know the agent's action for the given state.
-\item \textit{get\_episode\_stats()} - they implement the idea that is currently not used extensively. We are using these to register counts of each action to allow external object to analyze it.
+\item \textit{get\_episode\_stats()} - method that implement the idea of collecting statistics about agent's actions, which is currently not used extensively. We are using these to register counts of each action to allow external object to analyze it.
 \end{itemize}
 
 \subsubsection{Double DQN}
 
 
 \subsubsection{Memory class}
+One of the concepts that is essential for Deep Q Networks to work is the \textbf{experience replay}. Agent, instead of learning from sequence of observed, correlated transitions, saves them to a memory buffer and samples random transitions into a batch of uncorrelated ones. This improves stability of learning. It is still unclear what should be the perfect memory size, but it is proved that it matters. Another part of research tries to whether how to improve the sampling, and the Prioritized Experience Replay concept, where the transition is more likely to be chosen based on 'how wrong the network was about it', is reported to be a big improvement across many tasks.
+
 
 \subsubsection{AgentUtils class}
 This class provides methods for saving and loading the models of networks and configuration parameters. We have separated it from the Agent class for readability and file-based operations separate from the learning functionality of Agent class.
