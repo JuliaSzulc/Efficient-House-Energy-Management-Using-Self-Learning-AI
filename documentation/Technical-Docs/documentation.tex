@@ -43,12 +43,21 @@ guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introductio
 % jak w nazwie
 
 \section{Reinforcement Learning}
-% co to, gdzie sukcesy, czym się różni od dotychczasowych rozwiązań
+The project is based on one of the machine learning areas called reinforcement learning. The research and development of this field has been rising as of late, because of, among others, the improvements in deep learning methods and constantly increasing computing power. Combined with concepts like convolutional neural networks, RL algorithms  achieve super-human performances in a variety of tasks. The main field of success is probably the gaming world, including both the traditional games like Chess or Go, and computer games, where, for example, classic Atari games are learned and solved by RL agents taking the input directly from raw pixels.
+
+Reinforcement learning is often explained by comparison to supervised learning, which is usually named the most successful field of Machine Learning. It is based on datasets, which consist of both the observations and the correct labels (answers, classes). For example, the dataset consists of images, and each image has it is correct label as well - a word that describes the object on the image. In Reinforcement Learning, on the other hand, there is no 'supervisor'. Instead, the environment returns a reward signal, which indicates how good or bad the current situation is. The main goal of the agent is to maximize the cummulative reward.
+
+There is a common vocabulary that is used to describe this setup. The \textbf{agent} (RL algorithm) has to interact with the \textbf{environment}, by performing \textbf{actions}. Environment gives the agent information about the \textbf{current state}, as well as the \textbf{reward signal} for the last timeframe. Agent has to choose the best one from the given set of possible actions. This is usually happening until the environment reaches a \textbf{terminal state}. Simulation from the start to terminal state is called an \textbf{episode}. A \textbf{Transition} is defined as a sequence - state, action, reward and next state - and is used as a minimal
+
+To put this into perspective: In our project, the smart house manager is the agent. The simulated world is the environment. Actions are used to control devices such as heating or light. The state is a collection of information about the weather, inside parameters, current devices settings and user requests - everything that is needed for agent to perform rational decisions. The episode can be defined as - for example - one single day, where the midnight is a terminal state.
 \subsection{What have we used?}
-% opis rozwiązań użytych w obecnym agencie. Q/Target split, Double DQN, PER, reward clipping
-% architektura sieci (tylko ile warstw), więcej o sieci jeszcze będzie w sekcji agenta
+Our agent uses Double DQN with Prioritized Experience Replay. This is a combination of recent developments in the field, which improve the speed, quality and stability of learning, and sometimes are essential for solving particular tasks. For an explanation of these concepts and more detailed information about the agent, please see the Agent module section (4.2).
 \subsection{PyTorch Framework}
-% kontekst, dlaczego go użyliśmy, do czego go użyliśmy - więcej w sekcji o Agencie
+To implement the agent and the concepts named above, we have used the PyTorch framework. It is now commonly believed, that this frameworks becomes the go-to Python framework used for Deep Learning, with some essential advantages when compared to TensorFlow. While this is still a matter of loud discusions, we have chosen the framework more out of curiosity, and because it is often called 'more Pythonic'.
+
+We are using PyTorch for a very clear neural network model declaration, ready-to-use optimizers like SGD or Adagrad, automatic computation of the gradients of network's parameters, and to perform the Double DQN learning process. It also provides a clear way to use GPUs for the computations. 
+
+We have used the version 0.3.1 and it is important to note, that the newest version of the framework (0.4.0 on the day of this documentation's publication) requires some changes to the code.
 \section{Getting Started}
 \subsection{Setup and Requirements}
 % Co zainstalować, jaka wersja Pythona, wszyściutko
