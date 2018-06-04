@@ -342,8 +342,8 @@ class House:
         """Action to be taken by RL-agent - change power source"""
         self.action_penalty = 1 if (
             self.devices_settings['energy_src'] == 'battery'
-            or self.battery['current'] < 0.1) else 0
-        if self.battery['current'] >= 0.1:
+            or self.battery['current'] < 0.1 * self.battery['max']) else 0
+        if self.battery['current'] >= 0.1 * self.battery['max']:
             self.devices_settings['energy_src'] = 'battery'
 
     def action_more_cooling(self):
