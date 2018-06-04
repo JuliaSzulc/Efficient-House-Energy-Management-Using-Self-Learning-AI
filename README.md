@@ -1,7 +1,7 @@
 ![coverage](https://img.shields.io/badge/coverage-94%25-green.svg)
 
 ![cat](https://i.pinimg.com/originals/f3/cc/f7/f3ccf75f1883faea777a00f351c5dc60.gif)
-# Smart house project using reinforcement learning :seedling:
+# Efficient House Energy Management Using Self Learning AI :seedling:
 The project implements the idea of reinforcement learning for decision process using custom learning agent and environment. The aim is to create a working system for a smart house that analyzes the outside and inside data collected by sensors and determines the action to perform considering the user desired values of temperature and light and energy cost. As a result the system should minimize energy consumption in the house and maximize user’s comfort.    
   
 ## Problem and idea:  
