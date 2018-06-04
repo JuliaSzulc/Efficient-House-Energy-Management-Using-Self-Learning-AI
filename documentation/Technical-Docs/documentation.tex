@@ -159,8 +159,22 @@ z & toggle charts zoom \\
 \end{itemize}
 
 Default speed of simulation can be set in \textbf{configuration.json} file, in module ''simulation'', item ''fps''.
-\subsubsection{Manual testing mode}
-This mode can be run by going into source files directory and launching \textbf{manual\_test.py} with python3 interpreter. 
+
+\subsection{Testing}
+\subsubsection{Overview}
+To make sure that the code is always consistent with the base objectives and works correctly, the unit tests has been implemented. All of them can be found in \textbf{src/tests/} directory. Besides the regular unit tests there is also a separate file containing code consistency tests.
+	The agent model can be tested using simulation mode or, with accuracy of a single action, using manual testing mode which is described later.
+
+\subsubsection{Coverage test}
+There is also possibility to run a coverage test using Python Coverage.py tool. If the code coverage needs to be checked the commands need to be invoked as follows:
+\begin{lstlisting}
+$ cd TOP/src/tests
+$ ./get_coverage.sh
+\end{lstlisting}
+The output is a .html file that can be found in htmlcov directory.
+
+\subsubsection{Manual testing}
+The project also includes manual testing mode. It can be run by going into source files directory and launching \textbf{manual\_test.py} with python3 interpreter. 
 \begin{lstlisting}
 $ cd TOP/src
 $ python3 manual_test.py
@@ -169,11 +183,8 @@ This mode is a command-line interface for manual testing of Reinforcement Learni
 All actions are made by entering a number specific for a certain command. Commands and numbers are visible all the time on top of the rendered text. \\\\
 \textit{NOTE:} This mode was made mainly for testing purposes, and should be treated as additional, not main functionality.
 
-\subsection{Testing}
-% Opis testowania projektu. Testy jednostkowe wraz ze sposobem generowania coverage.
-% Do tego manual testing - testowanie środowiska (może być jako subsubsection, a może być jako osobne subsection)
 \section{Code overview}
-% wstępniaczek co znajdziemy w tej sekcji.
+Below are the summarized descriptions of the fundamental parts of the project and how they are implemented in the code.
 \subsection{HouseEnergyEnvironment module}
 The environment where agent is put consists of a few separate classes that depend of each other and allow to create complex working setting that imitates the actual weather and the building.
 \subsubsection{House}
@@ -190,7 +201,7 @@ This class represents the model of the outside world. Its main purpose is to com
 
 The weather changes are computed using the random values as well as fixed dependencies between specific components. Most of the weights and biases connected to weather were determined experimentally. The main goal was to provide natural-looking weather with varied rain periods, clouds, occasional storms etc.In order to achieve this, in some places a modified version of Gillbert-Elliotchannel model was used to simulate constant periods of given weather phenomena.
 
-\subsubsection{HouseEnergyEnvironment}
+\subsubsection{Environment}
 Environment is indispensable part of the project. It connects smaller parts of the simulation like House and World into one working model. The class contains methods used to communicate with the agent as well as the ones that create human-readable information about current state.    Basing on the received information from the lower components, Environment is in charge of notifying their listeners about the events such as another step or finishing the episode.
 
 \subsection{Agent module}
@@ -220,7 +231,7 @@ One of the concepts that is essential for Deep Q Networks to work is the \textbf
 This class provides methods for saving and loading the models of networks and configuration parameters. We have separated it from the Agent class for readability and file-based operations separate from the learning functionality of Agent class.
 
 \subsection{Configuration file}
-The project allows user to adjust values of some of the key parameters such as training settings or environment specifications. The whole list can be found in configuration.json file in the main project directory. All of the available parameters are listed below along with their types and brief descriptions.
+The project allows user to adjust values of some of the key parameters such as training settings or environment specifications. The whole list can be found in \textbf{configuration.json} file in the main project directory. All of the available parameters are listed below along with their types and brief descriptions.
 
 \begin{longtable}{l|c|p{9cm}}
 	\hline
