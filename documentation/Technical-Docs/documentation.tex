@@ -32,13 +32,36 @@
 This is a technical documentation of our university project developed with cooperation and guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introduction and overview of main concepts, milestones, goals and results of this project. It is followed by a technical part, that contains a setup guide, code and tests overviews, explanation of used algorithms and concepts. Last part provides details about the development process, including useful insights, experiences, further research suggestions and lessons we have learned the hard way.
 \end{abstract}
 
+
 \section{Introduction}
-% wstęp, idea, kontekst
+The idea of the project is to examine the potential of artificial intelligence in decision-making processes. This potential is based on the growing popularity of systems using Reinforcement Learning as well as successes achieved by them.
+
 
 \subsection{Goals and milestones}
-% jak w nazwie
+We wanted to create a system for a smart house that works properly under any base requirements and conditions and results in visible energy saving. Here we think about the smart house as an agent with the access to the basic devices in the house (currently it is: energy source, light level, window blinds, air conditioning and heater) as well as the inside and outside sensors. The sensors collect the data (temperature, brightness and solar battery level) between the fixed timeframes. \\
+
+The project milestones was:
+\begin{itemize}
+\item Research activities - the stage consisting in learning about the problem and methods and algorithms solving the problem, theoretical familiarization with the libraries and tools used in the next stages of system creation.
+\item Planning - the stage in which the concept of the system was created and the initial schedule.
+\item Implementation of solutions - algorithms selected during planning has been implemented at this stage.
+\item Improvement of the system operation - through the appropriate selection of parameters, the system has been improved in order to achieve the best results.
+\item System performance tests - the system has been tested to see if it behaves in the expected manner.
+
+\end{itemize}
 \subsection{Results}
-% jak w nazwie
+The project implements the idea of reinforcement learning for decision process using custom learning agent and environment. We created a working system for a smart house that analyzes the outside and inside data collected by sensors and determines the action to perform considering the user desired values of temperature and light and energy cost. As a result the system minimize energy consumption in the house and maximize user’s comfort.\\
+
+Functionalities of the system:
+\begin{itemize}
+\item The system retrieves information collected by external sensors
+\item The system retrieves information collected by internal sensors
+\item The system dynamically selects the energy source used by the house
+\item The system regulates the work of air conditioning
+\item The system regulates the heating
+\item The system controls the level of the blind
+\item The system controls the lighting level
+\end{itemize}
 
 \section{Reinforcement Learning}
 The project is based on one of the machine learning areas called reinforcement learning. The research and development of this field has been rising as of late, because of, among others, the improvements in deep learning methods and constantly increasing computing power that is available to human. Combined with concepts like convolutional neural networks, RL algorithms achieve super-human performance in a variety of tasks. The main field of success is probably the gaming world, including both the traditional games like Chess or Go, and computer games, where, for example, classic Atari games are learned and solved by RL agents taking the input directly from raw pixels.
@@ -463,7 +486,30 @@ If we significantly increase the cost of energy consumption, it may turn out tha
 \section{Development Process}
 It is not a secret, that this project is more of a research than it is about making a production-ready system. While the most important research is concluded in the next section, we want to write couple of notes about our development process, to make it easier for new contributors to understand how the project was constructed. The most important tasks that were done are listed chronologically, and we also share some of the things that failed during the development process.
 \subsection{Chronology}
-% Rafał sugerował coś takiego, myślę że nie ma co wypisywać tasków po kolei od lutego, ale przydałoby się zrobić listę mniej więcej jak to po kolei powstawało. Być może osobne dla enva i agenta.
+Chronology of system preparation:
+\begin{itemize}
+\item Defining the organizational dates of such team meetings, talks with the project supervisor - 28/02/2018
+\item Design the wireframe of application - 13/03/2018
+\item The design of the reward function received by the agent - 13/03/2018
+\item Creation of the class diagram - 15/03/2018
+\item Implementation of actions possible to be performed by the agent - 19/03/2018
+\item  Implementation of the reward function - 20/03/2018
+\item  Agent class wireframe design - 25/03/2018
+\item Preparation and implementation of internal dependencies - 24/03/2018
+\item Preparation of a list of conventions on the source code of the application - 4.04.2018
+\item Implementation of the basic version of the agent - 18/04/2018
+\item Creation of weather dependencies in the environment - 18/04/2018
+\item Documentation on the algorithms used in the agent - 19/04/2018
+\item Manual tests of the environment - 20/04/2018
+\item Saving and loading agent's neural network models - 25/04/2018
+\item Analysis and tests of cloud solutions used to speed up calculations - 8/05/2018
+\item Implementation of the console user interface - 8/05/2018
+\item Implementation of Double DQN - 8/05/2018
+\item Creation of configuration files for store Agent parameters - 14/05/2018
+\item Design and functional requirements of the GUI - 4.05.2018
+\item GUI implementation - 21/05/2018
+\item Presentation of the system 11/06/2018
+\end{itemize}
 \subsection{What did not work out}
 As a young team of developers, we are very happy to work on an exciting field of research, but we have to admit that some of the things about developing a solid, consistent code base for a team project turned out to be very challenging. Additionally, working with Reinforcement Learning agents and environments can be very tricky. In this section we are going to name some of the things that did not work out at all, including both our failures and concepts that have not improved the RL agent. 
 
