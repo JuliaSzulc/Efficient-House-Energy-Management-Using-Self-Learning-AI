@@ -69,7 +69,7 @@ class Simulation:
         # --- view settings ---
         self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
         if width and height:
-            self.screen = pygame.display.set_mode((self.width, self.height),
+            self.screen = pygame.display.set_mode((width, height),
                                                   pygame.DOUBLEBUF)
         if width and height:
             self.width, self.height = width, height
