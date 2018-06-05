@@ -1,4 +1,4 @@
-digraph "classes" {
+digraph "classes_diagram" {
 charset="utf-8"
 rankdir=BT
 splines = ortho
@@ -8,32 +8,45 @@ nodesep=0.7
 subgraph{
 node [shape=box, style=filled ,fillcolor=bisque]
 
-"0" [label="{Agent|actions : NoneType\lbatch_size : int\lcurrent_state : NoneType\lenv\lepsilon : float, int\lepsilon_decay : float, int\lepsilon_min : int, float\lgamma : int, float\linitial_state : NoneType\ll_rate : float, int\lmemory\loptimizer : NoneType, Adagrad\lq_network : NoneType\ltarget_network : NoneType\l|__init__()\l_get_next_action()\l_train()\lget_experience_batch()\lreset()\lreturn_model_info()\lrun()\l}", shape="record"];
-"1" [label="{House|battery : dict\lday_end : int\lday_start : int\ldaytime : int\ldevices_power : dict\ldevices_settings : OrderedDict\lgrid_cost : float\lhouse_isolation_factor : float\lhouse_light_factor : float\linfluence\linside_sensors : OrderedDict\lmax_led_illuminance : int\lmax_outside_illumination : int\lpv_absorption : int\ltimeframe\luser_requests : dict\l|__init__()\l_calculate_accumulated_energy()\l_calculate_device_energy_usage()\l_calculate_energy_cost()\l_calculate_light()\l_calculate_penalty()\l_calculate_temperature()\l_get_current_user_requests()\laction_curtains_down()\laction_curtains_up()\laction_less_cooling()\laction_less_heating()\laction_less_light()\laction_more_cooling()\laction_more_heating()\laction_more_light()\laction_nop()\laction_source_battery()\laction_source_grid()\lget_inside_params()\lreward()\lupdate()\l}", shape="record"];
-"2" [label="{HouseEnergyEnvironment|house : NoneType\loutside_sensors : NoneType\lworld : NoneType\l|__init__()\l_get_current_state()\l_serialize_state()\lget_actions()\lrender()\lreset()\lstep()\l}", shape="record"];
-"3" [label="{ManualTestTerminal|actions\lenv : HouseEnergyEnvironment\l|__init__()\lmanual_testing()\l}", shape="record"];
-"4" [label="{Memory|\l|__init__()\l}", shape="record"];
-"5" [label="{Net|fc1 : Linear\lfc2 : Linear\lfc3 : Linear\l|__init__()\lforward()\l}", shape="record"];
+"0" [label="{Agent|actions : NoneType\lbatch_size : int\lconfig : NoneType\lcurrent_state\ldouble_dqn : NoneType\lenv\lepsilon : int\lepsilon_decay : int\lepsilon_min : int\lgamma : int\linitial_state : NoneType\ll_rate : int\lmemory : NoneType\loptimizer : NoneType, SGD\lq_network : NoneType\lstats : dict\ltarget_network : NoneType\ltrain_freq : int\l|__init__()\l__str__()\l_get_next_action_epsilon_greedy()\l_train()\l_update_stats()\lappend_sample_to_memory()\lget_episode_stats()\lget_experience_batch()\lget_next_action_greedy()\lhuber_loss()\lreset()\lrun()\l}", shape="record"];
+"1" [label="{House|action_penalty : int\lbattery : dict\lconfig\lday_end\lday_start\ldaytime : int\ldevices_power\ldevices_settings : OrderedDict\lgrid_cost\lhouse_isolation_factor\lhouse_light_factor\linfluence\linside_sensors : OrderedDict\lmax_led_illumination : int\lmax_outside_illumination : int\lmax_pv_absorption\ltimeframe\luser_requests : OrderedDict\l|__init__()\l_calculate_accumulated_energy()\l_calculate_cost_and_update_energy_source()\l_calculate_device_energy_usage()\l_calculate_light()\l_calculate_temperature()\l_update_grid_cost()\l_update_user_requests()\laction_curtains_down()\laction_curtains_up()\laction_less_cooling()\laction_less_heating()\laction_less_light()\laction_more_cooling()\laction_more_heating()\laction_more_light()\laction_nop()\laction_source_battery()\laction_source_grid()\lget_inside_params()\lreward()\lupdate()\l}", shape="record"];
+"2" [label="{HouseEnergyEnvironment|collect_stats : bool\lconfig\lhouse : NoneType\llast_reward : int\llight_diff_ok_count : int\llight_diff_perfect_count : int\loutside_sensors : NoneType\ltemp_diff_ok_count : int\ltemp_diff_perfect_count : int\ltimesteps : int\lworld : NoneType\l|__init__()\l_update_stats()\lget_actions()\lget_current_state()\lget_episode_stats()\lreset()\lserialize_state()\lstep()\l}", shape="record"];
+"3" [label="{ManualTestTerminal|actions\lagent : Agent\lenv : HouseEnergyEnvironment\l|__init__()\l_draw_menu()\l_draw_state()\lmanual_testing()\l}", shape="record"];
+"4" [label="{Memory|alpha\lbeta\lbeta_increment\lepsilon\lsum_tree : SumTree\l|__init__()\ladd()\lget_priority()\llen()\lsample()\lupdate()\l}", shape="record"];
+"5" [label="{Net|fc1 : Linear\lfc2 : Linear\linput_size\loutput_size\l|__init__()\lforward()\l}", shape="record"];
 "6" [label="{OutsideSensor|daytime : NoneType\lhouse_listener\lweather : dict\l|__init__()\lget_info()\lupdate()\l}", shape="record"];
-"7" [label="{World|base_date : datetime\lbase_step : timedelta\lbase_step_in_minutes : int\lbase_temperature : int\lbasetime : NoneType\lcurrent_date : datetime\ldaytime : NoneType\ldelta_weather : dict\lint_weather : dict\llisteners : list\lold_weather : dict\lstart_date : datetime\lstop_date\ltendency : int\ltime_step : timedelta\ltime_step_in_minutes : int\lweather : dict\l|__init__()\l_calculate_clouds()\l_calculate_light()\l_calculate_rain()\l_calculate_sun()\l_calculate_temperature()\l_calculate_wind()\l_compute_basetime()\l_compute_daytime()\l_interpolate_weather()\l_update_weather()\lregister()\lstep()\lupdate_listeners()\l}", shape="record"];
-"8" [label="{collections.deque}", shape="record"];
+"7" [label="{World|base_date : datetime\lbase_step : timedelta\lbase_step_in_minutes : int\lbase_temperature : int\lbasetime : NoneType\lconfig : bool, NoneType\lcurrent_date : datetime\ldaytime : NoneType\lint_weather : dict\llisteners : list\lold_weather : dict\lstart_date : datetime\lstop_date : NoneType\lsun_amplitude\ltendency : int\ltime_step : timedelta\ltime_step_in_minutes : NoneType\lweather : dict\l|__init__()\l_calculate_clouds()\l_calculate_light()\l_calculate_rain()\l_calculate_sun()\l_calculate_temperature()\l_calculate_wind()\l_compute_basetime()\l_compute_daytime()\l_interpolate_weather()\l_update_weather()\lregister()\lstep()\lupdate_listeners()\l}", shape="record"];
+"8" [label="{SumTree|capacity\ldata\ln_entries : int\ltree\lwrite : int\lwrite : int\l|__init__()\l_propagate()\l_retrieve()\ladd()\lget()\ltotal()\lupdate()\l}", shape="record"];
 "9" [label="{torch.nn.Module}", shape="record"];
 
-"4" -> "8" [arrowhead = empty]
-"5" -> "9" [arrowhead = empty]
+"10" [label="{Simulation|actions\lagent : Agent\lbackground\lclock\lcolors : dict\lconfig : bool, NoneType\lcurrent_state : recarray, list\ldata : dict, OrderedDict\lenv : HouseEnergyEnvironment\lfont : Font\lfps\lheight : NoneType\licons : dict\lmargin\lmemory : dict\lscreen\lwidth : NoneType\lzoom : int\l|__init__()\ldraw_background()\ldraw_chart_widget()\ldraw_devices_widget()\ldraw_icon()\ldraw_speedmeter_widget()\ldraw_text()\ldraw_weather_widget()\lfill()\lmake_world_step()\lrun()\lupdate_data()\l}", shape="record"];
+"12" [label="{AgentUtils|\l|load()\lsave()\l}", shape="record"];
 
-"4" -> "0" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="memory", style="solid"];
-"5" -> "0" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="q_network", style="solid"];
-"5" -> "0" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="target_network", style="solid"];
-    
-"1" -> "2" [arrowhead = diamond, headlabel = "1   ", taillabel = "1   "]
-"6" -> "2" [arrowhead = diamond, headlabel = "1   ", taillabel = "*   "]
-"7" -> "2" [arrowhead = diamond, headlabel = "1   ", taillabel = "1   "]
-    
-"1" -> "6" [arrowhead = vee, headlabel = "speaks to    " , taillabel = "listens to    ", style = "dashed"]
-"6" -> "7" [arrowhead = vee, headlabel = "speaks to    " , taillabel = "listens to    ", style = "dashed"]
+"8" -> "4" [arrowhead = "diamond" , arrowtail="none", headlabel = "1   ", taillabel = "1   ", style="solid"];
+"5" -> "9" [arrowhead = empty];
 
-{rank = same; 0; 2; }
-{rank = same; 4; 5; 7; 1; 6;}
+"4" -> "0" [arrowhead="diamond", arrowtail="none", headlabel = "1   ", taillabel = "1   ", style="solid"];
+"5" -> "0" [arrowhead="diamond", arrowtail="none", headlabel = "1   ", taillabel = "1   ", style="solid"];
+"5" -> "0" [arrowhead="diamond", arrowtail="none", headlabel = "1   ", taillabel = "1   ", style="solid"];
+    
+"1" -> "2" [arrowhead = diamond, headlabel = "1   ", taillabel = "1   "];
+"6" -> "2" [arrowhead = diamond, headlabel = "1   ", taillabel = "*   "];
+"7" -> "2" [arrowhead = diamond, headlabel = "1   ", taillabel = "1   "];
+    
+"1" -> "6" [arrowhead = vee, headlabel = "speaks to    " , taillabel = "listens to    ", style = "dashed"];
+"6" -> "7" [arrowhead = vee, headlabel = "speaks to    " , taillabel = "listens to    ", style = "dashed"];
+
+"0" -> "10" [arrowhead="diamond", arrowtail="none", headlabel = "1   ", taillabel = "1   ", style="solid"];
+"2" -> "10" [arrowhead="diamond", arrowtail="none", headlabel = "1   ", taillabel = "1   ", style="solid"];
+
+
+"0" -> "3" [arrowhead="diamond", arrowtail="none", headlabel = "1   ", taillabel = "1   ", style="solid"];
+"2" -> "3" [arrowhead="diamond", arrowtail="none", headlabel = "1   ", taillabel = "1   ", style="solid"];
+
+
+{rank = same; 12; 3 }
+{rank = same; 1; 7; 6; }
+{rank = same; 4; 0; }
+
 }
 }
