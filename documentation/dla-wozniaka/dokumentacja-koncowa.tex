@@ -35,26 +35,26 @@ Klient                     & Firma Samsung, pod której opieką merytoryczną tw
 Reinforcement Learning, RL & \begin{tabular}[c]{@{}l@{}}Jest to jedna z metod uczenia maszynowego, która polega na wyznaczaniu \\ optymalnej polityki sterowania przez agenta w nieznanym mu środowisku, \\ na podstawie interakcji z tym środowiskiem Jedyną informacją, na której \\ agent się opiera jest sygnał wzmocnienia, który osiąga wysoką wartość\\  (nagrodę), gdy agent podejmuje poprawne decyzje lub niską (karę) gdy\\  podejmuje decyzje błędnie.\end{tabular} \\ \hline
 Agent                      & \begin{tabular}[c]{@{}l@{}}Jest to jednostka działająca w środowisku, która na podstawie danych \\ podejmuje właściwe akcje.\end{tabular}                                                                                                                                                                                                                                                                                                          \\ \hline
 Środowisko                 & \begin{tabular}[c]{@{}l@{}}Symulacja naturalnego środowiska, stworzona w taki sposób, aby jak \\ najbardziej oddawać rzeczywiste warunki.\end{tabular}                                                                                                                                                                                                                                                                                             \\ \hline
-Akcja                      & Jest to realizacja decyzji podjętej przez agenta.                                                                                                                                                                                                                                                                                                                                                                                                  \\ \hline
+Akcja                      & Jest to realizacja procedur powiązanych z decyzją przez agenta.                                                                                                                                                                                                                                                                                                                                                                                                  \\ \hline
 GUI                        & Graficzny interfejs użytkownika.                                                                                                                                                                                                                                                                                                                                                                                                                   \\ \hline
 Double DQN                 & \begin{tabular}[c]{@{}l@{}}Double Deep Q Network - algorytm nauki agenta będący rozszerzeniem \\ powszechnie używanego algorytmu Q-Learning.\end{tabular}                                                                                                                                                                                                                                                                                          \\ \hline
 \end{tabular}
 \section{Cele projektu}
 
   
-Projekt realizuje ideę Reinforcement Learning w procesie decyzyjnym za pomocą niestandardowego agenta oraz środowiska. Celem jest stworzenie działającego systemu dla inteligentnego domu, który analizuje dane zewnętrzne i wewnętrzne zebrane przez czujniki i określa działanie, które należy wykonać, biorąc pod uwagę pożądane przez użytkownika wartości temperatury i światła oraz koszty energii. W rezultacie system powinien minimalizować zużycie energii w domu i maksymalizować komfort użytkownika.
+Projekt realizuje ideę Reinforcement Learning w procesie decyzyjnym za pomocą niestandardowego agenta oraz środowiska. Celem jest stworzenie działającego systemu dla inteligentnego domu, który analizuje dane zewnętrzne i wewnętrzne zebrane przez czujniki i określa działanie, które należy wykonać, biorąc pod uwagę pożądane przez użytkownika wartości temperatury i światła oraz koszty energii. W rezultacie system powinien minimalizować zużycie energii w domu przy zachowaniu akceptowalnego poziomu komfortu użytkownika.
 \section{Zakres i uwarunkowania realizacji}
 W projekcie należało zrealizować następujące elementy:
 \begin{itemize}
 \item Środowisko - należało stworzyć wirtualne środowisko, które ma na celu symulację zewnętrznych warunków pogodowych, dbając przy tym, aby było ono jak najbardziej zbliżone do realistycznych warunków atmosferycznych. Środowisko jest niezbędne do pracy całego systemu, bez dostępu do prawdziwych danych.
-\item Agenta - główny element całego systemu, to on decyduje o podjęciu konkretnej akcji na podstawie danych zebranych przez sensory oraz preferencji użytkownika. Celem agenta jest jak najlepsze podejmowanie akcji, w celu zminimalizowania zużycia energii przy zachowaniu jak najlepszego komfortu użytkownika.
+\item Agent - główny element całego systemu, to on decyduje o podjęciu konkretnej akcji na podstawie danych zebranych przez sensory oraz preferencji użytkownika. Celem agenta jest jak najlepsze podejmowanie akcji, w celu zminimalizowania zużycia energii przy zachowaniu jak najlepszego komfortu użytkownika.
 \item Interfejs dla użytkownika  - należało stworzyć interfejs (tekstowy) dla użytkownika mający na celu przedstawienie przebiegu procesu uczenia przez agenta, jak i możliwość interakcji z systemem, poprzez podawanie własnych akcji, symulując działanie agenta.
 \item GUI - graficzny interfejs użytkownika, mający na celu zaprezentować w przystępny sposób działanie agenta w zadanych warunkach środowiska. Wymaganiem co do interfejsu jest to, aby był on jak najbardziej przyjazny dla użytkownika, który nie jest zaznajomiony z systemem i/lub jest to jego pierwsza styczność z systemem.
 \end{itemize}
 
 \section{Przyczyny uruchomienia projektu}
 
-Projekt został uruchomiony w formie, która została zaproponowana i dopracowana korzystając ze współpracy z firmą Samsung. Głównym tematem był zastosowanie algorytmów sztucznej inteligencji na podstawie danych sensorycznych, z wykorzystaniem metod uczenia ze wzmacnianiem (reinforcement learning). \\
+Projekt został uruchomiony w formie, która została zaproponowana i dopracowana korzystając ze współpracy z firmą Samsung. Jest to projekt o charakterze badawczym, którego głównym tematem jest zastosowanie algorytmów sztucznej inteligencji do rozwiązywania problemów decyzyjnych na podstawie danych sensorycznych, z wykorzystaniem metod uczenia ze wzmacnianiem (Reinforcement Learning). \\
 Główną przyczyną uruchomienia projektu jest rzeczywiste zapotrzebowanie na inteligentne systemy, które stosowane są w inteligentnych domach. Na rynku istnieje duże zapotrzebowanie na oryginalne systemy, które pozwalają na ograniczenie kosztów zużycia energii, co wiąże się  z korzystnym wpływem na środowisko naturalne.
 
 \section{Główne korzyści}
@@ -64,7 +64,7 @@ Głównymi korzyściami wynikającymi ze stworzenia inteligentnego systemu, są:
 \item Możliwość implementacji go w istniejących już inteligentnych domach
 \item Pozytywny wpływ na środowisko naturalne
 \item Oszczędność energii elektrycznej, co w konsekwencji prowadzi do zredukowania kosztów
-\item Możliwość osiągnięcia komfortowych warunków dla użytkownika systemu
+\item Możliwość osiągnięcia komfortowych warunków dla użytkownika systemu bez konieczności ingerencji użytkownika w działanie systemu
 \end{itemize}
 
 \section{Koszty}
@@ -117,8 +117,8 @@ Plan projektu składa się z następujących etapów:
 \item Działania badawcze - etap polegający na zapoznaniu się z problemem oraz sposobami i alogrytami rozwiązującymi problem, teoretyczne zapoznanie się z bibliotekami i narzędziami, używanymi w kolejnych etapach tworzenia systemu.
 \item Planowanie - etap, w którym został stworzony koncept systemu, wstępny podział prac oraz harmonogram
 \item Implementacja rozwiązań - na tym etapie zostały zaimplementowane wybrane podczas planowania algorytmy
-\item Poprawa działania systemu - poprzez odpowiedni dobór parametrów, system został ulepszony w celu osiągnięcia najlepszych rezultatów
 \item Testy działania systemu - system został przetestowany w celu sprawdzenia, czy zachowuje się w oczekiwany sposób
+\item Poprawa działania systemu - poprzez odpowiedni dobór parametrów, system został ulepszony w celu osiągnięcia najlepszych rezultatów
 \end{itemize} \mbox{}\\
 Produktami projektu są: \mbox{}\\
 Aplikacja - systemu dla inteligentnego domu, w którym zawarty jest:
@@ -217,11 +217,11 @@ Dokumentacja w projekcie jest przygotowywana wspólnie przez cały zespół.
 \end{center}
 \section{Harmonogram}
 
-\includegraphics[width=1\textwidth, left]{final/1.jpg}
-\includegraphics[width=1\textwidth, left]{final/2.jpg}
-\includegraphics[width=1\textwidth, left]{final/3.jpg}
-\includegraphics[width=1\textwidth, left]{final/4.jpg}
-\includegraphics[width=1\textwidth, left]{final/5.jpg}
+\includegraphics[width=1\textwidth, left]{final/1.JPG}
+\includegraphics[width=1\textwidth, left]{final/2.JPG}
+\includegraphics[width=1\textwidth, left]{final/3.JPG}
+\includegraphics[width=1\textwidth, left]{final/4.JPG}
+\includegraphics[width=1\textwidth, left]{final/5.JPG}
 
 \section{Plan komunikacji}
 Praca przy projekcie odbywa się z wykorzystaniem systemu Kanban. W każdym tygodniu pracy odbywa się spotkanie zespołu, na którym omawiane są postępy, rozwiązywane problemy jak i przygotowywane następny zadania. Raz w tygodniu odbywa się również wideokonferencja zespołu z opiekunem projektu z~ramienia firmy Samsung, na którym omawiane są postępy w~tworzeniu systemu jak i konsultowane są problemy techniczne, które występują w czasie wytwarzania oprogramowania. 
@@ -447,8 +447,7 @@ Wagi dla prawdopodobieństw wystąpienia
 \item{Utrudnienia w komunikacji - (1*1) = 1}
 \item{Nieczytelność serwisu - (1*1) = 1}
 \end{enumerate}
-\mbox{}\\ \mbox{}\\\mbox{}\\\mbox{}\\\mbox{}\\\mbox{}\\\mbox{}\\ \mbox{}\\ 
-
+\newpage
 \subsection{Planowanie reakcji na ryzyko}
 \mbox{}\\ \mbox{}\\
 %\begin{table}[]
@@ -753,7 +752,7 @@ Według podanej macierzy, poziomy ryzyka prezentują się następująco:
 \end{itemize}
 
 \begin{center}
-	\includegraphics[scale=0.8]{Updated-Risk-Matrix.jpg} % w finalnej prezentacji może się lepiej ułoży
+	\includegraphics[scale=0.5]{Updated-Risk-Matrix.jpg} % w finalnej prezentacji może się lepiej ułoży
 \end{center}
 
 
