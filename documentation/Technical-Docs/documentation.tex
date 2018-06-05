@@ -11,6 +11,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage[bottom]{footmisc}
 \usepackage{listings}
+\usepackage{longtable}
 \lstset{basicstyle=\fontfamily{fvm}\selectfont\footnotesize,
     showstringspaces=false,
     commentstyle=\color{red},
@@ -31,13 +32,36 @@
 This is a technical documentation of our university project developed with cooperation and guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introduction and overview of main concepts, milestones, goals and results of this project. It is followed by a technical part, that contains a setup guide, code and tests overviews, explanation of used algorithms and concepts. Last part provides details about the development process, including useful insights, experiences, further research suggestions and lessons we have learned the hard way.
 \end{abstract}
 
+
 \section{Introduction}
-% wstęp, idea, kontekst
+The idea of the project is to examine the potential of artificial intelligence in decision-making processes. This potential is based on the growing popularity of systems using Reinforcement Learning as well as successes achieved by them.
+
 
 \subsection{Goals and milestones}
-% jak w nazwie
+We wanted to create a system for a smart house that works properly under any base requirements and conditions and results in visible energy saving. Here we think about the smart house as an agent with the access to the basic devices in the house (currently it is: energy source, light level, window blinds, air conditioning and heater) as well as the inside and outside sensors. The sensors collect the data (temperature, brightness and solar battery level) between the fixed timeframes. \\
+
+The project milestones was:
+\begin{itemize}
+\item Research activities - the stage consisting in learning about the problem and methods and algorithms solving the problem, theoretical familiarization with the libraries and tools used in the next stages of system creation.
+\item Planning - the stage in which the concept of the system was created and the initial schedule.
+\item Implementation of solutions - algorithms selected during planning has been implemented at this stage.
+\item Improvement of the system operation - through the appropriate selection of parameters, the system has been improved in order to achieve the best results.
+\item System performance tests - the system has been tested to see if it behaves in the expected manner.
+
+\end{itemize}
 \subsection{Results}
-% jak w nazwie
+The project implements the idea of reinforcement learning for decision process using custom learning agent and environment. We created a working system for a smart house that analyzes the outside and inside data collected by sensors and determines the action to perform considering the user desired values of temperature and light and energy cost. As a result the system minimize energy consumption in the house and maximize user’s comfort.\\
+
+Functionalities of the system:
+\begin{itemize}
+\item The system retrieves information collected by external sensors
+\item The system retrieves information collected by internal sensors
+\item The system dynamically selects the energy source used by the house
+\item The system regulates the work of air conditioning
+\item The system regulates the heating
+\item The system controls the level of the blind
+\item The system controls the lighting level
+\end{itemize}
 
 \section{Reinforcement Learning}
 The project is based on one of the machine learning areas called reinforcement learning. The research and development of this field has been rising as of late, because of, among others, the improvements in deep learning methods and constantly increasing computing power that is available to human. Combined with concepts like convolutional neural networks, RL algorithms achieve super-human performance in a variety of tasks. The main field of success is probably the gaming world, including both the traditional games like Chess or Go, and computer games, where, for example, classic Atari games are learned and solved by RL agents taking the input directly from raw pixels.
@@ -158,8 +182,22 @@ z & toggle charts zoom \\
 \end{itemize}
 
 Default speed of simulation can be set in \textbf{configuration.json} file, in module ''simulation'', item ''fps''.
-\subsubsection{Manual testing mode}
-This mode can be run by going into source files directory and launching \textbf{manual\_test.py} with python3 interpreter. 
+
+\subsection{Testing}
+\subsubsection{Overview}
+To make sure that the code is always consistent with the base objectives and works correctly, the unit tests has been implemented. All of them can be found in \textbf{src/tests/} directory. Besides the regular unit tests there is also a separate file containing code consistency tests.
+	The agent model can be tested using simulation mode or, with accuracy of a single action, using manual testing mode which is described later.
+
+\subsubsection{Coverage test}
+There is also possibility to run a coverage test using Python Coverage.py tool. If the code coverage needs to be checked the commands need to be invoked as follows:
+\begin{lstlisting}
+$ cd TOP/src/tests
+$ ./get_coverage.sh
+\end{lstlisting}
+The output is a .html file that can be found in htmlcov directory.
+
+\subsubsection{Manual testing}
+The project also includes manual testing mode. It can be run by going into source files directory and launching \textbf{manual\_test.py} with python3 interpreter. 
 \begin{lstlisting}
 $ cd TOP/src
 $ python3 manual_test.py
@@ -168,13 +206,26 @@ This mode is a command-line interface for manual testing of Reinforcement Learni
 All actions are made by entering a number specific for a certain command. Commands and numbers are visible all the time on top of the rendered text. \\\\
 \textit{NOTE:} This mode was made mainly for testing purposes, and should be treated as additional, not main functionality.
 
-\subsection{Testing}
-% Opis testowania projektu. Testy jednostkowe wraz ze sposobem generowania coverage.
-% Do tego manual testing - testowanie środowiska (może być jako subsubsection, a może być jako osobne subsection)
 \section{Code overview}
-% wstępniaczek co znajdziemy w tej sekcji.
+Below are the summarized descriptions of the fundamental parts of the project and how they are implemented in the code.
 \subsection{HouseEnergyEnvironment module}
-% opis środowiska. Tutaj chyba najlepiej podzielić to na subsubsections, House / World / Environment
+The environment where agent is put consists of a few separate classes that depend of each other and allow to create complex working setting that imitates the actual weather and the building.
+\subsubsection{House}
+This is where the agent is “placed” and where he operates. This class is responsible for generating the proper reaction after every timeframe based on the agent’s action and outside world changes.
+
+After every timeframe it receives the data from outside sensors and updates its parameters. During the update the temperature and light level are recalculated, energy cost increases and the energy stored in photovoltaics changes depending on the outside light and current energy source at home.
+
+The House class contains a few methods used to calculate present environmental conditions. All of them implement the mechanisms that are meant to be as similar to the real world and its physics as possible. This way we could place the agent in the lifelike scenery and mimic its use in real life.
+
+The vital part of the House is reward-calculating method. It is called after every timeframe. The important thing about the reward is the fact that it is always a negative value - that is why it can be treated as a “penalty”. The agent’s goal is to learn to minimize this penalty as much as possible. The reward formula is simply a weighted sum of penalties (temperature, light, energy cost) plus additional action penalty (for pointless or illogical actions like for example trying to switch powersource for the one that is already used). 
+
+\subsubsection{World}
+This class represents the model of the outside world. Its main purpose is to compute time and weather. Each time the method step is called, the world adds fixed timeframe value to the current time, updates weather and sends information about the changes to the listeners.
+
+The weather changes are computed using the random values as well as fixed dependencies between specific components. Most of the weights and biases connected to weather were determined experimentally. The main goal was to provide natural-looking weather with varied rain periods, clouds, occasional storms etc.In order to achieve this, in some places a modified version of Gillbert-Elliotchannel model was used to simulate constant periods of given weather phenomena.
+
+\subsubsection{Environment}
+Environment is indispensable part of the project. It connects smaller parts of the simulation like House and World into one working model. The class contains methods used to communicate with the agent as well as the ones that create human-readable information about current state.    Basing on the received information from the lower components, Environment is in charge of notifying their listeners about the events such as another step or finishing the episode.
 
 \subsection{Agent module}
 The agent module is where all the reinforcement learning mechanisms are implemented and used. To get the idea of how to use it and how it works, we split the module into small components and explain each one by one.
@@ -189,20 +240,168 @@ The main class of the module is the Agent class and it is essential to know how 
 \item \textit{run()} - most essential method, called to perform a full episode on the environment - with learning. This method resets the environment, and perform a loop in which the agent chooses an action, receives feedback, performs \textit{reward clipping}, updates statistics, saves the observed transition into the memory, calls the training function and then, in the end, slightly \textit{updates the target network}. Reward clipping is one of the normalization methods and we are using it because of the commonly accepted suggestions to do so. The updates to the target networks are another concept that is used to stabilize the learning process and is explained in more detail in the next section.
 \item \textit{learn()} - this is the method that performs training of agent's q-network. It is a single training iteration, which samples a batch of transitions from memory and, based on Double DQN approach, performs the training on given batch. Training is explained in the next section. 
 \item \textit{get\_next\_action\_greedy()} - returns next action given a state with use of the target network using a greedy policy. Greedy means that agent return the action with the biggest q-function estimate. This function should be used if an outside object wants to know the agent's action for the given state.
-\item \textit{get\_episode\_stats()} - they implement the idea that is currently not used extensively. We are using these to register counts of each action to allow external object to analyze it.
+\item \textit{get\_episode\_stats()} - method that implement the idea of collecting statistics about agent's actions, which is currently not used extensively. We are using these to register counts of each action to allow external object to analyze it.
 \end{itemize}
 
 \subsubsection{Double DQN}
 
 
 \subsubsection{Memory class}
+One of the concepts that is essential for Deep Q Networks to work is the \textbf{experience replay}. Agent, instead of learning from sequence of observed, correlated transitions, saves them to a memory buffer and samples random transitions into a batch of uncorrelated ones. This improves stability of learning. It is still unclear what should be the perfect memory size, but it is proved that it matters. Another part of research tries to whether how to improve the sampling, and the Prioritized Experience Replay concept, where the transition is more likely to be chosen based on 'how wrong the network was about it', is reported to be a big improvement across many tasks.
+
 
 \subsubsection{AgentUtils class}
 This class provides methods for saving and loading the models of networks and configuration parameters. We have separated it from the Agent class for readability and file-based operations separate from the learning functionality of Agent class.
 
 \subsection{Configuration file}
-% Tutaj ładnie wylistowane parametry z dosyć dokładnym wytłumaczeniem - czego dotyczą, gdzie są używane, poziom istotności parametru
-% na końcu może być wrzucona obecna konfiguracja z jakąś adnotacją, że dla tej konfiguracji generowaliśmy/uczyliśmy ostateczny model agenta
+The project allows user to adjust values of some of the key parameters such as training settings or environment specifications. The whole list can be found in \textbf{configuration.json} file in the main project directory. All of the available parameters are listed below along with their types and brief descriptions.
+
+\begin{longtable}{l|c|p{9cm}}
+	\hline
+	{bold}parameter name & type & description \\
+	\hline
+    training\_episodes & integer & Number of episodes in training process.\\
+    \hline
+    save\_experiment & boolean & Determines whether the model has to be saved after the experiment or not.\\
+    \hline
+    print\_stats & boolean & Decides whether the current statistics has to be printed after each episode or not. The statistics are current most common action and how different are the current light and temperature values compared to their expected rate.\\
+    \hline
+    make\_total\_reward\_plot & boolean & Determines whether the plot depicting the reward changes should be generated at the end or not.\\
+    \hline
+    load\_agent\_model & boolean & Decides whether the ready model should be loaded beforehand or not.\\
+    \hline
+    fps & integer & Number of frames per second in the simulation.\\
+    \hline
+    hidden\_layer\_size & integer & Size of the neural network hidden layer.\\
+    \hline
+    memory\_alpha & float & Agent memory factor that determines how much prioritization is used (0 is uniform case)\\
+    \hline
+    memory\_beta & float & Agent memory parameter used in weighted importance sampling.\\
+    \hline
+    memory\_beta\_increment & float & The value by which the memory\_beta is gradually incremented during memory sampling.\\
+    \hline
+    memory\_epsilon & float & Agent memory constant that prevents the transition from having zero-valued priority\\
+    \hline
+    memory\_size & integer & Size of the agent memory.\\
+    \hline
+    double\_dqn & boolean & Determines whether DQN or Double DQN has to be used.\\
+    \hline
+    gamma & float & The discount factor in learning algorithm.\\
+    \hline
+    epsilon & float & Controls the exploration rate in the learning process (probability of choosing random action).\\
+    \hline
+    epsilon\_decay & float & The value by which the epsilon is gradually decremented.\\
+    \hline
+    epsilon\_min & float & The minimum value of epsilon.\\
+    \hline
+    batch\_size & integer & Size of transition batch retrieved from agent memory.\\
+    \hline
+    learning\_rate & float & Value of learning rate in learning process.\\
+    \hline
+    training\_freq & integer & The frequency with which the target network is slightly updated towards the q-network weights.\\
+    \hline
+    target\_network\_update\_freq & integer & The frequency with which the target network is fully updated.\\
+    \hline
+    reward\_clip & integer & Value of parameter used in the reward clipping.\\
+    \hline
+    sgd\_momentum & float & Parameter used for stochastic gradient descent algorithm with momentum.\\
+    \hline
+    q\_to\_target\_ratio & float & Value of which the target-network is updated during the learning process.\\
+    \hline
+    timestep\_in\_minutes & integer & Number of minutes in each world step.\\
+    \hline
+    day\_start & integer & Number of minutes after midnight when the daytime begins.\\
+    \hline
+    day\_end & integer & Number of minutes after midnight when the nighttime begins.\\
+    \hline
+    devices\_power & integers & Power of the devices in the house (watt).\\
+    \hline
+    temperature\_w\_in\_reward & float & Weight of the temperature penalty in reward calculation.\\
+    \hline
+    light\_w\_in\_reward & float & Weight of the light penalty in reward calculation.\\
+    \hline
+    cost\_w\_in\_reward & float & Weight of the cost of the energy penalty in reward calculation.\\
+    \hline
+    max\_pv\_absorption & integer & Maximum absorption of photovoltaics.\\
+    \hline
+    day\_grid\_cost & float & Energy price during the daytime.\\
+    \hline
+    night\_grid\_cost & float & Energy price during the nighttime.\\
+    \hline
+    house\_light\_factor & float & Determines how much of outside light is in the house.\\
+    \hline
+    house\_isolation\_factor & float & Parameter used in outdoor-to-indoor temperature calculation.\\
+    \hline
+    battery\_max & integer & Amount of energy in fully charged photovoltaics.\\
+    \hline
+    influence\_per\_min & float & Describes how large is the change of device setting when action is executed\\
+    \hline
+    stats & floats & Maximum differences between measured stats and expected. These constants tell which temperature and light level are described as “perfect” and “ok” compared to the expected values.
+\end{longtable}
+
+This is the configuration we used to generate the final agent and make it learn:
+
+\begin{lstlisting}
+{
+    "main": {
+        "training_episodes"          : 10000,
+        "save_experiment"            : true,
+        "print_stats"                : true,
+        "make_total_reward_plot"     : true,
+        "load_agent_model"           : false
+    },
+    "simulation": {
+        "fps"                        : 16
+    },
+    "agent": {
+    	"memory_alpha"               : 0.6,
+        "memory_epsilon"             : 0.01,
+        "memory_beta"                : 0.4,
+        "memory_beta_increment"      : 0.001,
+        "hidden_layer_size"          : 80,
+        "memory_size"                : 10000,
+        "double_dqn"                 : true,
+        "gamma"                      : 0.9,
+        "epsilon"                    : 1,
+        "epsilon_decay"              : 0.999,
+        "epsilon_min"                : 0.1,
+        "batch_size"                 : 16,
+        "learning_rate"              : 0.0001,
+        "training_freq"              : 4,
+        "target_network_update_freq" : 500,
+        "reward_clip"                : -2,
+        "sgd_momentum"               : 0.9,
+        "q_to_target_ratio"          : 0.1
+    },
+    "env": {
+        "timestep_in_minutes"        : 1,
+        "day_start"                  : 420,
+        "day_end"                    : 1080,
+        "devices_power": {
+            "air_conditioner": 1500,
+            "heater": 3000,
+            "light": 720
+        },
+
+        "temperature_w_in_reward"    : 0.35,
+        "light_w_in_reward"          : 0.82,
+        "cost_w_in_reward"           : 0.024,
+        "max_pv_absorption"          : 5,
+        "day_grid_cost"              : 0.5,
+        "night_grid_cost"            : 0.3,
+        "house_light_factor"         : 0.0075,
+        "house_isolation_factor"     : 0.996,
+        "battery_max"                : 14000,
+        "influence_per_min"          : 0.2,
+        "stats": {
+            "temp_ok_diff": 2,
+            "temp_perfect_diff": 0.5,
+            "light_ok_diff": 0.15,
+            "light_perfect_diff": 0.05
+        }
+    }
+}
+\end{lstlisting}
 
 \section{Accuracy measures and tempo of learning}
 % tutaj trochę o statystykach które pokazujemy w mainie, jakie wyniki uznajemy za agenta nauczonego, jaki procent odpalonych agentów uczy się wszystkiego, ileśrednio epizodów zajmuje osiągnięcie akceptowalnego poziomu. Chciałoby się, żeby ta sekcja była zrobiona bardzo obszernie, ale nie mamy czasu żeby przeprowadzić nie wiadomo jaką ilość testów - i o tym też wspomnijmy. 
@@ -285,10 +484,33 @@ If we significantly increase the cost of energy consumption, it may turn out tha
 \end{itemize}
 
 \section{Development Process}
-% wstępniak - z racji, że to projekt badawczy a nie gotowy produkt, to zamieszczamy tutaj informacje o tym, jak szły prace, co jest trudne, co nie poszło, co poszło superancko itd.
+It is not a secret, that this project is more of a research than it is about making a production-ready system. While the most important research is concluded in the next section, we want to write couple of notes about our development process, to make it easier for new contributors to understand how the project was constructed. The most important tasks that were done are listed chronologically, and we also share some of the things that failed during the development process.
 \subsection{Chronology}
-% Rafał sugerował coś takiego, myślę że nie ma co wypisywać tasków po kolei od lutego, ale przydałoby się zrobić listę mniej więcej jak to po kolei powstawało. Być może osobne dla enva i agenta.
-\subsection{What Has Failed}
+Chronology of system preparation:
+\begin{itemize}
+\item Defining the organizational dates of such team meetings, talks with the project supervisor - 28/02/2018
+\item Design the wireframe of application - 13/03/2018
+\item The design of the reward function received by the agent - 13/03/2018
+\item Creation of the class diagram - 15/03/2018
+\item Implementation of actions possible to be performed by the agent - 19/03/2018
+\item  Implementation of the reward function - 20/03/2018
+\item  Agent class wireframe design - 25/03/2018
+\item Preparation and implementation of internal dependencies - 24/03/2018
+\item Preparation of a list of conventions on the source code of the application - 4.04.2018
+\item Implementation of the basic version of the agent - 18/04/2018
+\item Creation of weather dependencies in the environment - 18/04/2018
+\item Documentation on the algorithms used in the agent - 19/04/2018
+\item Manual tests of the environment - 20/04/2018
+\item Saving and loading agent's neural network models - 25/04/2018
+\item Analysis and tests of cloud solutions used to speed up calculations - 8/05/2018
+\item Implementation of the console user interface - 8/05/2018
+\item Implementation of Double DQN - 8/05/2018
+\item Creation of configuration files for store Agent parameters - 14/05/2018
+\item Design and functional requirements of the GUI - 4.05.2018
+\item GUI implementation - 21/05/2018
+\item Presentation of the system 11/06/2018
+\end{itemize}
+\subsection{What did not work out}
 As a young team of developers, we are very happy to work on an exciting field of research, but we have to admit that some of the things about developing a solid, consistent code base for a team project turned out to be very challenging. Additionally, working with Reinforcement Learning agents and environments can be very tricky. In this section we are going to name some of the things that did not work out at all, including both our failures and concepts that have not improved the RL agent. 
 
 \begin{itemize}

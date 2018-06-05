@@ -10,7 +10,7 @@
 # wersji wymaga jeszcze obróbki.
 
 sources="src"
-docs="dokumentacja"
+docs="documentation"
 
 pyreverse -s 0 -f ALL  --ignore=tests -o png $sources -p diagram
 mv packages_diagram.png $docs/packages_diagram.png
