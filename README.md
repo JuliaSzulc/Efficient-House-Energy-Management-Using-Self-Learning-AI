@@ -1,11 +1,13 @@
 
 <h1 align="center">
-  <img src="https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/static/img/logo.png" alt="logo" width="200"></p>
-  Efficient House Energy Management 
+  <img src="https://github.com/JuliaSzulc/Efficient-House-Energy-Management-Using-Self-Learning-AI/blob/master/static/img/logo.png" alt="logo" width="100"></br>
+  Efficient House Energy Management
+  </br>
+  using self learning AI
 </h1>
-<h2 align="center"> using self learning AI</h2>
-
-![sim](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/static/img/sim.gif)
+<p align="center">
+<img style="text-align: center;" align="center" src="https://github.com/JuliaSzulc/Efficient-House-Energy-Management-Using-Self-Learning-AI/blob/master/static/img/sim.gif">
+</p>
 
 The project implements the idea of reinforcement learning for decision process using custom learning agent and environment. The aim is to create a working system for a smart house that analyzes the outside and inside data collected by sensors and determines the action to perform considering the user desired values of temperature and light and energy cost. As a result the system should minimize energy consumption in the house and maximize user’s comfort.    
 
