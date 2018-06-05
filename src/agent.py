@@ -9,14 +9,14 @@ import random
 import sys
 import os
 import json
-from collections import deque
 from shutil import copyfile
 import torch
 import matplotlib.pyplot as plt
-from torch import optim, nn
+from torch import optim
 from torch.autograd import Variable
 import torch.nn.functional as F
 import numpy as np
+from tools import SumTree
 
 
 class Net(torch.nn.Module):
@@ -36,13 +36,55 @@ class Net(torch.nn.Module):
         return x
 
 
-class Memory(deque):
-    """Subclass of deque, storing transitions batches for Agent"""
+class Memory:
+    """Based on a SumTree, storing transitions batches for Agent."""
 
-    # TODO: Prioritized Experience Replay
+    def __init__(self, max_size, alpha, epsilon, beta, beta_increment):
+        self.sum_tree = SumTree(max_size)
+        self.alpha = alpha
+        self.epsilon = epsilon
+        self.beta = beta
+        self.beta_increment = beta_increment
 
-    def __init__(self, maxlen):
-        super().__init__(maxlen=maxlen)
+    def add(self, transition, error):
+        priority = self.get_priority(error)
+        self.sum_tree.add(priority, transition)
+
+    def get_priority(self, error):
+        return (abs(error) + self.epsilon) ** self.alpha
+
+    def update(self, index, error):
+        priority = self.get_priority(error)
+        self.sum_tree.update(index, priority)
+
+    def sample(self, batch_size):
+        batch = []
+        indexes = []
+        priorities = []
+        priority_segment = self.sum_tree.total() / batch_size
+
+        self.beta = np.min([1., self.beta + self.beta_increment])
+
+        for i in range(batch_size):
+            a = i * priority_segment
+            b = (i + 1) * priority_segment
+            value = random.uniform(a, b)
+
+            (index, priority, data) = self.sum_tree.get(value)
+            batch.append(data)
+            indexes.append(index)
+            priorities.append(priority)
+
+        probabilities = priorities / self.sum_tree.total()
+        importance_sampling_weights = np.power(self.sum_tree.n_entries *
+                                               probabilities, -self.beta)
+        importance_sampling_weights /= importance_sampling_weights.max()
+
+        return batch, indexes, Variable(torch.Tensor(
+            importance_sampling_weights))
+
+    def len(self):
+        return self.sum_tree.n_entries
 
 
 class Agent:
@@ -119,7 +161,11 @@ class Agent:
             hidden1_size,
             output_size
         )
-        self.memory = Memory(maxlen=self.config['memory_size'])
+        self.memory = Memory(self.config['memory_size'],
+                             self.config["memory_alpha"],
+                             self.config["memory_epsilon"],
+                             self.config["memory_beta"],
+                             self.config["memory_beta_increment"])
         self.double_dqn = self.config['double_dqn']
         self.gamma = self.config['gamma']
         self.epsilon = self.config['epsilon']
@@ -168,8 +214,8 @@ class Agent:
                 reward = self.config['reward_clip']
 
             self._update_stats(action_index)
-            self.memory.append((self.current_state, action_index, reward,
-                                next_state, terminal_state))
+            self.append_sample_to_memory(self.current_state, action_index,
+                                         reward, next_state, terminal_state)
 
             self.current_state = next_state
             total_reward += reward
@@ -202,8 +248,9 @@ class Agent:
 
         """
 
-        if len(self.memory) > self.batch_size:
-            exp_batch = self.get_experience_batch()
+        if self.memory.len() > self.batch_size:
+            exp_batch, indexes, importance_sampling_weights =\
+                self.get_experience_batch()
 
             input_state_batch = exp_batch[0]
             action_batch = exp_batch[1]
@@ -244,8 +291,15 @@ class Agent:
 
             targets = reward_batch + self.gamma * q_t1_max_with_terminal
 
+            errors = torch.abs(q_values - targets).data.numpy()
+
+            for i in range(self.batch_size):
+                index = indexes[i]
+                self.memory.update(index, errors[i])
+
             self.optimizer.zero_grad()
-            loss = nn.modules.SmoothL1Loss()(q_values, targets)
+            loss = self.huber_loss(q_values, targets,
+                                   importance_sampling_weights)
             loss.backward()
             for param in self.q_network.parameters():
                 param.grad.data.clamp_(-1, 1)
@@ -299,13 +353,8 @@ class Agent:
         """
 
         exp_batch = [0, 0, 0, 0, 0]
-        # 'combined experience replay'
-        # we use experience replay, but we put 2 last transitions in the batch
-        # to overcome the problem of very slow training with big memory sizes
-        # see paper "Deeper Look into Experience Replay" by G. Hinton
-        transition_batch = random.sample(self.memory, self.batch_size - 2)
-        transition_batch.append(self.memory[-2])
-        transition_batch.append(self.memory[-1])
+        transition_batch, indexes, importance_sampling_weights =\
+            self.memory.sample(self.batch_size)
 
         # Float Tensors
         for i in [0, 2, 3, 4]:
@@ -313,10 +362,10 @@ class Agent:
                 [x[i] for x in transition_batch]))
 
         # Long Tensor for actions
-        exp_batch[1] = Variable(
-            torch.LongTensor([int(x[1]) for x in transition_batch]))
+        exp_batch[1] = Variable(torch.LongTensor(
+            [int(x[1]) for x in transition_batch]))
 
-        return exp_batch
+        return exp_batch, indexes, importance_sampling_weights
 
     # --- Define utility methods below ---
 
@@ -345,6 +394,32 @@ class Agent:
         }
 
         return aggregated
+
+    def append_sample_to_memory(self, current_state, action_index, reward,
+                                next_state, terminal_state):
+        target = self.q_network(Variable(
+            torch.FloatTensor(current_state))).data
+        q = target[action_index]
+        target_val = self.target_network(Variable(
+            torch.FloatTensor(next_state))).data
+        if terminal_state:
+            target[action_index] = reward
+        else:
+            target[action_index] = reward + self.gamma * torch.max(
+                target_val)
+
+        error = abs(q - target[action_index])
+
+        self.memory.add((current_state, action_index, reward, next_state,
+                         terminal_state), error)
+
+    def huber_loss(self, values, target, weights):
+        loss = (torch.abs(values - target) < 1).float() *\
+               0.5 * (values - target) ** 2 + \
+               (torch.abs(values - target) >= 1).float() *\
+               (torch.abs(values - target) - 0.5)
+
+        return (weights * loss).sum()
 
 
 class AgentUtils:

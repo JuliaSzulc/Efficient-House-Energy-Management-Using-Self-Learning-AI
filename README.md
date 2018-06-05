@@ -1,8 +1,16 @@
-![coverage](https://img.shields.io/badge/coverage-94%25-green.svg)
 
-![cat](https://i.pinimg.com/originals/f3/cc/f7/f3ccf75f1883faea777a00f351c5dc60.gif)
-# Efficient House Energy Management Using Self Learning AI :seedling:
+<h1 align="center">
+  <img src="https://github.com/JuliaSzulc/Efficient-House-Energy-Management-Using-Self-Learning-AI/blob/master/static/img/logo.png" alt="logo" width="100"></br>
+  Efficient House Energy Management
+  </br>
+  using self learning AI
+</h1>
+<p align="center">
+<img style="text-align: center;" align="center" src="https://github.com/JuliaSzulc/Efficient-House-Energy-Management-Using-Self-Learning-AI/blob/master/static/img/sim.gif">
+</p>
+
 The project implements the idea of reinforcement learning for decision process using custom learning agent and environment. The aim is to create a working system for a smart house that analyzes the outside and inside data collected by sensors and determines the action to perform considering the user desired values of temperature and light and energy cost. As a result the system should minimize energy consumption in the house and maximize user’s comfort.    
+
   
 ## Problem and idea:  
 We wanted to create a system for a smart house that works properly under any base requirements and conditions and results in visible energy saving.
@@ -11,15 +19,24 @@ Here we think about the smart house as an agent with the access to the basic dev
 ## Applied solution:
 A complex simulation of the outside world, house and weather has been created as a base environment for the agent. The reward is calculated from difference between current conditions and user requests and energy use. Currently implemented algorithm uses Double Deep Q Learning with Prioritized Experience Replay.  
 
-## Requirements:  
-see [requirements.txt](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/requirements.txt)
+# Getting Started
+
+### Prerequisites:
+
+ - A Debian based distribution of Linux operating system
+ - Python 3.6.5 installed
+
+### Instalation:
+
+Install required Python3 libraries using [requirements.txt](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/requirements.txt)
   
-## Building:
 ```
-$ pip3 install -r requirements.py
+$ pip3 install -r requirements.txt
 ```
 
-## Instructions:
+### Running:
+Proceed into [source code directory ](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/requirements.txt), and run one of following scripts:
+
 1. To run a training session:
 ```
 $ python3 main.py
@@ -32,9 +49,9 @@ $ python3 simulation.py
 ```
 $ python3 manual_test.py
 ```
-You can change the configuration of agent and environment thorugh [configuration.json](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/configuration.json)
+You can change the configuration of agent and environment through [configuration.json](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/configuration.json)
 
-## Repo Guide:
+# Repo Guide
 <pre>
 <b>.</b>
 ├── configuration.json       <i> Main configuration file </i>
@@ -61,10 +78,11 @@ You can change the configuration of agent and environment thorugh [configuration
     └── <b>icons</b> 
  </pre>
 
-For more info please refer to [**documentation**](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/documentation) of the project, where you can find diagrams and documents for our university course as well as our coding guidelines and list of used sources.
+For more info please refer to [**documentation**](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/documentation) of the project, where you can find technical docs and a list of used sources.
   
-22 May 2018,  
   
+# Authors
+
 :bear: Dawid Czarneta  
 :tiger2: Jakub Frąckiewicz  
 :squirrel: Filip Olszewski  
