@@ -6,6 +6,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
+\usepackage{float}
 \usepackage{fullpage}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
@@ -47,19 +48,27 @@ The short and quick answer to questions stated above is yes, Reinforcement Learn
 
 In the next section we will provide technical details about the project and elaborate more on the results.
 
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.5]{screen.png}
+        \caption{Screenshot from simulation mode}
+    \end{center}
+\end{figure}
+
 \section{Reinforcement Learning}
 The project is based on one of the machine learning areas called reinforcement learning. The research and development of this field has been rising as of late, because of, among others, the improvements in deep learning methods and constantly increasing computing power that is available to human. Combined with concepts like convolutional neural networks, RL algorithms achieve super-human performance in a variety of tasks. The main field of success is probably the gaming world, including both the traditional games like Chess or Go, and computer games, where, for example, classic Atari games are learned and solved by RL agents taking the input directly from raw pixels.
-
+\\\\
 Reinforcement learning is often explained by comparison to supervised learning, which is usually named the most successful field of Machine Learning. It is based on datasets, which consist of both the observations and the correct labels (answers, classes). For example, the dataset consists of images, and each image has it is correct label as well - a word that describes the object on the image. In Reinforcement Learning, on the other hand, there is no 'supervisor'. Instead, the environment returns a reward signal, which indicates how good or bad the current situation is. The main goal of the agent is to maximize the cumulative reward.
-
+\\\\
 There is a common vocabulary that is used to describe this setup. The \textbf{agent} (RL algorithm) has to interact with the \textbf{environment}, by performing \textbf{actions}. Environment gives the agent information about the \textbf{current state}, as well as the \textbf{reward signal} for the last time-frame. Agent has to choose the best one from the given set of possible actions. This is usually happening until the environment reaches a \textbf{terminal state}. Simulation from the start to terminal state is called an \textbf{episode}. A \textbf{transition} is defined as a sequence - state, action, reward and next state - and is used as a single 'experience' unit in agent's memory. 
-
+\\\\
 To put this into perspective: In our project, the smart house manager is the agent. The simulated world is the environment. Actions are used to control devices such as heating or light. The state is a collection of information about the weather, inside parameters, current devices settings and user requests - everything that is needed for agent to perform rational decisions. The episode can be defined as - for example - one single day, where the terminal state is when the world clock reaches midnight.
 \subsection{What have we used?}
 Our agent uses Double DQN with Prioritized Experience Replay. This is a combination of recent developments in the field, which improve the speed, quality and stability of learning, and sometimes are essential for solving particular tasks. The neural network model is a fully connected feedforward network with one hidden layer. It uses ReLU activation function on hidden layer neurons and linear activation function on the output layer. For an explanation of these concepts and more detailed information about the agent, please see the Agent module section (4.2).
 \subsection{PyTorch Framework}
 To implement the agent and the concepts named above, we have used the PyTorch framework. It is now commonly believed, that this frameworks becomes the go-to Python framework used for Deep Learning, with some essential advantages when compared to the - currently most popular - TensorFlow framework. While this is still a matter of loud discussions, we have chosen the framework more out of curiosity, and because it is often called 'more Pythonic'. We will talk more about our experiences and conclusions about that choice later in the documentation, but the short story is - we are satisfied with it.
-
+\\\\
 We are using PyTorch for a very clear neural network model declaration, ready-to-use optimizers like SGD or Adagrad and loss functions, automatic computation of the gradients of network's parameters, and to perform the Double DQN learning process. It also provides a clear way to use GPUs for the computations. 
 
 We have used the version 0.3.1 and it is important to note, that the newest version of the framework (0.4.0 on the day of this documentation's publication) requires some changes to the code.
@@ -92,7 +101,7 @@ Our project can be run in different modes. These can be configured by changing c
 \subsubsection{Learning mode}
 This mode can be run by going into source files directory and launching \textbf{main.py}
  with python3 interpreter. 
-\begin{lstlisting}
+\begin{lstlisting} 
 $ cd TOP/src
 $ python3 main.py
 \end{lstlisting}
@@ -192,7 +201,30 @@ All actions are made by entering a number specific for a certain command. Comman
 Please note, that this mode was made mainly for testing purposes, and should be treated more as an additional tool in further development, than a project's functionality.
 \newpage
 \section{Code overview}
-Below are the descriptions of the fundamental parts of the project and how they are implemented in the code.
+Below are the diagrams, descriptions of the fundamental parts of the project and informations about their implementation. 
+
+\subsection{Class diagram}
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.4]{classes1.png}
+        \caption{First part of classes diagram}
+    \end{center}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.5]{classes2.png}
+        \caption{Second part of classes diagram}
+    \end{center}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.5]{packages.png}
+        \caption{Modules diagram}
+    \end{center}
+\end{figure}
+
 \subsection{HouseEnergyEnvironment module}
 The environment where agent is put consists of a few separate classes that depend on each other and allow to create complex working setting that imitates the actual weather and the building.
 \subsubsection{House}
