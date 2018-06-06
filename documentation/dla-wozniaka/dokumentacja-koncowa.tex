@@ -28,6 +28,7 @@ decyzji na podstawie danych sensorycznych (Reinforcement learning for decission 
 Niniejszy dokument ma za zadanie przedstawić projekt systemu dla inteligentnego domu wykorzystującego uczenie maszynowe (Reinforcement Learning). Projekt ten został stworzony na potrzeby kursu Projekt Zespołowy, na Wydziale Elektroniki Politechniki Wrocławskiej. Dokument ten ma na celu prezentację projektu, przedstawienie jego zakresu, założeń, korzyści, przyczyn uruchomienia, planów zarządzania jakością, ryzykiem jak i komunikacją wewnątrz projektu.
 
 \section{Słownik pojęć}
+{\def\arraystretch{1.2}\tabcolsep=6pt
 \begin{tabular}{|l|l|}
 \hline
 \textbf{Nazwa}                      & \textbf{Wyjaśnienie}                                                                                                                                                                                                                                                                                                                                                                                                                                        \\ \hline
@@ -38,7 +39,7 @@ Agent                      & \begin{tabular}[c]{@{}l@{}}Jest to jednostka dział
 Akcja                      & Jest to realizacja procedur powiązanych z decyzją przez agenta.                                                                                                                                                                                                                                                                                                                                                                                                  \\ \hline
 GUI                        & Graficzny interfejs użytkownika.                                                                                                                                                                                                                                                                                                                                                                                                                   \\ \hline
 Double DQN                 & \begin{tabular}[c]{@{}l@{}}Double Deep Q Network - algorytm nauki agenta będący rozszerzeniem \\ powszechnie używanego algorytmu Q-Learning.\end{tabular}                                                                                                                                                                                                                                                                                          \\ \hline
-\end{tabular}
+\end{tabular}}
 \section{Cele projektu}
 
   
@@ -65,6 +66,133 @@ Głównymi korzyściami wynikającymi ze stworzenia inteligentnego systemu, są:
 \item Pozytywny wpływ na środowisko naturalne
 \item Oszczędność energii elektrycznej, co w konsekwencji prowadzi do zredukowania kosztów
 \item Możliwość osiągnięcia komfortowych warunków dla użytkownika systemu bez konieczności ingerencji użytkownika w działanie systemu
+\end{itemize}
+\newpage
+\section{Wymagania funkcjonalne}
+\begin{center}
+{\def\arraystretch{3}\tabcolsep=5pt
+	\begin{longtable}{p{5cm}p{10cm}}
+	
+	Pobieranie informacji zebranych przez sensory zewnętrzne&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest dostosowywanie przez system ustawień urządzeń w domu w zależności od warunków zewnętrznych.
+	\item \textbf{Kryteria spełnienia:} Zmieniające się warunki pogodowe powinny wpływać na decyzje podejmowane przez system.
+	\end{itemize}\\
+	
+	Pobieranie informacji zebranych przez sensory wewnętrzne&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest dostosowywanie przez system ustawień urządzeń w domu w zależności od warunków wewnętrznych.
+	\item \textbf{Kryteria spełnienia:} Zmieniające się warunki w mieszkaniu (temperatura, poziom oświetlenia) powinny wpływać na decyzje podejmowane przez system.
+	\end{itemize}\\
+	
+	Dynamiczny wybór źródła energii, z którego korzysta dom&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest możliwość jak najbardziej ekologicznego zarządzania energią poprzez wykorzystanie ogniw fotowoltaicznych zamiast prądu pobranego z sieci.
+	\item \textbf{Kryteria spełnienia:} System powinien wybierać energię z~ogniw fotowoltaicznych wtedy, kiedy to tylko możliwe (kiedy ogniwa nie są rozładowane) zamiast prądu pobranego z sieci.
+	\end{itemize}\\
+	
+	Regulowanie pracy klimatyzacji&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest automatyczne sterowanie klimatyzacją w zależności od temperatury w domu.
+	\item \textbf{Kryteria spełnienia:} System powinien mieć możliwość regulowania klimatyzacji w zależności od temperatury zarejestrowanej przez sensory wewnętrzne oraz umieć podjąć jak najlepszą decyzję co do jej ustawień, mając na uwadze koszty energii.
+	\end{itemize}\\
+	
+	Regulowanie ogrzewania&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest automatyczne sterowanie ogrzewaniem elektrycznym w zależności od temperatury w domu.
+	\item \textbf{Kryteria spełnienia:} System powinien mieć możliwość regulacji ogrzewania w zależności od zarejestrowanej temperatury w pomieszczeniu oraz podejmować najbardziej optymalną decyzję co do jej ustawień, mając na uwadze koszty energii.
+	\end{itemize}\\
+	
+	Podnoszenie i opuszczanie rolet okiennych&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest automatyczne sterowanie roletami okiennymi w zależności od warunków oświetlenia.
+	\item \textbf{Kryteria spełnienia:} System powinien wybrać najdogodniejsze ustawienie rolet w zależności od zarejestrowanych danych na temat oświetlenia zewnętrznego i wewnętrznego.
+	\end{itemize}\\
+
+	Sterowanie poziomem oświetlenia&
+	\begin{itemize}
+	\item \textbf{Przesłanka:} Celem jest automatyczna regulacja natężenia światła w domu w zależności od obecnego poziomu jasności w domu.
+	\item \textbf{Kryteria spełnienia:} System powinien mieć możliwość zmiany natężenia światła żarówek w domu w zależności od zarejestrowanego poziomu oświetlenia zarejestrowanego przez sensory wewnętrzne i zewnętrzne.
+	\end{itemize}\\
+
+\end{longtable}}
+\end{center}
+
+\section{Wymagania niefunkcjonalne}
+
+
+\subsection{Wymagania estetyczne}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być atrakcyjny dla całej grupy odbiorców
+\item \textbf{Kryterium spełnienia:} Reprezentatywna próbka odbiorców ma sama z siebie rozpocząć korzystanie z~systemu.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma wyglądać kompetentnie
+\item \textbf{Kryterium spełnienia:} Po pierwszym kontakcie z systemem, 70\% reprezentatywnych potencjalnych nabywców ma się zgodzić ze stwierdzeniem „Czuję, że zaufałbym temu systemowi”.
+\end{itemize}
+
+\subsection{Wymagania dotyczące ergonomii i wygody}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być łatwy w użyciu dla całej grupy odbiorców 
+\item \textbf{Kryterium spełnienia:} Grupa zaangażowana w testowanie systemu musi być w stanie ukończyć proces uruchomienia i testowania.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być wykorzystany dla ludzi bez przeszkolenia
+\item \textbf{Kryterium spełnienia:} Grupa zaangażowana w testowanie systemu musi być w stanie obsłużyć system, bez wcześniejszego przeszkolenia.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma mieć możliwość regulacji parametrów
+\item \textbf{Kryterium spełnienia:} Grupa docelowa musi mieć możliwość regulacji parametrów pracy systemu.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma używać symboli i słów które są naturalnie zrozumiałe dla grupy docelowej użytkowników.
+\end{itemize}
+
+\subsection{Wymagania wydajnościowe}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien być dostępny do użytku przez 24 godziny na dobę przez 365 dni w roku.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien obsługiwać maksymalnie 10 czujników zewnętrznych oraz 10 wewnętrznych.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien być skalowalny
+\item \textbf{Kryterium spełnienia:} Istnieje możliwość dodania dodatkowych czujniuków w każdym momencie działania systemu.\\ 
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien pracować przez minimum 5 lat bez przekroczenia maksymalnego budżetu zaplanowanego na jego utrzymanie i serwisowanie.\\
+\end{itemize}
+
+\subsection{Wymagania dotyczące warunków oraz środowiska pracy}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt ma być używany przez osoby przebywające w domu, przy temperaturze pokojowej.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt ma umożliwić korzystanie z niego w warunkach słabego oświetlania.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt nie może emitować dźwięków.
+\end{itemize}
+
+\subsection{Wymagania dotyczące utrzymania i wsparcia}
+\begin{itemize}
+\item \textbf{Wymaganie:} Nowe czujniki powinny zostać oddane do systemu w ciągu maksymalnie jednego dnia pracy.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System powinien zapewniać wsparcie dla klienta w razie problemów z jego użytkowaniem.\\
+\end{itemize}
+
+\subsection{Wymagania bezpieczeństwa}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma być zabezpieczony przed wprowadzeniem niewłaściwych danych.\\
+\end{itemize}
+\begin{itemize}
+\item \textbf{Wymaganie:} System ma się sam bronić przed zamierzonym wykorzystaniem niezgodnie z przeznaczeniem.\\
+\end{itemize}
+
+\subsection{Wymagania kulturowe i polityczne}
+\begin{itemize}
+\item \textbf{Wymaganie:} Produkt powinien zapewniać możliwość używania danych jednostek temperatury w zależności od lokalizacji w jakiej jest używany.\\
 \end{itemize}
 
 \section{Koszty}
@@ -182,7 +310,6 @@ Dokumentacja w projekcie jest przygotowywana wspólnie przez cały zespół.
     text width=10em, text centered, rounded corners, minimum height=4em]
 \tikzstyle{line} = [draw, -latex']
     
-\newpage
 \subsection{Diagram organizacyjny}
 \begin{center}
 \begin{tikzpicture}[node distance = 2.5cm, auto]
@@ -227,7 +354,7 @@ Dokumentacja w projekcie jest przygotowywana wspólnie przez cały zespół.
 Praca przy projekcie odbywa się z wykorzystaniem systemu Kanban. W każdym tygodniu pracy odbywa się spotkanie zespołu, na którym omawiane są postępy, rozwiązywane problemy jak i przygotowywane następny zadania. Raz w tygodniu odbywa się również wideokonferencja zespołu z opiekunem projektu z~ramienia firmy Samsung, na którym omawiane są postępy w~tworzeniu systemu jak i konsultowane są problemy techniczne, które występują w czasie wytwarzania oprogramowania. 
 Na każdym ze spotkań tworzone są notatki, które następnie wykorzystywane są jako protokół ze spotkania, aby wszyscy członkowie zespołu mieli wgląd i jasność co do ustaleń wynikających ze spotkania. \mbox{}\\
 Do zarządzania zadaniami \nobreak używane jest narzędzie Trello (do zarządzania tablicą zadań), gdzie dla każdego etapu pracy przygotowana jest \nobreak odpowiednia kolumna. Każde większe zadanie lub funkcjonalność na początku jest planowana, następnie zostaje zdekomponowana na jak najmniejsze zadania w celu umożliwienia podziału ich na członków zespołu. \nobreak Następnie zadania te wpisywane są do narzędzia Trello, i przypisywane są do niego wybrane osoby. Następnie osoby te pracują nad zadaniami (przenosząc je odpowiednio na odpowiednie kolumny na tablicy Kanban, kiedy zadanie to spełnia założenia Definition of Done). Gdy praca nad zadaniem zostanie zakończona przenoszone jest ono do kolumny “Review”, po spełnieniu DoD, które w tym przypadku polega na stworzeniu konkretnego efektu pracy w postaci kodu, diagramu lub opisu słownego. Jeżeli efektem pracy jest kod, muszą być stworzone do tego kodu testy jednostkowe. Następnie po przejrzeniu i zaakceptowaniu efektów pracy przez wszystkich członków zespołu, zadanie to zostaje przeniesione do kolumny “Zrobione”, gdzie jest ono uznawane za oficjalnie zakończone. Część z zadań oznaczana jest jako “zależne od”, co oznacza, że aby rozpocząć wybrane zadanie należy najpierw ukończyć zadanie poprzednie, od którego to zadanie jest zależne. \\
-Do wersjonowania kodu używany jest system kontroli wersji Git, a kod przechowywany jest w serwisie GitHub.
+Do wersjonowania kodu używany jest system kontroli wersji Git, a kod przechowywany jest w serwisie \nobreak GitHub.
 
 \section{Plan jakości}
 \subsection{Założenia teoretyczne projektu zarządzania jakością}
@@ -268,80 +395,6 @@ W projekcie został stworzony również dokument odpowiedzialny za kod źródło
 \item pracy z systemem kontroli wersji (nazewnictwo commitów i branchy)
 \end{itemize}
 
-
-\subsection{Wymagania estetyczne}
-\begin{itemize}
-\item \textbf{Wymaganie:} System ma być atrakcyjny dla całej grupy odbiorców
-\item \textbf{Kryterium spełnienia:} Reprezentatywna próbka odbiorców ma sama z siebie rozpocząć korzystanie z~systemu.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System ma wyglądać kompetentnie
-\item \textbf{Kryterium spełnienia:} Po pierwszym kontakcie z systemem, 70\% reprezentatywnych potencjalnych nabywców ma się zgodzić ze stwierdzeniem „Czuję, że zaufałbym temu systemowi”.
-\end{itemize}
-
-\subsection{Wymagania dotyczące ergonomii i wygody}
-\begin{itemize}
-\item \textbf{Wymaganie:} System ma być łatwy w użyciu dla całej grupy odbiorców 
-\item \textbf{Kryterium spełnienia:} Grupa zaangażowana w testowanie systemu musi być w stanie ukończyć proces uruchomienia i testowania.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System ma być wykorzystany dla ludzi bez przeszkolenia
-\item \textbf{Kryterium spełnienia:} Grupa zaangażowana w testowanie systemu musi być w stanie obsłużyć system, bez wcześniejszego przeszkolenia.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System ma mieć możliwość regulacji parametrów
-\item \textbf{Kryterium spełnienia:} Grupa docelowa musi mieć możliwość regulacji parametrów pracy systemu.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System ma używać symboli i słów które są naturalnie zrozumiałe dla grupy docelowej użytkowników.
-\end{itemize}
-
-\subsection{Wymagania wydajnościowe}
-\begin{itemize}
-\item \textbf{Wymaganie:} System powinien być dostępny do użytku przez 24 godziny na dobę przez 365 dni w roku.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System powinien obsługiwać maksymalnie 10 czujników zewnętrznych oraz 10 wewnętrznych.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System powinien być skalowalny
-\item \textbf{Kryterium spełnienia:} Istnieje możliwość dodania dodatkowych czujniuków w każdym momencie działania systemu.\\ 
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System powinien pracować przez minimum 5 lat bez przekroczenia maksymalnego budżetu zaplanowanego na jego utrzymanie i serwisowanie.\\
-\end{itemize}
-
-\subsection{Wymagania dotyczące warunków oraz środowiska pracy}
-\begin{itemize}
-\item \textbf{Wymaganie:} Produkt ma być używany przez osoby przebywające w domu, przy temperaturze pokojowej.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} Produkt ma umożliwić korzystanie z niego w warunkach słabego oświetlania.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} Produkt nie może emitować dźwięków.
-\end{itemize}
-
-\subsection{Wymagania dotyczące utrzymania i wsparcia}
-\begin{itemize}
-\item \textbf{Wymaganie:} Nowe czujniki powinny zostać oddane do systemu w ciągu maksymalnie jednego dnia pracy.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System powinien zapewniać wsparcie dla klienta w razie problemów z jego użytkowaniem.\\
-\end{itemize}
-
-\subsection{Wymagania bezpieczeństwa}
-\begin{itemize}
-\item \textbf{Wymaganie:} System ma być zabezpieczony przed wprowadzeniem niewłaściwych danych.\\
-\end{itemize}
-\begin{itemize}
-\item \textbf{Wymaganie:} System ma się sam bronić przed zamierzonym wykorzystaniem niezgodnie z przeznaczeniem.\\
-\end{itemize}
-
-\subsection{Wymagania kulturowe i polityczne}
-\begin{itemize}
-\item \textbf{Wymaganie:} Produkt powinien zapewniać możliwość używania danych jednostek temperatury w zależności od lokalizacji w jakiej jest używany.\\
-\end{itemize}
 
 
 \section{Zarządzanie ryzykiem}
@@ -490,7 +543,7 @@ Formularz analizy ryzyka &  \\
 \hline
 Ryzyko 						   & \textbf{Dodawanie nowych wymagań po zamknięciu specyfikacji} \\
 \hline
-Opis zagrożenia				   & Dodawanie nowych wymagań może spowodować przekroczenie harmonogramu orazpotrzebę modyfikacji wymagań już istniejących \\
+Opis zagrożenia				   & Dodawanie nowych wymagań może spowodować przekroczenie harmonogramu oraz potrzebę modyfikacji wymagań już istniejących \\
 \hline
 Prawdopodobieństwo wystąpienia & Mało prawdopodobne \\
 \hline
