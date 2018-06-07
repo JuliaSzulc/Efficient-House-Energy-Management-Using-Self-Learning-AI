@@ -33,9 +33,12 @@
 This is a technical documentation of our university project developed with cooperation and guidance of Rafał Pilarczyk from SAMSUNG. Document contains a short introduction and overview of main concepts, milestones, goals and results of this project. It is followed by a technical part, that contains a setup guide, code and tests overviews, explanation of used algorithms and concepts. Last part provides details about the development process, including useful insights, experiences, further research suggestions and lessons we have learned the hard way.
 \end{abstract}
 
+\newpage
+\tableofcontents
+\newpage
 
 \section{Introduction}
-The idea of the project is to examine the potential of artificial intelligence in decision-making processes. This potential is based on the growing popularity of Reinforcement Learning systems, as well as amount of new research and successful results achieved by them. As those results are very often presented for either traditional or computer game environments (Chess, Go, Atari games), there is a natural intuition that these methods could present solid performance in the decision-making processes domain.
+The idea of the project is to examine the potential of artificial intelligence in decision-making processes. This potential is based on the growing popularity of Reinforcement Learning systems, as well as amount of new research and successful results achieved by them. As those results are very often presented for either traditional or computer game environments (Chess, Go, Atari games) \cite{dqn_paper}, there is a natural intuition that these methods could present solid performance in the decision-making processes domain.
 
 
 \subsection{Goals and milestones}
@@ -44,7 +47,7 @@ To follow the project's idea, the goal of the project was to introduce a Reinfor
 Performance of such system can give us some estimates about the current potential of Reinforcement Learning field, and the main question is: is it able to learn such tasks \textbf{at all}?
 
 \subsection{Results}
-The short and quick answer to questions stated above is yes, Reinforcement Learning methods can work as decision-making systems. We have implemented a realistic simulator a house with controllable devices that can affect the inside temperature and light levels (currently these are: energy source, light level, window blinds, air conditioning and heater), as well as outside world part with simulated weather. We have built a self-learning algorithm, that through interaction with this environment can learn to satisfy requests with minimal energy consumption. Our project provides methods for learning new models with a lot of environment's and agent's parameters available, as well as a live simulation of a model managing the house and a manual testing feature to allow for more precise debugging of these modules.
+The short and quick answer to questions stated above is yes, Reinforcement Learning methods can work as decision-making systems. We have implemented a realistic simulator of a house with controllable devices that can affect the inside temperature and light levels (currently these are: energy source, light level, window blinds, air conditioning and heater), as well as outside world part with simulated weather. We have built a self-learning algorithm, that through interaction with this environment can learn to satisfy requests with minimal energy consumption. Our project provides methods for learning new models with a lot of environment's and agent's parameters available, as well as a live simulation of a model managing the house and a manual testing feature to allow for more precise debugging of these modules.
 
 In the next section we will provide technical details about the project and elaborate more on the results.
 
@@ -52,26 +55,26 @@ In the next section we will provide technical details about the project and elab
 \begin{figure}[H]
     \begin{center}
         \includegraphics[scale=0.5]{screen.png}
-        \caption{Screenshot from simulation mode}
+        \caption{Screenshot from the simulation mode}
     \end{center}
 \end{figure}
 
 \section{Reinforcement Learning}
-The project is based on one of the machine learning areas called reinforcement learning. The research and development of this field has been rising as of late, because of, among others, the improvements in deep learning methods and constantly increasing computing power that is available to human. Combined with concepts like convolutional neural networks, RL algorithms achieve super-human performance in a variety of tasks. The main field of success is probably the gaming world, including both the traditional games like Chess or Go, and computer games, where, for example, classic Atari games are learned and solved by RL agents taking the input directly from raw pixels.
+The project is based on one of the machine learning areas called Reinforcement Learning. The research and development of this field has been rising in recent years, because of, among others, the improvements in the deep learning methods and constantly increasing computing power that is available to human. Combined with concepts like convolutional neural networks, RL algorithms achieve super-human performance in a variety of tasks. The main field of success is probably the gaming world, including both the traditional games like Chess or Go, and computer games, where, for example, classic Atari games are learned and solved by RL agents taking the input directly from raw pixels \cite{dqn_paper}. Please note, that full explanation of the concepts - with fundamentals, equations and derivations - is not a goal of this documentation and we highly recommend to see the most well known sources (\cite{suttonBook}, \cite{silverCourse}) first.
 \\\\
-Reinforcement learning is often explained by comparison to supervised learning, which is usually named the most successful field of Machine Learning. It is based on datasets, which consist of both the observations and the correct labels (answers, classes). For example, the dataset consists of images, and each image has it is correct label as well - a word that describes the object on the image. In Reinforcement Learning, on the other hand, there is no 'supervisor'. Instead, the environment returns a reward signal, which indicates how good or bad the current situation is. The main goal of the agent is to maximize the cumulative reward.
+Reinforcement Learning is often explained by comparison to supervised learning, which is usually named the most successful field of Machine Learning. It is based on datasets, which consist of both the observations and the correct labels (answers, classes). For example, the dataset consists of images, and each image has it is correct label as well - a word that describes the object on the image. In Reinforcement Learning, on the other hand, there is no 'supervisor'. Instead, the environment returns a reward signal, which indicates how good or bad the current situation is. The main goal of the agent is to maximize the cumulative reward.
 \\\\
 There is a common vocabulary that is used to describe this setup. The \textbf{agent} (RL algorithm) has to interact with the \textbf{environment}, by performing \textbf{actions}. Environment gives the agent information about the \textbf{current state}, as well as the \textbf{reward signal} for the last time-frame. Agent has to choose the best one from the given set of possible actions. This is usually happening until the environment reaches a \textbf{terminal state}. Simulation from the start to terminal state is called an \textbf{episode}. A \textbf{transition} is defined as a sequence - state, action, reward and next state - and is used as a single 'experience' unit in agent's memory. 
 \\\\
-To put this into perspective: In our project, the smart house manager is the agent. The simulated world is the environment. Actions are used to control devices such as heating or light. The state is a collection of information about the weather, inside parameters, current devices settings and user requests - everything that is needed for agent to perform rational decisions. The episode can be defined as - for example - one single day, where the terminal state is when the world clock reaches midnight.
+To put this into a perspective: In our project, the smart house manager is the agent. The simulated world is the environment. Actions are used to control devices such as heating or light. The state is a collection of information about the weather, inside parameters, current devices settings and user requests - everything that is needed for agent to perform rational decisions. The episode can be defined as - for example - one single day, where the terminal state is when the world clock reaches midnight.
 \subsection{What have we used?}
-Our agent uses Double DQN with Prioritized Experience Replay. This is a combination of recent developments in the field, which improve the speed, quality and stability of learning, and sometimes are essential for solving particular tasks. The neural network model is a fully connected feedforward network with one hidden layer. It uses ReLU activation function on hidden layer neurons and linear activation function on the output layer. For an explanation of these concepts and more detailed information about the agent, please see the Agent module section (4.2).
+Our agent uses Double DQN with Prioritized Experience Replay. This is a combination of recent developments in the field, which improve the speed, quality and stability of learning, and sometimes are essential for solving particular tasks. The neural network model is a fully connected feedforward network with one hidden layer. It uses ReLU activation function on hidden layer neurons and linear activation function on the output layer. For an explanation of these concepts and more detailed information about the agent, please see the Agent module section (4.2) and references at the end of the document.
 \subsection{PyTorch Framework}
-To implement the agent and the concepts named above, we have used the PyTorch framework. It is now commonly believed, that this frameworks becomes the go-to Python framework used for Deep Learning, with some essential advantages when compared to the - currently most popular - TensorFlow framework. While this is still a matter of loud discussions, we have chosen the framework more out of curiosity, and because it is often called 'more Pythonic'. We will talk more about our experiences and conclusions about that choice later in the documentation, but the short story is - we are satisfied with it.
+To implement the agent and the concepts named above, we have used the PyTorch framework \cite{pytorch}. It is now commonly believed, that this frameworks becomes the go-to Python framework used for Deep Learning, with some essential advantages when compared to the - currently most popular - TensorFlow framework. While this is still a matter of loud discussions, we have chosen the framework more out of curiosity, and because it is often called 'more Pythonic'. We will talk more about our experiences and conclusions about that choice later in the documentation, but the short story is - we are satisfied with it.
 \\\\
 We are using PyTorch for a very clear neural network model declaration, ready-to-use optimizers like SGD or Adagrad and loss functions, automatic computation of the gradients of network's parameters, and to perform the Double DQN learning process. It also provides a clear way to use GPUs for the computations. 
 
-We have used the version 0.3.1 and it is important to note, that the newest version of the framework (0.4.0 on the day of this documentation's publication) requires some changes to the code.
+We have used the version 0.3.1 and it is important to note, that the newest stable version of the framework (0.4.0 on the day of this documentation's publication) requires some changes to the code.
 \section{Getting Started}
 \subsection{Setup and Requirements}
 % Co zainstalować, jaka wersja Pythona, wszyściutko
@@ -114,13 +117,11 @@ After training session, model is typically saved in
 \begin{lstlisting}
 $ TOP/src/saved_models/
 \end{lstlisting}
-directory, within a separate folder with new index (indexes start at 0). Model is saved along with its configuration file, graph presenting learning curve and log with rewards from 
-every step.
+directory, within a separate folder with new index (indexes start at 0). Model is saved along with its configuration file, graph presenting learning curve and log with rewards from every step.
 \\\\
-Existing agent model can also be loaded into training session. In this case, you will be prompted
-to insert existing model's index number.
-\\\\ Basic configuration for this mode can be modified by changing contents of configuration.json, a part
-called \textbf{main}. Precise documentation of the whole configuration file can be found later in documentation. 
+Existing agent model can also be loaded into training session. In this case, you will be prompted to insert existing model's index number. Important to note here is that loaded model's parameters will be set from it's specific configuration file from it's folder, and the rest of the configuration (environment, main) will be loaded from the general configuration file.
+\\\\ 
+Basic configuration for this mode can be modified by changing contents of configuration.json, a part called \textbf{main}. Precise documentation of the whole configuration file can be found later in documentation. 
 \\\\
 \textit{NOTE:} Altough basic configuration for main (learning) mode is fairly limited, succesfull learning is built upon all environment / agent settings in configuration file. Default ones are based on our research in order to provide the best and most meaningful learning results.
 
@@ -236,6 +237,8 @@ The House class contains a few methods used to calculate present environmental c
 
 The vital part of the House is reward-calculating method. It is called after every time-frame. The important thing about the reward is the fact that it is always a negative value - that is why it can be treated as a “penalty”. The agent’s goal is to learn to minimize this penalty as much as possible. The reward formula is simply a weighted sum of penalties (temperature, light, energy cost) plus additional action penalty (for pointless or illogical actions like, for example, switching energy source to the one that is already used). 
 
+As it can be seen in the source code of the House class, each action increases or decreases the given device setting by a constant, set in configuration, \textit{influence} value. We found it challenging to allow the agent to fully control the whole settings spectrum with single action, so to multi-task, it has to spread it's actions into multiple time-frames.
+
 \subsubsection{World}
 This class represents the model of the outside world. Its main purpose is to compute time and weather. Each time the method step is called, the world adds fixed time-frame value to the current time, updates weather and sends information about the changes to the listeners.
 
@@ -245,7 +248,7 @@ The weather changes are computed using the random values as well as fixed depend
 Environment is indispensable part of the project. It connects smaller parts of the simulation like House and World into one working model. The class contains methods used to communicate with the agent as well as the ones that return human-readable information about current state. The central method in the agent-environment communication is the \textit{step} method and it was programmed to behave in a fashion known from \textit{OpenAI} gym environments. After the environment reached it's terminal state, the \textit{reset} method should be called before beginning a new episode. 
 
 \subsection{Agent module}
-The agent module is where all the reinforcement learning mechanisms are implemented and used. To get the idea of how to use it and how it works, we split the module into small components and explain each one by one.
+The agent module is where all the Reinforcement Learning mechanisms are implemented and used. To get the idea of how to use it and how it works, we split the module into small components and explain each one by one.
 \subsubsection{Neural Network}
 The neural network model used in learning and choosing the actions is modeled as the \textbf{Net} class. It is fairly simple thanks to PyTorch framework and the code pretty much speaks for itself. The forward function defines the forward pass.
 
@@ -254,7 +257,7 @@ The main class of the module is the Agent class and it is essential to know how 
 
 \begin{itemize}
 \item \textit{reset()} - method used to reinitialize the agent. It is called from the constructor, but you can call it separately if there is a need.
-\item \textit{run()} - most essential method, called to perform a full episode on the environment - with learning. This method resets the environment, and perform a loop in which the agent chooses an action, receives feedback, performs \textit{reward clipping}, updates statistics, saves the observed transition into the memory, calls the training function and then, in the end, slightly \textit{updates the target network}. Reward clipping is one of the normalization methods and we are using it because of the commonly accepted suggestions to do so. The updates to the target networks are another concept that is used to stabilize the learning process and is explained in more detail in the next section.
+\item \textit{run()} - most essential method, called to perform a full episode on the environment - with learning. This method resets the environment, and perform a loop in which the agent chooses an action, receives feedback, performs \textit{reward clipping}, updates statistics, saves the observed transition into the memory, calls the training function and then, in the end, slightly \textit{updates the target network}. The updates to the target networks are another concept that is used to stabilize the learning process and is explained in more detail in the next section.
 \item \textit{learn()} - this is the method that performs training of agent's Q-network. It is a single training iteration, which samples a batch of transitions from memory and, based on Double DQN approach, performs the training on given batch. Training is explained in the next section. 
 \item \textit{get\_next\_action\_greedy()} - returns next action given a state with use of the target network using a greedy policy. Greedy means that agent return the action with the biggest Q-function estimate. This function should be used if an outside object wants to know the agent's action for the given state.
 \item \textit{get\_episode\_stats()} - method that implement the idea of collecting statistics about agent's actions, which is currently not used extensively. We are using these to register counts of each action to allow external object to analyze it.
@@ -262,7 +265,7 @@ The main class of the module is the Agent class and it is essential to know how 
 
 \subsubsection{Double DQN}
 
-The algorithm that stands behind the learning process and the so-called intelligence of our system is called Double DQN. It is an extension to the basic Q-Learning algorithm. We fully recommend reading more professional and more formal sources about these algorithms to understand the logic behind the algorithm, but we include our step by step explanation in the documentation as well.
+The algorithm that stands behind the learning process and the so-called intelligence of our system is called Double DQN \cite{doubledqn_paper}. It is an extension to the basic Q-Learning algorithm. We fully recommend sources about these algorithms to understand the logic behind the algorithm (we placed the references to these sources at the end of the document), but we include a non-formal overview of the concepts with basic intuitions.
 \\\\
 \textbf{Q Function.} First, we need to understand what is the Q function and why the basic algorithm is based on learning this function to choose actions. Q function is a function of state and action to be taken in that state. Ideally, it is a value of the \textit{discounted cumulative reward} that the agent will receive, if it perform action a in state s, and then follow it's strategy to the end of the episode. Using the Bellmann equation, we can 'recursively' define this function, which is a very useful form later on:
 
@@ -280,23 +283,18 @@ It is essential to see, that this algorithm uses the network itself to estimate 
 \\\\
 \textbf{Q-Network and Target Network.} One of the improvements made to this setup is to split the network into two separate networks. One of the networks, Q-network, is the network that learns, and the second, target-network, is the one that makes action in the environment. The second one is slowly updated towards the q-network. This allows more stability to the agent - it explores the current strategy for some time before updating it's behavior for a new one. Agent that changes it's strategy after every step could be very noisy. Many approaches are used for the updates. We are using full updates each larger amount of steps, but also small updates after each step. This behavior can be controlled by configuration parameters.
 \\\\
-\textbf{DQN.} Q-Learning can be performed with other function approximators, but the neural network version with mechanisms such as network splitting and Experience Replay (explained in the next section) is usually called DQN (short for DQN, the term was introduced by DeepMind in one of the well-known papers, it is listed in the sources section).
+\textbf{DQN. \cite{dqn_paper}} Q-Learning can be performed with other function approximators, but the neural network version with mechanisms such as network splitting and Experience Replay (explained in the next section) is usually called DQN (short for DQN, the term was introduced by DeepMind in one of the well-known papers, it is listed in the sources section).
 \\\\
-\textbf{Double DQN.} The Double DQN algorithm makes another improvement. It transforms the error formula a bit, making use of a separate network to deal with the positive bias introduced by the max operator. One of the tricks is to notice, that the second network (target network) can be used as that separate network to keep the split to 2, not 3 networks. This improvement is another one that is believed to stabilize the learning.
+\textbf{Double DQN. \cite{doubledqn_paper}} The Double DQN algorithm makes another improvement. It transforms the error formula a bit, making use of a separate network to deal with the positive bias introduced by the max operator. One of the tricks is to notice, that the second network (target network) can be used as that separate network to keep the split to 2, not 3 networks. This improvement is another one that is believed to stabilize the learning.
 \\\\
-\textbf{Epsilon Greedy Exploration.} Should agent always choose the best action? We see, that when first learning, the Q predictions are not really equivalent to the ground truth values. What is more - even if the network already learned a good strategy, maybe it should experiment and explore a bit to find an even better one? This is one of the key problems in reinforcement learning and the most usual way is to define the strategy of the action-making network as epsilon-greedy. What this means is that the network usually chooses the best action, but with \textit{epsilon} probability it chooses the action randomly. The epsilon starts with a big value to explore the environment heavily during the start - but it is decaying with each episode, allowing for precise optimization of the final strategy.
+\textbf{Epsilon Greedy Exploration.} Should agent always choose the best action? We see, that when first learning, the Q predictions are not really equivalent to the ground truth values. What is more - even if the network already learned a good strategy, maybe it should experiment and explore a bit to find an even better one? This is one of the key problems in Reinforcement Learning and the most usual way is to define the strategy of the action-making network as epsilon-greedy. What this means is that the network usually chooses the best action, but with \textit{epsilon} probability it chooses the action randomly. The epsilon starts with a big value to explore the environment heavily during the start - but it is decaying with each episode, allowing for precise optimization of the final strategy.
 \\\\
-\textbf{Reward Clipping.} Among some smaller things that are used in reinforcement learning to boost learning speed, agent uses reward clipping on the agent's side. One of the parameters in the configuration file sets the clipping value. In formal theory this is just better for the network learning process, because of the general normalization benefits, but in clear intuition, at some bad states it is not important \textit{how exactly bad is it} - but just that it is \textit{very} bad.
+\textbf{Reward Clipping.} Among some smaller things that are used in Reinforcement Learning to boost learning speed, agent uses reward clipping on the agent's side. One of the parameters in the configuration file sets the clipping value. In formal theory this is just better for the network learning process, because of the general normalization benefits, but in clear intuition, at some bad states it is not important \textit{how exactly bad is it} - but just that it is \textit{very} bad.
 
 \subsubsection{Memory class}
 One of the concepts that is essential for Deep Q Networks to work is the \textbf{experience replay}. Agent, instead of learning from sequence of observed, correlated transitions, saves them to a memory buffer and samples random transitions into a batch of uncorrelated ones. This improves stability of learning. It is still unclear what should be the perfect memory size, but it is proved that it matters. Another part of research tries to find out how to improve the sampling. Prioritized Experience Replay concept, where the transition is more likely to be chosen based on 'how wrong the network was about it', is reported to be a big improvement across many tasks.
 
-Prioritized Experience Replay (PER), as explained above, makes the agent capable of replaying experiences at different frequencies than what they were collected originally. This concept is possible to iplement using a structure similar to a binary heap called sum tree. It is simply an unsorted binary tree where the value of a node is a sum of its children. The leafs store transition priorities and the root - total sum of all priorities.
-
-Whenever agent needs to get a secified-size batch of transitions, the total priority sum is divided into equal ranges and from each sample the value is sampled uniformly. After that the transitions correspinding to these values are obtained from the sum tree.
-	
-Another quite important element of the implemented memory is using importance-sampling weights to correct the bias introduced as a result of prioritizastion changing the distribution in an uncontrolled fashion.
-
+Prioritized Experience Replay \cite{per_paper} was implemented by using a structure similar to a binary heap, called sum tree. The SumTree class can be found in the tools module, where we placed all context-independent logic of the project. It is an unsorted binary tree where the value of a node is a sum of its children. The leafs store transition's priorities and the root - total sum of all priorities. This approached is explained in more detail here \cite{dqn_per_post}.
 
 \subsubsection{AgentUtils class}
 This class provides methods for saving and loading the models of networks and configuration parameters. We have separated it from the Agent class for readability and file-based operations separate from the learning functionality of Agent class.
@@ -387,7 +385,7 @@ The project allows user to adjust values of some of the key parameters such as t
     stats & floats & Values to be used for calculating 'ok' and 'perfect' percent of episode's time stats, calculated for temperature and light. 
 \end{longtable}}
 
-One of the tested configuration for which most of the models are actually learning the task pretty well is listed below. Please note, that the \textit{env} parameters are usually valued in the way that makes the simulator more realistic and probably should not be heavily changed. Exceptions are the penalty weights and devices power - while changes to the latter is probably not the cleanest way to change the agents behavior, the penalty weights can be used to place more impact on certain parameters. Tuning them turned out to be very tricky, but eventually we have found values that result in satisfying performances to the agent. We have found changes to the \textit{agent} parameters to make big yet unexpected changes to the learning quality. 
+One of the tested configuration for which most of the models are actually learning the task pretty well is listed below. We were struggling to find a configuration, for which all of the launched models learned successfully. We address this issue to the exploration problem, as finding a strategy that compromises multiple goals can be a tough task. This is the configuration used for new models - because we have not implemented any learning rate decay and the epsilon\_min parameter is set pretty high, it is probably recommended to launch the learned agent for a 'tuning' phase of learning, with smaller learning rate and epsilon\_min, as this is the way to achieve the best of the best results. Please note, that the \textit{env} parameters are usually valued in the way that makes the simulator more realistic and probably should not be heavily changed. Exceptions are the penalty weights and devices power - while changes to the latter is probably not the cleanest way to change the agents behavior, the penalty weights can be used to place more impact on certain parameters. Tuning them turned out to be very tricky, but eventually we have found values that result in satisfying performances to the agent. We have found changes to the \textit{agent} parameters to make big yet unexpected changes to the learning quality. 
 
 \begin{lstlisting}
 {
@@ -402,24 +400,24 @@ One of the tested configuration for which most of the models are actually learni
         "fps"                        : 16
     },
     "agent": {
-    	"memory_alpha"               : 0.6,
+        "memory_alpha"               : 0.6,
         "memory_epsilon"             : 0.01,
         "memory_beta"                : 0.4,
         "memory_beta_increment"      : 0.001,
-        "hidden_layer_size"          : 80,
-        "memory_size"                : 10000,
+        "hidden_layer_size"          : 50,
+        "memory_size"                : 30000,
         "double_dqn"                 : true,
-        "gamma"                      : 0.9,
-        "epsilon"                    : 1,
-        "epsilon_decay"              : 0.999,
+        "gamma"                      : 0.95,
+        "epsilon"                    : 1.1,
+        "epsilon_decay"              : 0.9985,
         "epsilon_min"                : 0.1,
         "batch_size"                 : 16,
         "learning_rate"              : 0.0001,
         "training_freq"              : 4,
         "target_network_update_freq" : 500,
         "reward_clip"                : -2,
-        "sgd_momentum"               : 0.9,
-        "q_to_target_ratio"          : 0.1
+        "sgd_momentum"               : 0.95,
+        "q_to_target_ratio"          : 0.02
     },
     "env": {
         "timestep_in_minutes"        : 1,
@@ -434,12 +432,12 @@ One of the tested configuration for which most of the models are actually learni
         "temperature_w_in_reward"    : 0.35,
         "light_w_in_reward"          : 0.82,
         "cost_w_in_reward"           : 0.024,
-        "max_pv_absorption"          : 5,
+        "max_pv_absorption"          : 10,
         "day_grid_cost"              : 0.5,
         "night_grid_cost"            : 0.3,
         "house_light_factor"         : 0.0075,
         "house_isolation_factor"     : 0.996,
-        "battery_max"                : 14000,
+        "battery_max"                : 10000,
         "influence_per_min"          : 0.2,
         "stats": {
             "temp_ok_diff": 2,
@@ -449,23 +447,27 @@ One of the tested configuration for which most of the models are actually learni
         }
     }
 }
+
+
 \end{lstlisting}
 
 \section{Accuracy measures}
 \subsection{How to measure accuracy}
-In machine learning, measuring model's accuracy, no matter what is the exact technique, is usually based on having some new, unseen data with correct labels and asking a model about it. In reinforcement learning we don't have the correct labels at all, the more complex the environment, the harder it is for human to prepare such unseen data by hand and determine the true correct answers. This problem is not that much of a trouble in gaming environments, because we can record some human total rewards and compare the learned model's score to an average person's score.
+In machine learning, measuring model's accuracy, no matter what is the exact technique, is usually based on having some new, unseen data with correct labels and asking a model about it. In Reinforcement Learning we don't have the correct labels at all, the more complex the environment, the harder it is for human to prepare such unseen data by hand and determine the true correct answers. This problem is not that much of a trouble in gaming environments, because we can record some human total rewards and compare the learned model's score to an average person's score.
 \\\\
 For our environment, we came up with several possible measures during project's development. The first one was to use the \textbf{manual testing} script and inspecting single actions taken by agent in different conditions. While this was helpful in debugging and showing some environment inconsistencies, we could not easily express agent's performance that way. 
 \\\\
 The first solid accuracy measure is the \textbf{stats feature} that you can turn on as one of the configuration options. This feature registers the differences in actual and requested values of parameters, deciding whether the difference is too big, 'ok' or 'perfect', and sums it up as a percentage of time after the episode finishes. You can define exactly the difference values you find ok and perfect in the configuration file. For the values given in the example configuration in last section, we have found that for both light and temperature, a good agent can keep the differences 'ok' for the 90-100\% of the episode, and the 'perfect' differences for the 75-90\% of the episode. These values differ a lot with each episode, because of the changes in requests every 2 hours - some big changes can cause inevitable periods of too big differences, keeping these stats under the 100\% mark.
 \\\\
 Second way of performance measure is the \textbf{simulation mode}. It was built with a purpose of being a mode strictly for presentation purposes, but we quickly found out that this is a very good source of information about the agent. This mode, as described in the third section of the document, provides graphical widgets that show the current state of the environment and agent's actions. Graphs, even better when zoomed, can nicely present the tempo of adapting to new user requests. Any unwanted behavior will be quickly noticed. We highly recommend running every promising model through the simulation mode.
+\\\\
+We also recommend generating the total reward plots. These are useful to quickly see how the learning process looked and usually contains information about the stability and speed of learning. Also, reward plots that show a solid reward increase followed by a line that cannot go further up, suggest that the agent reached it's possible best performance. These models are then ready to investigate further with a simulation tool.  
 
-\subsection{Parameters impact on the agent learning}
+\subsection{Impact of parameters on learning process}
 Once the final version of the agent has been implemented, we have calibrated all of it's parameters in such a way that the agent's learning was as efficient as we could make it.
-
-Parameters were selected by repeatedly running new learning processess with differences in the configuration files. With limited computing power, it was hard to either come up with the very best configuration or to produce meaningful charts, analysis or conclusions about the impact of parameters.
-
+\\\\
+Parameters were selected by repeatedly running new learning processes with differences in the configuration files. With limited computing power, it was hard to either come up with the very best configuration or to produce meaningful charts, analysis or conclusions about the impact of parameters.
+\\\\
 Even though, we still want to include a word or two about some of the parameters. We are assuming that there is no need to explain, how the parameters affect the speed of learning, because at this point, the reader should have some theoretical background about the way the Agent is working. 
 
 \begin{itemize}
@@ -532,13 +534,13 @@ As a young team of developers, we are very happy to work on an exciting field of
 
 \item We have not tried to compare the Q-Learning method with the other well known approach called Policy Gradient methods. These methods try to directly estimate the policy instead of Q function values, and, considering the characteristics of our environment, this could work even better. It might be harder to estimate a pretty complicated function, but fairly easy to find out about rules like 'turn heating on when it is too cold'. We list these methods as one of the possible further research suggestions.
 
-\item One of the research fields in reinforcement learning is to allow development of RL environments to be easier by using a sparse reward function. This means that the agent receives a 0 signal, when the goal is achieved, and -1 otherwise. We have tried out this approach, using function similar to that described, and it drastically decreased performance of the agent. There are some recent improvements in the field, probably the loudest was the Hindsight Experience Replay concept, which was proven to, in some cases, condition the solving of a task, in which the reward function is sparse. We have not tried to implement this feature.
+\item One of the research fields in Reinforcement Learning is to allow development of RL environments to be easier by using a sparse reward function. This means that the agent receives a 0 signal, when the goal is achieved, and -1 otherwise. We have tried out this approach, using function similar to that described, and it drastically decreased performance of the agent. There are some recent improvements in the field, probably the loudest was the Hindsight Experience Replay concept, which was proven to, in some cases, condition the solving of a task, in which the reward function is sparse. We have not tried to implement this feature.
 
 \item Another thing that made the learning process harder was the way we modeled the reward function at first. Both quadratic functions for penalties and concept of 'acceptance intervals' for light and temperature differences made the learning harder, as the resulting Q function, that our model had to estimate, got much more complicated that it needed to be. The lesson here was to keep the reward function simple, and to not introduce any constructs that might be rational to a human, but do no good for the agent. 
 
 \item We have found that trying to perform learning computations on the GPU does not speed up the process. With a very simple neural network and small batch sizes, the overhead caused around 2 to 4 times slower execution of the learning mode. Please note that we were in possession of rather basic GPUs and newer, more expensive ones could potentially allow speed-ups.
 
-\item While this might not be a proper failure, we are aware that the project - or this documentation - lacks statistics about the experiments, including results that would suggest the impact of certain parameters to quality of learning. We explain this by very broad space of possible configurations and limited computing power available during the development. It is also worth to come back to the project's main ideas and goals - as these were not strictly about extensive research on how to make the learning the fastest, but more to check the overall potential of reinforcement learning methods. 
+\item While this might not be a proper failure, we are aware that the project - or this documentation - lacks statistics about the experiments, including results that would suggest the impact of certain parameters to quality of learning. We explain this by very broad space of possible configurations and limited computing power available during the development. It is also worth to come back to the project's main ideas and goals - as these were not strictly about extensive research on how to make the learning the fastest, but more to check the overall potential of Reinforcement Learning methods. 
 \end{itemize}
 
 \section{Conclusions}
@@ -552,38 +554,60 @@ Based on what we have not tried out yet and what have we read during the project
 
 \item Extensions to the environment could, for example, introduce more outside factors, more 'extreme' conditions, more sensors or even a more complicated structure of the house. We think that is it not fully worth it to extend the state space, though. It already seems like neural networks can approximate strategies so well, that they can perform natural reasoning as long as the environment works reasonable.
 
-\item The whole branch of reinforcement learning methods - Policy Gradients - are still an option to investigate and compare to the Q-learning method used here. 
+\item The whole branch of Reinforcement Learning methods - Policy Gradients - are still an option to investigate and compare to the Q-learning method used here. 
 
-\item There are some more improvements available to the Double DQN - Dueling DQN and Noisy DQN - and the current research yields some promising results that could be investigated in this project.
+\item The design of the network output layer, or more generally, environment's set of available actions, could be reconsidered. In given time-frame, agent can influence only one of the settings, only by increasing or decreasing the value by a constant. This setup is the only one that we could design successfully to not make the neural network's output layer to 'explode' in terms of size. This action space results in possible slow reactions to sudden user requirements changes. We found the current research and methods of continuous action spaces too challenging to understand and implement, but more experienced engineers could probably make some serious improvement to the current design.
+
+\item There are some more improvements available to the Double DQN - Dueling DQN and Noisy DQN \cite{rainbow_paper} - and the current research yields some promising results that could be investigated in this project.
 
 \item Goal-based Reinforcement Learning / Hindsight Experience Replay. Very new exciting research that was proved to enable solving particular robotics tasks with very sparse rewards, could be used (goal would be defined as the environment's user requests) to eliminate the reward function shaping, which could make the results even more impressive.
 
 \item Adaptive memory size and experimenting with more of commonly used optimizers instead of SGD with Momentum - Adadelta, Adam. Gradient clipping. 
 
+\item One of the team's ideas, that could extend the accuracy estimation, is to prepare a validation set of hand-shaped states in which the agent's correct answer would be \textit{obvious}, for example a state where the temperature parameter is perfectly set, but the light shines too bright. We have not prepared such a testing set, but this might be a way to extend the current testing method.
+
+\item Totally separate, yet important suggestion is to bring the PyTorch code up to date with the changes made to the framework recently. Lot of code could be refactored due to the Tensors and Variables merge (now there are only Variables), new functionality that nicely substitute the usual CPU/GPU conditionals and more. 
+
 \end{itemize}
 \newpage
-\section{Bibliography and Useful Sources}
-\subsection{Reinforcement Learning - Getting Started}
-\begin{itemize}
-\item Richard S. Sutton and Andrew G. Barto. 1998. Introduction to Reinforcement Learning. MIT Press, Cambridge, MA, USA.
-\item Reinforcement Learning Course by David Silver - http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html
-\end{itemize}
-\subsection{Reinforcement Learning - Papers on improvements to basic methods}
-\begin{itemize}
-\item Playing Atari with Deep Reinforcement Learning - https://www.cs.toronto.edu/~vmnih/docs/dqn.pdf
-\item 
-Deep Reinforcement Learning with Double Q-learning - https://arxiv.org/abs/1509.06461
-\item Prioritized Experience Replay - https://arxiv.org/abs/1511.05952
-\end{itemize}
-\subsection{Reinforcement Learning - Useful Sources}
-\begin{itemize}
-\item https://github.com/dennybritz/reinforcement-learning
-\item  Rainbow: Combining Improvements in Deep Reinforcement Learning - https://arxiv.org/abs/1710.02298
-\item https://jaromiru.com/2016/11/07/lets-make-a-dqn-double-learning-and-prioritized-experience-replay/
-\end{itemize}
-\subsection{PyTorch}
-\begin{itemize}
-\item https://pytorch.org/tutorials/
-\end{itemize}
+
+\begin{thebibliography}{99}
+
+\bibitem{dqn_paper}
+  \textit{Playing Atari with Deep Reinforcement Learning}: https://arxiv.org/abs/1312.5602
+
+\bibitem{suttonBook}
+  
+  \textit{Introduction to Reinforcement Learning} from
+  Richard S. Sutton and Andrew G. Barto: http://incompleteideas.net/book/the-book-2nd.html
+
+\bibitem{silverCourse}
+  \textit{Reinforcement Learning Course by David Silver}:
+  http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html 
+
+\bibitem{doubledqn_paper}
+  \textit{Deep Reinforcement Learning with Double Q-learning}: https://arxiv.org/abs/1509.06461
+  
+\bibitem{per_paper}
+	\textit{Prioritized Experience Replay}: https://arxiv.org/abs/1509.06461
+	
+\bibitem{rainbow_paper}
+  \textit{Rainbow: Combining Improvements in Deep Reinforcement Learning}: https://arxiv.org/abs/1710.02298
+	
+\bibitem{rl_repo}
+	\textit{Reinforcement Learning - most popular repository of RL concepts implementation and exercises}: https://github.com/dennybritz/reinforcement-learning
+
+\bibitem{dqn_per_post}
+	\textit{Useful blog post with Double DQN and PER explained}: 
+	https://jaromiru.com/2016/11/07/lets-make-a-dqn-double-learning-and-prioritized-experience-replay/
+
+\bibitem{good_blog_post}
+	\textit{Very useful post with a lot of insight and intuition about DQN, Double DQN and more}: http://neuro.cs.ut.ee/demystifying-deep-reinforcement-learning/
+	
+\bibitem{pytorch}
+	\textit{PyTorch 0.3.1 Documentation}: https://pytorch.org/docs/0.3.1/
+
+\end{thebibliography}
+
 \end{document}
 

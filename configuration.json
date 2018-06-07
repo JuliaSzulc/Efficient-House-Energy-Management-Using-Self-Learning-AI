@@ -1,6 +1,6 @@
 {
     "main": {
-        "training_episodes"          : 10000,
+        "training_episodes"          : 5000,
         "save_experiment"            : true,
         "print_stats"                : true,
         "make_total_reward_plot"     : true,
@@ -14,12 +14,12 @@
         "memory_epsilon"             : 0.01,
         "memory_beta"                : 0.4,
         "memory_beta_increment"      : 0.001,
-        "hidden_layer_size"          : 60,
+        "hidden_layer_size"          : 50,
         "memory_size"                : 30000,
         "double_dqn"                 : true,
         "gamma"                      : 0.95,
         "epsilon"                    : 1.1,
-        "epsilon_decay"              : 0.998,
+        "epsilon_decay"              : 0.9985,
         "epsilon_min"                : 0.1,
         "batch_size"                 : 16,
         "learning_rate"              : 0.0001,
@@ -27,7 +27,7 @@
         "target_network_update_freq" : 500,
         "reward_clip"                : -2,
         "sgd_momentum"               : 0.95,
-        "q_to_target_ratio"          : 0.1
+        "q_to_target_ratio"          : 0.02
     },
     "env": {
         "timestep_in_minutes"        : 1,
