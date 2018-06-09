@@ -25,10 +25,17 @@ A complex simulation of the outside world, house and weather has been created as
 
  - A Debian based distribution of Linux operating system
  - Python 3.6.5 installed
+ - Python package manager (pip) and python3 tkinter library installed
+ 
+ On a Debian based operating system, you can use apt package manager to setup the requirements quickly:
+ ```
+ $ sudo apt-get update
+ $ sudo apt-get install python3.6 python3.6-pip python3-tk
+ ```
 
 ### Instalation:
 
-Install required Python3 libraries using [requirements.txt](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/requirements.txt)
+Install required Python3 libraries using [requirements.txt](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/requirements.txt). We recommend installing libraries inside virtual environment, altough this is not necessary. (for more info about virtualenvs, look [here](http://docs.python-guide.org/en/latest/dev/virtualenvs/)). 
   
 ```
 $ pip3 install -r requirements.txt
