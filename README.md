@@ -35,7 +35,7 @@ A complex simulation of the outside world, house and weather has been created as
 
 ### Instalation:
 
-Install required Python3 libraries using [requirements.txt](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/requirements.txt). We recommend installing libraries inside virtual environment, altough this is not necessary. (for more info about virtualenvs, look [here](http://docs.python-guide.org/en/latest/dev/virtualenvs/)). 
+Install required Python3 libraries using [requirements.txt](https://github.com/JuliaSzulc/RL-for-decission-process/tree/master/requirements.txt). We recommend installing libraries inside virtual environment, although this is not necessary. (for more info about virtualenvs, look [here](http://docs.python-guide.org/en/latest/dev/virtualenvs/)). 
   
 ```
 $ pip3 install -r requirements.txt
