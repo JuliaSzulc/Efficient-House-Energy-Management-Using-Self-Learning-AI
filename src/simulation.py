@@ -283,7 +283,12 @@ class Simulation:
                        0.13 * h, 0.13 * h, daynight_color, True)
 
     def draw_devices_widget(self):
-        """Whuhu, devicesssss"""
+        """Draws devices wigdet.
+        This wigdet has devices indicators informing the user about current
+        device states.
+
+        """
+
         # bg
         x = self.width * 3 // 7
         y = (self.height - 2 * self.margin) * 0.6 + self.margin
