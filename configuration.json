@@ -1,6 +1,7 @@
 {
     "main": {
-        "training_episodes"          : 5000,
+        "training_episodes"          : 50,
+        "save_periodically"          : true,
         "save_experiment"            : true,
         "print_stats"                : true,
         "make_total_reward_plot"     : true,

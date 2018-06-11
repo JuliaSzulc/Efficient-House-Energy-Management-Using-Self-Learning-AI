@@ -310,6 +310,8 @@ The project allows user to adjust values of some of the key parameters such as t
     \hline
     save\_experiment & boolean & Determines whether the model has to be saved after learning.\\
     \hline
+    save\_periodically & boolean & Determines whether the model should be saved each 1000 episodes, which gives an opportunity to see the evolving behavior of the model during learning.\\
+    \hline
     print\_stats & boolean & Decides whether the episode statistics will be printed during the training. Statistics inform about most commonly taken action and percent of time in which the parameters where close to the requested values.\\
     \hline
     make\_total\_reward\_plot & boolean & Determines whether the plot of total episode rewards should be generated at the end of learning.\\
@@ -392,6 +394,7 @@ One of the tested configuration for which most of the models are actually learni
     "main": {
         "training_episodes"          : 10000,
         "save_experiment"            : true,
+        "save_periodically"          : true,
         "print_stats"                : true,
         "make_total_reward_plot"     : true,
         "load_agent_model"           : false

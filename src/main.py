@@ -35,6 +35,9 @@ def main(config):
     # --- learning ---
     rewards = []
     for i in range(training_episodes):
+        if config['main']['save_periodically']:
+            if i > 0 and i % 1000 == 0:
+                model_id = AgentUtils.save(agent, rewards, model_id)
         t_reward = agent.run()
         rewards.append(t_reward)
 
