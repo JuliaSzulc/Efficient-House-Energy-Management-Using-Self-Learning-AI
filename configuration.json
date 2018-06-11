@@ -14,7 +14,7 @@
         "memory_epsilon"             : 0.01,
         "memory_beta"                : 0.4,
         "memory_beta_increment"      : 0.001,
-        "hidden_layer_size"          : 50,
+        "hidden_layer_size"          : 60,
         "memory_size"                : 30000,
         "double_dqn"                 : true,
         "gamma"                      : 0.95,
