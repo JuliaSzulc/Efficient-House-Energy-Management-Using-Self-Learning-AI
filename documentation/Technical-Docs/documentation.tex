@@ -538,9 +538,9 @@ As a young team of developers, we are very happy to work on an exciting field of
 
 \item Another thing that made the learning process harder was the way we modeled the reward function at first. Both quadratic functions for penalties and concept of 'acceptance intervals' for light and temperature differences made the learning harder, as the resulting Q function, that our model had to estimate, got much more complicated that it needed to be. The lesson here was to keep the reward function simple, and to not introduce any constructs that might be rational to a human, but do no good for the agent. 
 
-\item We have found that trying to perform learning computations on the GPU does not speed up the process. With a very simple neural network and small batch sizes, the overhead caused around 2 to 4 times slower execution of the learning mode. Please note that we were in possession of rather basic GPUs and newer, more expensive ones could potentially allow speed-ups.
+\item We have found that trying to perform agent's learning computations on the GPU does not speed up the process. With a very simple neural network and small batch sizes, the overhead caused around 2 to 4 times slower execution of the learning mode. Please note that we were in possession of rather basic GPUs and newer, more powerful ones could potentially allow speed-ups.
 
-\item While this might not be a proper failure, we are aware that the project - or this documentation - lacks statistics about the experiments, including results that would suggest the impact of certain parameters to quality of learning. We explain this by very broad space of possible configurations and limited computing power available during the development. It is also worth to come back to the project's main ideas and goals - as these were not strictly about extensive research on how to make the learning the fastest, but more to check the overall potential of Reinforcement Learning methods. 
+\item While this might not be a proper failure, we are aware that the project - or this documentation - lacks statistics about the experiments, including results that would suggest the impact of certain parameters to quality of learning. We explain this by very broad space of possible configurations and limited computing power available during the development. Although it is worth to come back to the project's main ideas and goals: these were not focused on an extensive research on how to make the learning the fastest, but more to check the overall potential of Reinforcement Learning methods. 
 \end{itemize}
 
 \section{Conclusions}
@@ -550,13 +550,13 @@ This project has made it's initial goal of examining the potential of Reinforcem
 Based on what we have not tried out yet and what have we read during the project development, we would like to list some of the potential improvements and further research directories.
 
 \begin{itemize}
-\item One of the obvious things that we recommend is to do a more exhaustive research, including series of multiple runs for the same configurations, to generate some aggregated, much more reliable and insightful statistics about parts and parameters of the project.
+\item One of the obvious things that we recommend is to do a more exhaustive research about best configurations and the impact of improvements, that we implemented on top of the standard DQN algorithm, by series of multiple runs for the same model, to generate some aggregated, much more reliable and insightful statistics about parts and parameters of the project.
 
-\item Extensions to the environment could, for example, introduce more outside factors, more 'extreme' conditions, more sensors or even a more complicated structure of the house. We think that is it not fully worth it to extend the state space, though. It already seems like neural networks can approximate strategies so well, that they can perform natural reasoning as long as the environment works reasonable.
+\item Extensions to the environment could, for example, introduce more outside factors, more 'extreme' conditions, more sensors or even a more complicated structure of the house. We think that is it not fully worth it to extend the state space, though. It already seems like neural networks can approximate strategies so well, that they can perform natural reasoning as long as the environment works reasonable. 
 
-\item The whole branch of Reinforcement Learning methods - Policy Gradients - are still an option to investigate and compare to the Q-learning method used here. 
+\item The whole branch of Reinforcement Learning methods, called Policy Gradients, are still an interesting option to be investigated and to be compared to the Q-learning branch we have used for the agent. 
 
-\item The design of the network output layer, or more generally, environment's set of available actions, could be reconsidered. In given time-frame, agent can influence only one of the settings, only by increasing or decreasing the value by a constant. This setup is the only one that we could design successfully to not make the neural network's output layer to 'explode' in terms of size. This action space results in possible slow reactions to sudden user requirements changes. We found the current research and methods of continuous action spaces too challenging to understand and implement, but more experienced engineers could probably make some serious improvement to the current design.
+\item The design of the network output layer, or more generally, environment's set of available actions, could be reconsidered. In given time-frame, agent can influence only one of the settings, only by increasing or decreasing the value by a constant. This setup is the only one that we could design successfully to not make the neural network's output layer to 'explode' in terms of size. This action space results in possible slow reactions to sudden user requirements changes. We found the current research and methods of continuous action spaces too challenging to understand and implement, but more experienced engineers could probably make some serious improvement to the current design. One of the suggestion would be to maintain smaller agents, each for management of a specific parameter. The idea of hierarchy in Reinforcement Learning is another research field currently in progress.
 
 \item There are some more improvements available to the Double DQN - Dueling DQN and Noisy DQN \cite{rainbow_paper} - and the current research yields some promising results that could be investigated in this project.
 
@@ -566,7 +566,7 @@ Based on what we have not tried out yet and what have we read during the project
 
 \item One of the team's ideas, that could extend the accuracy estimation, is to prepare a validation set of hand-shaped states in which the agent's correct answer would be \textit{obvious}, for example a state where the temperature parameter is perfectly set, but the light shines too bright. We have not prepared such a testing set, but this might be a way to extend the current testing method.
 
-\item Totally separate, yet important suggestion is to bring the PyTorch code up to date with the changes made to the framework recently. Lot of code could be refactored due to the Tensors and Variables merge (now there are only Variables), new functionality that nicely substitute the usual CPU/GPU conditionals and more. 
+\item Totally separate, yet important suggestion is to bring the PyTorch code up to date with the changes made to the framework recently. Some of the code could be refactored due to the Tensors and Variables merge (now there are only Variables), new functionality that nicely substitute the usual CPU/GPU conditionals and more. 
 
 \end{itemize}
 \newpage
