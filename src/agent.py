@@ -529,3 +529,6 @@ class AgentUtils:
             avg_rewards.append(np.mean(rewards[10 * i: 10 * (i + 1)]))
         plt.plot(avg_rewards)
         plt.savefig(path + '{}/learning_plot.png'.format(new_id))
+        plt.close()
+
+        return new_id
