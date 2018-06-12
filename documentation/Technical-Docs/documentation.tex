@@ -68,9 +68,31 @@ Reinforcement Learning is often explained by comparison to supervised learning, 
 There is a common vocabulary that is used to describe this setup. The \textbf{agent} (RL algorithm) has to interact with the \textbf{environment}, by performing \textbf{actions}. Environment gives the agent information about the \textbf{current state}, as well as the \textbf{reward signal} for the last time-frame. Agent has to choose the best one from the given set of possible actions. This is usually happening until the environment reaches a \textbf{terminal state}. Simulation from the start to terminal state is called an \textbf{episode}. A \textbf{transition} is defined as a sequence - state, action, reward and next state - and is used as a single 'experience' unit in agent's memory. 
 \\\\
 To put this into a perspective: In our project, the smart house manager is the agent. The simulated world is the environment. Actions are used to control devices such as heating or light. The state is a collection of information about the weather, inside parameters, current devices settings and user requests - everything that is needed for agent to perform rational decisions. The episode can be defined as - for example - one single day, where the terminal state is when the world clock reaches midnight.
+\subsection{Advantages of this approach}
+Besides the Reinforcement Learning field's recent, exciting progress, there is even more motivation behind testing it's methods in the decision making processes:
+\begin{itemize}
+\item Systems based on RL need much less expert knowledge to work properly.
+\item Models can find optimal, 'golden' points, which is hard to achieve by a human operator. 
+\item There is a big potential of making the models transferable between environments that share their profile, but are different in details, speeding the deployment process by eliminating the necessity to adjust system's modules.
+\item Optional possibility of using these models as supportive decision recommenders, not eliminating but \textbf{improving} the human performance.
+\end{itemize}
+
+One of the main advantage of such solution to the problem of, for example, managing a house, is that there is very little expert knowledge needed for these methods to learn. Of course, the reward signal is usually shaped by human, but shaping it is usually much less complicated, then translating a full set of rules (often formulated in quite fuzzy natural language) into the computer programming language. It is important to note here, that some of the recent achievements of RL are based on fully sparse rewards - like binary signals, where the signal's value is 1 in case of success and -1 in case of failure. Simple reward formulations, like \textit{distance}, that model traveled using a simulated human body in a fixed amount of time, are usually enough to learn an optimal running strategy. The ability to learn optimal strategies with so little knowledge is really impressive. This opens new possibilities, with software that, quite possibly in future, is ready to adapt itself (and find an optimal way to do it) in real life scenarios of decision making processes. \
+
+\subsection{Potential applications}
+In our project, we used Reinforcement Learning methods to successfully manage a simulated house environment. Based on the research and our own ideas, here we list some other example applications of these methods to real-life problems:
+
+\begin{itemize}
+\item \textbf{Scheduling problems.} This is family of problems that contain both the low level world of scheduling processes in the operating systems, and high-level world of possible scheduling problems in automatic storage units, factories and transport/logistics.
+\item \textbf{Resources distribution.} For example, problems like finding optimal distribution of human resources in big construction sites.
+\item \textbf{Attention mechanisms.} Use of Reinforcement Learning in attention-based problems is already proved to work, where the agent help a computer vision system choose where are the important fragments of the video or image \cite{attention}.
+\item \textbf{Trading systems.} While it is hard to find any optimistic results, there are claims and hopes, that these methods could work in highly stochastic environments. Interesting approaches make use of web scraping tools with NLP units to find hidden patterns and connections of, for example, tendency of cryptocurrency value and social media posts that mention it's name.
+\end{itemize}
+
+
 \subsection{What have we used?}
 Our agent uses Double DQN with Prioritized Experience Replay. This is a combination of recent developments in the field, which improve the speed, quality and stability of learning, and sometimes are essential for solving particular tasks. The neural network model is a fully connected feedforward network with one hidden layer. It uses ReLU activation function on hidden layer neurons and linear activation function on the output layer. For an explanation of these concepts and more detailed information about the agent, please see the Agent module section (4.2) and references at the end of the document.
-\subsection{PyTorch Framework}
+\subsection{PyTorch framework}
 To implement the agent and the concepts named above, we have used the PyTorch framework \cite{pytorch}. It is now commonly believed, that this frameworks becomes the go-to Python framework used for Deep Learning, with some essential advantages when compared to the - currently most popular - TensorFlow framework. While this is still a matter of loud discussions, we have chosen the framework more out of curiosity, and because it is often called 'more Pythonic'. We will talk more about our experiences and conclusions about that choice later in the documentation, but the short story is - we are satisfied with it.
 \\\\
 We are using PyTorch for a very clear neural network model declaration, ready-to-use optimizers like SGD or Adagrad and loss functions, automatic computation of the gradients of network's parameters, and to perform the Double DQN learning process. It also provides a clear way to use GPUs for the computations. 
@@ -78,8 +100,8 @@ We are using PyTorch for a very clear neural network model declaration, ready-to
 We have used the version 0.3.1 and it is important to note, that the newest stable version of the framework (0.4.0 on the day of this documentation's publication) requires some changes to the code.
 
 \newpage
-\section{Getting Started}
-\subsection{Setup and Requirements}
+\section{Getting started}
+\subsection{Setup and requirements}
 % Co zainstalować, jaka wersja Pythona, wszyściutko
 This project was made on Debian based Linux distributions. We strongly 
 recommend it in similar environment. 
@@ -98,7 +120,7 @@ $ pip3 install -r requirements.txt
 \end{lstlisting}
 From now on, you should be able to use our project by running different source scripts.
 
-\subsection{Usage: Learning and Simulation}
+\subsection{Usage: learning and simulation}
 % Tutaj opis możliwych trybów uruchomienia. Main/learning na start, potem symulacja. Zaznaczyć już tutaj istotność configuration.json itd.
 Our project can be run in different modes. These can be configured by changing contents of 
 \textbf{configuration.json} file, located in main project directory. This directory will be referred to as 
@@ -252,7 +274,7 @@ Environment is indispensable part of the project. It connects smaller parts of t
 
 \subsection{Agent module}
 The agent module is where all the Reinforcement Learning mechanisms are implemented and used. To get the idea of how to use it and how it works, we split the module into small components and explain each one by one.
-\subsubsection{Neural Network}
+\subsubsection{Neural network}
 The neural network model used in learning and choosing the actions is modeled as the \textbf{Net} class. It is fairly simple thanks to PyTorch framework and the code pretty much speaks for itself. The forward function defines the forward pass.
 
 \subsubsection{Agent class}
@@ -495,9 +517,9 @@ Even though, we still want to include a word or two about some of the parameters
 
 \end{itemize}
 
-\section{Development Process}
+\section{Development process}
 It is not a secret, that this project is more of a research than it is about making a production-ready system. While the most important research is concluded in the next section, we want to write couple of notes about our development process, to make it easier for new contributors to understand how the project was constructed. The most important tasks that were done are listed chronologically, and we also share some of the things that failed during the development process.
-\subsection{Development Stages}
+\subsection{Development stages}
 Here are the main stages of team's work during the project:
 \begin{itemize}
 \item Learning and research - learning about the Reinforcement Learning methods and algorithms - both the fundamental and specific ones that could fit to and solve the task, theoretical familiarization with the libraries and tools used in the next stages of system creation.
@@ -552,7 +574,7 @@ As a young team of developers, we are very happy to work on an exciting field of
 \section{Conclusions}
 
 This project has made it's initial goal of examining the potential of Reinforcement Learning in the context of decision-making processes, by training models that successfully manage a smart house environment, keeping the user requests fulfilled with optimized energy usage. We have developed a testing environment for new models and provided tools for both human-friendly simulations and low-level manual inspections of the inside transitions. Throughout the development process, we have learned a whole new machine learning field along with it's current research directions and reached several milestones, improving the simulator's realism and quality of models' learning processes. We have documented all the important information that we have encountered during the process. Our experience with this project suggests, that this field of research is very promising and exciting, yet still very hard to work with and a lot of concepts should be more heavily tested and investigated.
-\subsection{Further Development}
+\subsection{Further development}
 Based on what we have not tried out yet and what have we read during the project development, we would like to list some of the potential improvements and further research directories.
 
 \begin{itemize}
@@ -591,6 +613,9 @@ Based on what we have not tried out yet and what have we read during the project
   \textit{Reinforcement Learning Course by David Silver}:
   http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html 
 
+\bibitem{attention}
+	\textit{Visual Attention Model in Deep Learning}: https://towardsdatascience.com/visual-attention-model-in-deep-learning-708813c2912c
+
 \bibitem{doubledqn_paper}
   \textit{Deep Reinforcement Learning with Double Q-learning}: https://arxiv.org/abs/1509.06461
   
@@ -608,10 +633,11 @@ Based on what we have not tried out yet and what have we read during the project
 	https://jaromiru.com/2016/11/07/lets-make-a-dqn-double-learning-and-prioritized-experience-replay/
 
 \bibitem{good_blog_post}
-	\textit{Very useful post with a lot of insight and intuition about DQN, Double DQN and more}: http://neuro.cs.ut.ee/demystifying-deep-reinforcement-learning/
+	\textit{Very useful post with a lot of insight and intuition about DQN, Double DQN and more}: http://neuro.cs.ut.ee/demystifying-deep-reinforcement-learning/	
 	
 \bibitem{pytorch}
 	\textit{PyTorch 0.3.1 Documentation}: https://pytorch.org/docs/0.3.1/
+
 
 \end{thebibliography}
 
