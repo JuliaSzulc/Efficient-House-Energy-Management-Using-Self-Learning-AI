@@ -76,6 +76,8 @@ To implement the agent and the concepts named above, we have used the PyTorch fr
 We are using PyTorch for a very clear neural network model declaration, ready-to-use optimizers like SGD or Adagrad and loss functions, automatic computation of the gradients of network's parameters, and to perform the Double DQN learning process. It also provides a clear way to use GPUs for the computations. 
 
 We have used the version 0.3.1 and it is important to note, that the newest stable version of the framework (0.4.0 on the day of this documentation's publication) requires some changes to the code.
+
+\newpage
 \section{Getting Started}
 \subsection{Setup and Requirements}
 % Co zainstalować, jaka wersja Pythona, wszyściutko
@@ -110,7 +112,7 @@ $ cd TOP/src
 $ python3 main.py
 \end{lstlisting}
 In learning mode, Reinforcement Learning Agent model is learning for a given number of episodes.
-One episode is typically one day in randomly generated environment. Agent is performing action every few minutes, trying to get perfect balance between required conditions (light, temperature) and energy cost; he is also drawing conslusions from his mistakes. As the time passes, Agent is getting better; we can roughly say
+One episode is typically one day in randomly generated environment. Agent is performing action every few minutes, trying to get perfect balance between required conditions (light, temperature) and energy cost; he is also drawing conclusions from his mistakes. As the time passes, Agent is getting better; we can roughly say
 that in the long term, a longer trained Agent will perform better than the one after shorter training session,
 with the same training configuration.
 \\\\
@@ -118,13 +120,13 @@ After training session, model is typically saved in
 \begin{lstlisting}
 $ TOP/src/saved_models/
 \end{lstlisting}
-directory, within a separate folder with new index (indexes start at 0). Model is saved along with its configuration file, graph presenting learning curve and log with rewards from every step.
+directory, within a separate folder with new index (indexes start at 0). Model is saved along with its configuration file, graph presenting learning curve and log with rewards from every step. Also, main configuration offers a special flag for functionality that periodically saves the model, producing separate folders for each 'checkpoint'. This is both a more secure option and an opportunity to use these checkpoints in simulation after learning, to visually present model's evolution.
 \\\\
 Existing agent model can also be loaded into training session. In this case, you will be prompted to insert existing model's index number. Important to note here is that loaded model's parameters will be set from it's specific configuration file from it's folder, and the rest of the configuration (environment, main) will be loaded from the general configuration file.
 \\\\ 
 Basic configuration for this mode can be modified by changing contents of configuration.json, a part called \textbf{main}. Precise documentation of the whole configuration file can be found later in documentation. 
 \\\\
-\textit{NOTE:} Altough basic configuration for main (learning) mode is fairly limited, succesfull learning is built upon all environment / agent settings in configuration file. Default ones are based on our research in order to provide the best and most meaningful learning results.
+\textit{NOTE:} Altough basic configuration for main (learning) mode is fairly limited, successful learning is built upon all environment / agent settings in configuration file. Default ones are based on our research in order to provide the best and most meaningful learning results.
 
 \subsubsection{Simulation mode}
 This mode can be run by going into source files directory and launching \textbf{simulation.py}

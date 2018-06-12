@@ -1,6 +1,6 @@
 {
     "main": {
-        "training_episodes"          : 50,
+        "training_episodes"          : 5000,
         "save_periodically"          : true,
         "save_experiment"            : true,
         "print_stats"                : true,
@@ -27,7 +27,7 @@
         "training_freq"              : 4,
         "target_network_update_freq" : 500,
         "reward_clip"                : -2,
-        "sgd_momentum"               : 0.95,
+        "sgd_momentum"               : 0.93,
         "q_to_target_ratio"          : 0.02
     },
     "env": {
